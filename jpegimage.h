@@ -5,11 +5,12 @@
 extern "C" {
 #endif
 
-void loadJPEG(const char *filename, void *imagedata, unsigned *width, unsigned *height);
-void writeJPEG(const char *filename, void *imagedata, unsigned *width, unsigned *height);
+char * loadJPEG(const char *filename, char *imagedata, unsigned *width, unsigned *height, unsigned *components);
+void writeJPEG(const char *filename, char *imagedata, unsigned width, unsigned height, unsigned components);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
+
