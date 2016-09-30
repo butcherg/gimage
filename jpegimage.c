@@ -89,6 +89,8 @@ void writeJPEG(const char *filename, char *imagedata, unsigned width, unsigned h
 		dst += row_stride;
 	}
 
+	jpeg_finish_compress(&cinfo);
+
 }
 
 
