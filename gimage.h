@@ -22,14 +22,16 @@ class gImage
 		static gImage * loadRAW(const char * filename);
 		static gImage * loadJPEG(const char * filename);
 
+		//Image savers. 
 		gImage * saveJPEG(const char * filename);
 
 
 	private:
 		pix * img;
 		unsigned w, h, c;
-		
-
+		//Add:
+		//	exif?
+		//	icc
 
 };
 

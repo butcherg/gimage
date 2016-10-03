@@ -6,6 +6,8 @@
 #include "LibRaw-0.17.2/libraw/libraw.h"
 #include "jpeg-6b/jpeglib.h"
 
+//Constructor/Destructor:
+
 gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, unsigned bits)
 {
 	img = (pix *) malloc(width*height*sizeof(pix));
@@ -46,6 +48,8 @@ gImage::~gImage()
 	free(img);
 }
 
+
+//Getters:
 
 char * gImage::getImageData(unsigned bits)
 {
@@ -95,6 +99,9 @@ unsigned gImage::getColors()
 }
 
 
+
+//Loaders:
+
 gImage * gImage::loadRAW(const char * filename)
 {
 	int width, height, colors, bpp;
@@ -103,18 +110,17 @@ gImage * gImage::loadRAW(const char * filename)
 	RawProcessor.imgdata.params.shot_select = 0;
 	RawProcessor.imgdata.params.use_camera_wb = 1;
 	RawProcessor.imgdata.params.output_color = 1;	//sRGB, hardcoded for now
-	RawProcessor.imgdata.params.user_qual = 3;	//AHD
+	RawProcessor.imgdata.params.user_qual = 3;	//AHD, hardcoded for now
 
 	RawProcessor.imgdata.params.output_bps = 16;
-	RawProcessor.imgdata.params.gamm[0] = 1/2.222;	//1;
-	RawProcessor.imgdata.params.gamm[1] = 4.5;	//1;
-	RawProcessor.imgdata.params.no_auto_bright = 0; //1;
+	RawProcessor.imgdata.params.gamm[0] = 1/2.222;	//1;  changed for dev
+	RawProcessor.imgdata.params.gamm[1] = 4.5;	//1;  changed for dev
+	RawProcessor.imgdata.params.no_auto_bright = 0; //1;  changed for dev
 
 	RawProcessor.open_file(filename);
 	RawProcessor.unpack();
 	RawProcessor.dcraw_process();
 	RawProcessor.get_mem_image_format(&width, &height, &colors, &bpp);
-
 
 	libraw_processed_image_t *image = RawProcessor.dcraw_make_mem_image();
 
@@ -130,12 +136,17 @@ gImage * gImage::loadJPEG(const char * filename)
 {
 	unsigned width, height, colors, bpp;
 	char * image = 	_loadJPEG(filename, &width, &height, &colors);
+
 	gImage * I = new gImage(image, width, height, colors, 8);
+
 	free(image);
+
 	return I;
 }
 
 
+
+//Savers:
 
 gImage * gImage::saveJPEG(const char * filename)
 {
