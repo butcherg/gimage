@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "jpeg-6b/jpeglib.h"
 
-char * loadJPEG(const char *filename, char *imagedata, unsigned *width, unsigned *height, unsigned *components)
+char * _loadJPEG(const char *filename, unsigned *width, unsigned *height, unsigned *numcolors)
 {
 	struct jpeg_decompress_struct cinfo;
 	struct jpeg_error_mgr jerr;
@@ -26,8 +26,6 @@ char * loadJPEG(const char *filename, char *imagedata, unsigned *width, unsigned
 
 	jpeg_start_decompress(&cinfo);
 
-	//printf("Image name: %s, width: %d, height %d\n", filename, cinfo.output_width, cinfo.output_height);
-	//printf("Image name: %s, width: %d, height %d, precision: %d\n", filename, cinfo.image_width, cinfo.image_height, cinfo.num_components);
 
 	row_stride = cinfo.output_width * cinfo.output_components;
 	img = (char *)malloc(cinfo.image_height * row_stride);
@@ -43,16 +41,14 @@ char * loadJPEG(const char *filename, char *imagedata, unsigned *width, unsigned
 
 	*width = cinfo.image_width;
 	*height = cinfo.image_height;
-	*components = cinfo.output_components;
-
-	imagedata = img;
+	*numcolors = cinfo.output_components;
 	
 	return img;
 
 }
 
 
-void writeJPEG(const char *filename, char *imagedata, unsigned width, unsigned height, unsigned components)
+void _writeJPEG(const char *filename, char *imagedata, unsigned width, unsigned height, unsigned components)
 {
 
 	struct jpeg_compress_struct cinfo;

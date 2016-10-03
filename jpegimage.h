@@ -5,8 +5,8 @@
 extern "C" {
 #endif
 
-char * loadJPEG(const char *filename, char *imagedata, unsigned *width, unsigned *height, unsigned *components);
-void writeJPEG(const char *filename, char *imagedata, unsigned width, unsigned height, unsigned components);
+char * _loadJPEG(const char *filename, unsigned *width, unsigned *height, unsigned *numcolors);
+void _writeJPEG(const char *filename, char *imagedata, unsigned width, unsigned height, unsigned numcolors);
 
 #ifdef __cplusplus
 }
