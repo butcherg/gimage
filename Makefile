@@ -1,34 +1,36 @@
-
+OBJDIR=build
 
 LIBS=-Ljpeg-6b/ -LLibRaw-0.17.2/lib/.libs -Ltiff-4.0.6/libtiff/.libs
 INCLUDES=-Ijpeg-6b -ILibRaw-0.17.2/libraw -Itiff-4.0.6/libtiff
 
 LIBRAW_FLAGS=-DLIBRAW_NODLL
 
-
-nef2jpg: nef2jpg.o gimage.o jpegimage.o rawimage.o tiffimage.o
-	$(CXX) -fopenmp -o nef2jpg  nef2jpg.o jpegimage.o rawimage.o tiffimage.o gimage.o   $(LIBS) -lraw -ltiff -ljpeg -ljasper -llcms2 -lm -lstdc++  -llzma -ljbig -lz
+OBJECTS := $(addprefix $(OBJDIR)/,nef2jpg.o gimage.o jpegimage.o rawimage.o tiffimage.o)
 
 
-nef2jpg.o: nef2jpg.cpp
-	$(CC) $(INCLUDES) -o nef2jpg.o -c nef2jpg.cpp
+$(OBJDIR)/nef2jpg: $(OBJECTS)
+	$(CXX) -fopenmp -o$@  $(OBJECTS)   $(LIBS) -lraw -ltiff -ljpeg -ljasper -llcms2 -lm -lstdc++  -llzma -ljbig -lz
 
-gimage.o: gimage.cpp
-	$(CXX) $(INCLUDES) -o gimage.o -c gimage.cpp
 
-tiffimage.o: tiffimage.c tiffimage.h
-	$(CC) $(LIBRAW_FLAGS) $(INCLUDES) -o tiffimage.o -c tiffimage.c
+$(OBJDIR)/nef2jpg.o: nef2jpg.cpp
+	$(CC) $(INCLUDES) -c nef2jpg.cpp -o$@
 
-rawimage.o: rawimage.cpp rawimage.h
-	$(CXX) $(INCLUDES) -fopenmp -o rawimage.o -c rawimage.cpp
+$(OBJDIR)/gimage.o: gimage.cpp
+	$(CXX) $(INCLUDES)  -c gimage.cpp -o$@
 
-jpegimage.o: jpegimage.c jpegimage.h
-	$(CC) $(INCLUDES) -o jpegimage.o -c jpegimage.c
+$(OBJDIR)/tiffimage.o: tiffimage.c tiffimage.h
+	$(CC) $(LIBRAW_FLAGS) $(INCLUDES)  -c tiffimage.c -o$@
+
+$(OBJDIR)/rawimage.o: rawimage.cpp rawimage.h
+	$(CXX) $(INCLUDES) -fopenmp -c rawimage.cpp -o$@
+
+$(OBJDIR)/jpegimage.o: jpegimage.c jpegimage.h
+	$(CC) $(INCLUDES)  -c jpegimage.c -o$@
 
 clean:
 ifeq ($(OS), windows_NT)
-	rm -f nef2jpg.exe *.o
+	rm -f $(OBJDIR)/nef2jpg.exe $(OBJDIR)/*.o
 else
-	rm -f nef2jpg *.o
+	rm -f $(OBJDIR)/nef2jpg $(OBJDIR)/*.o
 endif
 
