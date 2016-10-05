@@ -13,12 +13,14 @@ int main (int argc, char **argv)
 	
 	char loadext[3], saveext[3];
 	strncpy(loadext,argv[1]+strlen(argv[1])-3,3);
-	strncpy(saveext,argv[2]+strlen(argv[2])-3,3);
+	if (argc >= 3) strncpy(saveext,argv[2]+strlen(argv[2])-3,3);
 
 
 	if (argc >=2) {
 		printf("loading %s...\n",argv[1]);
-		if (strcmp(loadext,"NEF") == 0) 
+		if (strcmp(loadext,"tif") == 0) 
+			image = gImage::loadTIFF(argv[1]);
+		else if (strcmp(loadext,"NEF") == 0) 
 			image = gImage::loadRAW(argv[1]);
 		else if (strcmp(loadext,"jpg") == 0)
 			image = gImage::loadJPEG(argv[1]);

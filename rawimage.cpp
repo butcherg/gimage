@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "LibRaw-0.17.2/libraw/libraw.h"
 
-char * loadRAW(const char *filename, char *imagedata, unsigned *width, unsigned *height, unsigned *numcolors, unsigned *numbits)
+char * _loadRAW(const char *filename, unsigned *width, unsigned *height, unsigned *numcolors, unsigned *numbits)
 {
 
 	int w, h, c, b;
@@ -33,7 +33,6 @@ char * loadRAW(const char *filename, char *imagedata, unsigned *width, unsigned 
 	libraw_processed_image_t *image = RawProcessor.dcraw_make_mem_image();
 	memcpy(img, image->data, image->data_size);
 	free(image);
-	imagedata = img;
 	
 	RawProcessor.recycle();
 

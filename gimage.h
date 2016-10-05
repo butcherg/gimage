@@ -21,6 +21,7 @@ class gImage
 		//Image loaders.  Return a new gImage
 		static gImage * loadRAW(const char * filename);
 		static gImage * loadJPEG(const char * filename);
+		static gImage * loadTIFF(const char * filename);
 
 		//Image savers. 
 		gImage * saveJPEG(const char * filename);

@@ -1,10 +1,12 @@
+#include "rawimage.h"
 #include "jpegimage.h"
+#include "tiffimage.h"
 #include "gimage.h"
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "LibRaw-0.17.2/libraw/libraw.h"
-#include "jpeg-6b/jpeglib.h"
+//#include "LibRaw-0.17.2/libraw/libraw.h"
+//#include "jpeg-6b/jpeglib.h"
 
 //Constructor/Destructor:
 
@@ -14,7 +16,6 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 	w=width;
 	h=height;
 	c=colors;
-
 
 	if (bits == 16) {
 		unsigned short * src = (unsigned short *) imagedata;
@@ -104,6 +105,7 @@ unsigned gImage::getColors()
 
 gImage * gImage::loadRAW(const char * filename)
 {
+/*
 	int width, height, colors, bpp;
 	LibRaw RawProcessor;
 
@@ -129,21 +131,33 @@ gImage * gImage::loadRAW(const char * filename)
 	RawProcessor.recycle();
 
 	return I;
+*/
+	unsigned width, height, colors, bpp;
+	char * image = _loadRAW(filename, &width, &height, &colors, &bpp);
+	gImage * I = new gImage(image, width, height, colors, bpp);
+	free(image);
+	return I;
 
 }
 
 gImage * gImage::loadJPEG(const char * filename)
 {
 	unsigned width, height, colors, bpp;
-	char * image = 	_loadJPEG(filename, &width, &height, &colors);
-
+	char * image = _loadJPEG(filename, &width, &height, &colors);
 	gImage * I = new gImage(image, width, height, colors, 8);
-
 	free(image);
-
 	return I;
 }
 
+
+gImage * gImage::loadTIFF(const char * filename)
+{
+	unsigned width, height, colors, bpp;
+	char * image = _loadTIFF(filename, &width, &height, &colors, &bpp);
+	gImage * I = new gImage(image, width, height, colors, bpp);
+	free(image);
+	return I;
+}
 
 
 //Savers:
