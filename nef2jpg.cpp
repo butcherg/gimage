@@ -32,6 +32,9 @@ int main (int argc, char **argv)
 		if (strcmp(saveext,"jpg") == 0) {
 			image->saveJPEG(argv[2]);
 		}
+		if (strcmp(saveext,"tif") == 0) {
+			image->saveTIFF(argv[2], 16);
+		}
 		else {
 			image->~gImage();
 			exit(1);

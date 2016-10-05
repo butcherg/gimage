@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsigned *numcolors, unsigned *numbits);
-void _writeTIFF(const char *filename, char *imagedata, unsigned width, unsigned height, unsigned numcolors);
+void _writeTIFF(const char *filename, char *imagedata, unsigned width, unsigned height, unsigned numcolors, unsigned numbits);
 
 #ifdef __cplusplus
 }

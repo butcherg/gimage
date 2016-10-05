@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "tiff-4.0.6/libtiff/tiffio.h"
 
 char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsigned *numcolors, unsigned *numbits)
@@ -50,9 +51,9 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 						src+=3;
 					}
 				}
-			}
-			TIFFClose(tif);
+			}			
 		}
+		TIFFClose(tif);
 	}
 
 	*width = w;
@@ -63,45 +64,63 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 }
 
 
-void _writeTIFF(const char *filename, char *imagedata, unsigned width, unsigned height, unsigned numcolors)
+void _writeTIFF(const char *filename, char *imagedata, unsigned width, unsigned height, unsigned numcolors, unsigned numbits)
 {
-/*
-	struct jpeg_compress_struct cinfo;
-	struct jpeg_error_mgr jerr;
+	char *img;
+	unsigned char *buf;
+	uint32 w, h, c, b;
 
-	cinfo.err = jpeg_std_error(&jerr);
-	jpeg_create_compress(&cinfo);
+	TIFF* tif = TIFFOpen(filename, "w");
+	if (tif) {
 
-	FILE * outfile;
-	unsigned row_stride;
-	JSAMPROW dst;
+		TIFFSetField(tif, TIFFTAG_IMAGEWIDTH, width);  // set the width of the image
+		TIFFSetField(tif, TIFFTAG_IMAGELENGTH, height);    // set the height of the image
+		TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, numcolors);   // set number of channels per pixel
+		TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, numbits);    // set the size of the channels
+		TIFFSetField(tif, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);    // set the origin of the image.
+		//   Some other essential fields to set that you do not have to understand for now.
+		TIFFSetField(tif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+		TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
 
-	if ((outfile = fopen(filename, "wb")) == NULL) {
-	    fprintf(stderr, "can't open %s\n", filename);
-	    exit(1);
+		size_t linebytes = numcolors * (numbits/8) * width;     // length in memory of one row of pixel in the image.
+		buf = NULL;        // buffer used to store the row of pixel information for writing to file
+
+printf("scan line size: %lu\n",TIFFScanlineSize(tif));
+
+		unsigned scanlinesize = TIFFScanlineSize(tif);
+
+		//    Allocating memory to store the pixels of current row
+		//if (TIFFScanlineSize(tif) == linebytes)
+		//	buf =(unsigned char *)_TIFFmalloc(linebytes);
+		//else
+		//	buf = (unsigned char *)_TIFFmalloc(TIFFScanlineSize(tif));
+		buf = (unsigned char *) _TIFFmalloc(scanlinesize);
+
+		// We set the strip size of the file to be size of one row of pixels
+		TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, TIFFDefaultStripSize(tif, width*numcolors));
+
+		//Now writing image to the file one strip at a time
+		img = imagedata;
+
+		unsigned row;
+printf("about to write %d scanlines.\n",height);
+		for ( row = 0; row < height; row++)
+		{
+			//memcpy(buf, &imagedata[(h-row-1)*linebytes], linebytes);    // check the index here, and figure out why not using h*linebytes
+			memcpy(buf, &img, scanlinesize-1);
+			if (TIFFWriteScanline(tif, buf, row, 0) < 0) {
+				printf("TIFFWriteScanline got an error...\n");
+				TIFFError(NULL,NULL);
+				break;
+			}
+			img+=scanlinesize;
+		}
+printf("%d rows written.\n",row);
+
 	}
-	jpeg_stdio_dest(&cinfo, outfile);
 
-	cinfo.image_width = width; 	
-	cinfo.image_height = height;
-	cinfo.input_components = components;	
-	cinfo.in_color_space = JCS_RGB; 
-
-	jpeg_set_defaults(&cinfo);
-
-	jpeg_start_compress(&cinfo, TRUE);
-
-	row_stride = cinfo.image_width * cinfo.input_components;
-	//img = (char *)malloc(cinfo.image_height * row_stride);
-	dst = imagedata;
-
-	while (cinfo.next_scanline < cinfo.image_height) {
-		jpeg_write_scanlines(&cinfo, &dst, 1);
-		dst += row_stride;
-	}
-
-	jpeg_finish_compress(&cinfo);
-*/
+	(void) TIFFClose(tif);
+	if (buf) _TIFFfree(buf);
 }
 
 

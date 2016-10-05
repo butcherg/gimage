@@ -61,13 +61,17 @@ char * gImage::getImageData(unsigned bits)
 		for (unsigned y=0; y<h; y++) {
 			pix * src = (pix *) (img + w*y);
 			for (unsigned x=0; x<w; x++) {
-				dst[0] = (unsigned short) (src->r*256.0);
-				dst[1] = (unsigned short) (src->g*256.0);
-				dst[2] = (unsigned short) (src->b*256.0);
+				dst[0] = (unsigned short) (src[x].r*256.0);
+				dst[1] = (unsigned short) (src[x].g*256.0);
+				dst[2] = (unsigned short) (src[x].b*256.0);
+
+				//dst[0] = (unsigned short) (src->r*256.0);
+				//dst[1] = (unsigned short) (src->g*256.0);
+				//dst[2] = (unsigned short) (src->b*256.0);
 				dst += 3;
 			}
 		}
-	}					
+	}
 
 	if (bits == 8) {
 		char * dst = (char *) imagedata;
@@ -162,9 +166,14 @@ gImage * gImage::loadTIFF(const char * filename)
 
 //Savers:
 
-gImage * gImage::saveJPEG(const char * filename)
+void gImage::saveJPEG(const char * filename)
 {
 	_writeJPEG(filename, getImageData(8),  w, h, c);
+}
+
+void gImage::saveTIFF(const char * filename, unsigned bits)
+{
+	_writeTIFF(filename, getImageData(bits),  w, h, c, bits);
 }
 
 

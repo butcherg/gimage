@@ -24,7 +24,8 @@ class gImage
 		static gImage * loadTIFF(const char * filename);
 
 		//Image savers. 
-		gImage * saveJPEG(const char * filename);
+		void saveJPEG(const char * filename);
+		void saveTIFF(const char * filename, unsigned bits);
 
 
 	private:
