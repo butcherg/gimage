@@ -5,11 +5,14 @@ INCLUDES=-Ijpeg-6b -ILibRaw-0.17.2/libraw -Itiff-4.0.6/libtiff
 
 LIBRAW_FLAGS=-DLIBRAW_NODLL
 
+WINLIBS=-lws2_32
+LINLIBS=-ljasper -llcms2 -lm -lstdc++  -llzma -ljbig -lz
+
 OBJECTS := $(addprefix $(OBJDIR)/,nef2jpg.o gimage.o jpegimage.o rawimage.o tiffimage.o)
 
 
 $(OBJDIR)/nef2jpg: $(OBJECTS)
-	$(CXX) -fopenmp -o$@  $(OBJECTS)   $(LIBS) -lraw -ltiff -ljpeg -ljasper -llcms2 -lm -lstdc++  -llzma -ljbig -lz
+	$(CXX) -fopenmp -o$@  $(OBJECTS)   $(LIBS) -lraw -ltiff -ljpeg $(LINLIBS)
 
 
 $(OBJDIR)/nef2jpg.o: nef2jpg.cpp
@@ -19,10 +22,10 @@ $(OBJDIR)/gimage.o: gimage.cpp
 	$(CXX) $(INCLUDES)  -c gimage.cpp -o$@
 
 $(OBJDIR)/tiffimage.o: tiffimage.c tiffimage.h
-	$(CC) $(LIBRAW_FLAGS) $(INCLUDES)  -c tiffimage.c -o$@
+	$(CC) $(INCLUDES)  -c tiffimage.c -o$@
 
 $(OBJDIR)/rawimage.o: rawimage.cpp rawimage.h
-	$(CXX) $(INCLUDES) -fopenmp -c rawimage.cpp -o$@
+	$(CXX) $(LIBRAW_FLAGS) $(INCLUDES) -fopenmp -c rawimage.cpp -o$@
 
 $(OBJDIR)/jpegimage.o: jpegimage.c jpegimage.h
 	$(CC) $(INCLUDES)  -c jpegimage.c -o$@
