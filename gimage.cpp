@@ -1,12 +1,12 @@
-#include "rawimage.h"
-#include "jpegimage.h"
-#include "tiffimage.h"
+
 #include "gimage.h"
 #include <stdlib.h>
 #include <stdio.h>
 
-//#include "LibRaw-0.17.2/libraw/libraw.h"
-//#include "jpeg-6b/jpeglib.h"
+#include "rawimage.h"
+#include "jpegimage.h"
+#include "tiffimage.h"
+
 
 //Constructor/Destructor:
 
@@ -42,6 +42,42 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 			}
 		}
 	}
+}
+
+gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, unsigned bits, std::map<std::string,std::string> imageinfo)
+{
+	img = (pix *) malloc(width*height*sizeof(pix));
+	w=width;
+	h=height;
+	c=colors;
+
+	if (bits == 16) {
+		unsigned short * src = (unsigned short *) imagedata;
+		for (unsigned y=0; y<h; y++) {
+			pix * dst = (pix *) (img + w*y);
+			for (unsigned x=0; x<w; x++) {
+				dst[x].r = src[0]/256;
+				dst[x].g = src[1]/256;
+				dst[x].b = src[2]/256;
+				src += 3;
+			}
+		}
+	}					
+
+	if (bits == 8) {
+		char * src = (char *) imagedata;
+		for (unsigned y=0; y<height; y++) {
+			pix * dst = (pix *) (img + w*y);
+			for (unsigned x=0; x<width; x++) {
+				dst[x].r = src[0];
+				dst[x].g = src[1];
+				dst[x].b = src[2];
+				src += 3;
+			}
+		}
+	}
+	imginfo = imageinfo;
+
 }
 
 gImage::~gImage()
@@ -103,42 +139,22 @@ unsigned gImage::getColors()
 	return c;
 }
 
+std::map<std::string,std::string> gImage::getInfo()
+{
+	return imginfo;
+}
+
 
 
 //Loaders:
 
 gImage * gImage::loadRAW(const char * filename)
 {
-/*
-	int width, height, colors, bpp;
-	LibRaw RawProcessor;
-
-	RawProcessor.imgdata.params.shot_select = 0;
-	RawProcessor.imgdata.params.use_camera_wb = 1;
-	RawProcessor.imgdata.params.output_color = 1;	//sRGB, hardcoded for now
-	RawProcessor.imgdata.params.user_qual = 3;	//AHD, hardcoded for now
-
-	RawProcessor.imgdata.params.output_bps = 16;
-	RawProcessor.imgdata.params.gamm[0] = 1/2.222;	//1;  changed for dev
-	RawProcessor.imgdata.params.gamm[1] = 4.5;	//1;  changed for dev
-	RawProcessor.imgdata.params.no_auto_bright = 0; //1;  changed for dev
-
-	RawProcessor.open_file(filename);
-	RawProcessor.unpack();
-	RawProcessor.dcraw_process();
-	RawProcessor.get_mem_image_format(&width, &height, &colors, &bpp);
-
-	libraw_processed_image_t *image = RawProcessor.dcraw_make_mem_image();
-
-	gImage * I = new gImage((char *) image->data, image->width,image->height,image->colors,image->bits);
-
-	RawProcessor.recycle();
-
-	return I;
-*/
-	unsigned width, height, colors, bpp;
-	char * image = _loadRAW(filename, &width, &height, &colors, &bpp);
-	gImage * I = new gImage(image, width, height, colors, bpp);
+	unsigned width, height, colors, bpp, icclength;
+	char * iccprofile;
+	std::map<std::string,std::string> imgdata;
+	char * image = _loadRAW1_m(filename, &width, &height, &colors, &bpp, imgdata, iccprofile, &icclength);
+	gImage * I = new gImage(image, width, height, colors, bpp, imgdata);
 	free(image);
 	return I;
 

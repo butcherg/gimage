@@ -27,6 +27,10 @@ int main (int argc, char **argv)
 		else exit(1);
 	}
 
+	std::map<std::string,std::string> imginfo = image->getInfo();
+	for (std::map<std::string,std::string>::iterator it=imginfo.begin(); it!=imginfo.end(); ++it)
+		printf("%s: %s\n",it->first.c_str(), it->second.c_str());
+
 	if (argc >=3) {
 		printf("saving %s...\n",argv[2]);
 		if (strcmp(saveext,"jpg") == 0) {

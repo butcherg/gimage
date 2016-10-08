@@ -25,7 +25,7 @@ $(OBJDIR)/tiffimage.o: tiffimage.c tiffimage.h
 	$(CC) $(INCLUDES)  -c tiffimage.c -o$@
 
 $(OBJDIR)/rawimage.o: rawimage.cpp rawimage.h
-	$(CXX) $(LIBRAW_FLAGS) $(INCLUDES) -fopenmp -c rawimage.cpp -o$@
+	$(CXX) $(LIBRAW_FLAGS) $(INCLUDES) -fopenmp  -c rawimage.cpp -o$@
 
 $(OBJDIR)/jpegimage.o: jpegimage.c jpegimage.h
 	$(CC) $(INCLUDES)  -c jpegimage.c -o$@
