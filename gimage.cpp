@@ -16,6 +16,7 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 	w=width;
 	h=height;
 	c=colors;
+printf("gImage::gImage: w:%d h:%d c:%d b:%d\n",width, height, colors, bits);
 
 	if (bits == 16) {
 		unsigned short * src = (unsigned short *) imagedata;
@@ -50,6 +51,7 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 	w=width;
 	h=height;
 	c=colors;
+printf("gImage::gImage1: w:%d h:%d c:%d b:%d\n",width, height, colors, bits);
 
 	if (bits == 16) {
 		unsigned short * src = (unsigned short *) imagedata;
@@ -153,7 +155,7 @@ gImage * gImage::loadRAW(const char * filename)
 	unsigned width, height, colors, bpp, icclength;
 	char * iccprofile;
 	std::map<std::string,std::string> imgdata;
-	char * image = _loadRAW1_m(filename, &width, &height, &colors, &bpp, imgdata, iccprofile, &icclength);
+	char * image = _loadRAW_m(filename, &width, &height, &colors, &bpp, imgdata, iccprofile, &icclength);
 	gImage * I = new gImage(image, width, height, colors, bpp, imgdata);
 	free(image);
 	return I;
@@ -173,8 +175,15 @@ gImage * gImage::loadJPEG(const char * filename)
 gImage * gImage::loadTIFF(const char * filename)
 {
 	unsigned width, height, colors, bpp;
-	char * image = _loadTIFF(filename, &width, &height, &colors, &bpp);
-	gImage * I = new gImage(image, width, height, colors, bpp);
+	std::map<std::string,std::string> imgdata;
+	//char * image = _loadTIFF(filename, &width, &height, &colors, &bpp);
+	//gImage * I = new gImage(image, width, height, colors, bpp);
+
+
+	char * image = _loadTIFF1(filename, &width, &height, &colors, &bpp, imgdata);
+	gImage * I = new gImage(image, width, height, colors, bpp, imgdata);
+
+printf("gImage::loadTIFF: f:%s w:%d h:%d c:%d b:%d\n",filename, width, height, colors, bpp);
 	free(image);
 	return I;
 }
@@ -189,7 +198,9 @@ void gImage::saveJPEG(const char * filename)
 
 void gImage::saveTIFF(const char * filename, unsigned bits)
 {
-	_writeTIFF(filename, getImageData(bits),  w, h, c, bits);
+printf("gImage::saveTIFF: f:%s w:%d h:%d c:%d b:%d\n",filename, w, h, c, bits);
+	//_writeTIFF(filename, getImageData(bits),  w, h, c, bits);
+	_writeTIFF1(filename, getImageData(bits),  w, h, c, bits, imginfo);
 }
 
 

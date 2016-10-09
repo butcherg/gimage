@@ -21,8 +21,8 @@ $(OBJDIR)/nef2jpg.o: nef2jpg.cpp
 $(OBJDIR)/gimage.o: gimage.cpp
 	$(CXX) $(INCLUDES)  -c gimage.cpp -o$@
 
-$(OBJDIR)/tiffimage.o: tiffimage.c tiffimage.h
-	$(CC) $(INCLUDES)  -c tiffimage.c -o$@
+$(OBJDIR)/tiffimage.o: tiffimage.cpp tiffimage.h
+	$(CXX) $(INCLUDES)  -c tiffimage.cpp -o$@
 
 $(OBJDIR)/rawimage.o: rawimage.cpp rawimage.h
 	$(CXX) $(LIBRAW_FLAGS) $(INCLUDES) -fopenmp  -c rawimage.cpp -o$@

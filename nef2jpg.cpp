@@ -1,5 +1,4 @@
-//#include "jpegimage.h"
-//#include "rawimage.h"
+
 #include "gimage.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -28,6 +27,7 @@ int main (int argc, char **argv)
 	}
 
 	std::map<std::string,std::string> imginfo = image->getInfo();
+
 	for (std::map<std::string,std::string>::iterator it=imginfo.begin(); it!=imginfo.end(); ++it)
 		printf("%s: %s\n",it->first.c_str(), it->second.c_str());
 
@@ -45,8 +45,8 @@ int main (int argc, char **argv)
 		}
 
 	}
-	image->~gImage(); 
 
+	image->~gImage(); 
 
 }
 
