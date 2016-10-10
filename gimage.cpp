@@ -2,6 +2,7 @@
 #include "gimage.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "rawimage.h"
 #include "jpegimage.h"
@@ -16,7 +17,6 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 	w=width;
 	h=height;
 	c=colors;
-printf("gImage::gImage: w:%d h:%d c:%d b:%d\n",width, height, colors, bits);
 
 	if (bits == 16) {
 		unsigned short * src = (unsigned short *) imagedata;
@@ -43,6 +43,7 @@ printf("gImage::gImage: w:%d h:%d c:%d b:%d\n",width, height, colors, bits);
 			}
 		}
 	}
+	if (bits == 0) img = (pix *) imagedata; //supplied by caller
 }
 
 gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, unsigned bits, std::map<std::string,std::string> imageinfo)
@@ -51,7 +52,6 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 	w=width;
 	h=height;
 	c=colors;
-printf("gImage::gImage1: w:%d h:%d c:%d b:%d\n",width, height, colors, bits);
 
 	if (bits == 16) {
 		unsigned short * src = (unsigned short *) imagedata;
@@ -78,9 +78,13 @@ printf("gImage::gImage1: w:%d h:%d c:%d b:%d\n",width, height, colors, bits);
 			}
 		}
 	}
+	if (bits == 0) img = (pix *) imagedata; // imagedata is already pix *
+
 	imginfo = imageinfo;
+	
 
 }
+
 
 gImage::~gImage()
 {
@@ -89,6 +93,16 @@ gImage::~gImage()
 
 
 //Getters:
+
+
+gImage * gImage::Copy()
+{
+	pix * i = (pix *) malloc(w*h*sizeof(pix));
+	memcpy(i, img, w*h*sizeof(pix));
+	std::map<std::string,std::string> info = imginfo;
+	return new gImage((char *)i, w, h, c, 0, info);
+}
+
 
 char * gImage::getImageData(unsigned bits)
 {
@@ -102,10 +116,6 @@ char * gImage::getImageData(unsigned bits)
 				dst[0] = (unsigned short) (src[x].r*256.0);
 				dst[1] = (unsigned short) (src[x].g*256.0);
 				dst[2] = (unsigned short) (src[x].b*256.0);
-
-				//dst[0] = (unsigned short) (src->r*256.0);
-				//dst[1] = (unsigned short) (src->g*256.0);
-				//dst[2] = (unsigned short) (src->b*256.0);
 				dst += 3;
 			}
 		}
@@ -124,6 +134,11 @@ char * gImage::getImageData(unsigned bits)
 		}
 	}
 	return imagedata;
+}
+
+pix * gImage::getImageData()
+{
+	return img;
 }
 
 unsigned gImage::getWidth()
@@ -146,6 +161,58 @@ std::map<std::string,std::string> gImage::getInfo()
 	return imginfo;
 }
 
+
+//Image Operations:
+
+gImage * gImage::ConvolutionKernel(double kernel[3][3], int threadcount)
+{
+	gImage *S = Copy();
+	pix * cpy = S->getImageData();
+
+	#pragma omp parallel for num_threads(threadcount)
+	for(unsigned y = 1; y < h-1; y++) {
+		for(unsigned x = 1; x < w-1; x++) {
+			pix * dst = (pix *) (cpy + w*y + sizeof(pix)*x);
+			double R=0.0; double G=0.0; double B=0.0;
+			for (unsigned kx=0; kx<3; kx++) {
+				int ix=kx*3;
+				for (int ky=0; ky<3; ky++) {
+					int i = ix+ky;
+					pix * src = (pix *) (img + w*(y-1+ky) + sizeof(pix)*(x-1+kx));
+					R += src->r * kernel[kx][ky];
+					G += src->g * kernel[kx][ky];
+					B += src->b * kernel[kx][ky];
+				}
+				dst->r = R;
+				dst->g = G;
+				dst->b = B;
+			}
+		}
+	}
+
+	return S;
+}
+
+
+gImage * gImage::Sharpen(int strength, int threadcount)
+{
+	double kernel[3][3] =
+	{
+		0.0, 0.0, 0.0,
+		0.0, 0.0, 0.0,
+		0.0, 0.0, 0.0
+	};
+
+	double x = -((strength)/4.0);
+	kernel[0][1] = x;
+	kernel[1][0] = x;
+	kernel[1][2] = x;
+	kernel[2][1] = x;
+	kernel[1][1] = strength+1;
+
+	return ConvolutionKernel(kernel, threadcount);
+
+}
 
 
 //Loaders:
@@ -176,14 +243,10 @@ gImage * gImage::loadTIFF(const char * filename)
 {
 	unsigned width, height, colors, bpp;
 	std::map<std::string,std::string> imgdata;
-	//char * image = _loadTIFF(filename, &width, &height, &colors, &bpp);
-	//gImage * I = new gImage(image, width, height, colors, bpp);
 
-
-	char * image = _loadTIFF1(filename, &width, &height, &colors, &bpp, imgdata);
+	char * image = _loadTIFF(filename, &width, &height, &colors, &bpp, imgdata);
 	gImage * I = new gImage(image, width, height, colors, bpp, imgdata);
 
-printf("gImage::loadTIFF: f:%s w:%d h:%d c:%d b:%d\n",filename, width, height, colors, bpp);
 	free(image);
 	return I;
 }
@@ -198,9 +261,7 @@ void gImage::saveJPEG(const char * filename)
 
 void gImage::saveTIFF(const char * filename, unsigned bits)
 {
-printf("gImage::saveTIFF: f:%s w:%d h:%d c:%d b:%d\n",filename, w, h, c, bits);
-	//_writeTIFF(filename, getImageData(bits),  w, h, c, bits);
-	_writeTIFF1(filename, getImageData(bits),  w, h, c, bits, imginfo);
+	_writeTIFF(filename, getImageData(bits),  w, h, c, bits, imginfo);
 }
 
 

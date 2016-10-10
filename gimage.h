@@ -15,12 +15,20 @@ class gImage
 		gImage() { }
 		gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, unsigned bits);
 		gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, unsigned bits, std::map<std::string,std::string> imageinfo);
+		//gImage::gImage(pix * imagedata, unsigned width, unsigned height, unsigned colors, unsigned bits, std::map<std::string,std::string> imageinfo);
 		~gImage();
+
+		gImage * Copy();
 		char *getImageData(unsigned bits);
+		pix *getImageData();
 		unsigned getWidth();
 		unsigned getHeight();
 		unsigned getColors();
 		std::map<std::string,std::string> getInfo();
+
+		//Image operations
+		gImage * ConvolutionKernel(double kernel[3][3], int threadcount);
+		gImage * Sharpen(int strength, int threadcount);
 
 
 		//Image loaders.  Return a new gImage
