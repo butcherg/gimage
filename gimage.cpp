@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include "rawimage.h"
 #include "jpegimage.h"
@@ -185,13 +186,13 @@ gImage * gImage::ConvolutionKernel(double kernel[3][3], int threadcount)
 					G += src->g * kernel[kx][ky];
 					B += src->b * kernel[kx][ky];
 				}
-				//dst->r = R;
-				//dst->g = G;
-				//dst->b = B;
+				dst->r = R;
+				dst->g = G;
+				dst->b = B;
 
-				dst->r = std::min(std::max(R, 0.0), 254.0);
-				dst->g = std::min(std::max(G, 0.0), 254.0);
-				dst->b = std::min(std::max(B, 0.0), 254.0);
+				//dst->r = floor(std::min(std::max(R, 0.0), 255.0));
+				//dst->g = floor(std::min(std::max(G, 0.0), 255.0));
+				//dst->b = floor(std::min(std::max(B, 0.0), 255.0));
 			}
 
 
@@ -200,6 +201,7 @@ gImage * gImage::ConvolutionKernel(double kernel[3][3], int threadcount)
 
 	return S;
 }
+
 
 
 gImage * gImage::Sharpen(int strength, int threadcount)
