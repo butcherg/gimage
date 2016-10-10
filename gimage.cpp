@@ -129,6 +129,10 @@ char * gImage::getImageData(unsigned bits)
 				dst[0] = (char) src[x].r; 
 				dst[1] = (char) src[x].g; 
 				dst[2] = (char) src[x].b; 
+
+				//dst[0] = (char) std::min(std::max(int(src[x].r),0),255); 
+				//dst[1] = (char) std::min(std::max(int(src[x].g),0),255);
+				//dst[2] = (char) std::min(std::max(int(src[x].b),0),255); 
 				dst += 3;
 			}
 		}
@@ -169,26 +173,30 @@ gImage * gImage::ConvolutionKernel(double kernel[3][3], int threadcount)
 	gImage *S = Copy();
 	pix * cpy = S->getImageData();
 
-	#pragma omp parallel for num_threads(threadcount)
+	//#pragma omp parallel for num_threads(threadcount)
 	for(unsigned y = 1; y < h-1; y++) {
 		for(unsigned x = 1; x < w-1; x++) {
-			pix * dst = (pix *) (cpy + w*y + sizeof(pix)*x);
+			pix * dst = (pix *) (cpy + w*y + x);
 			double R=0.0; double G=0.0; double B=0.0;
 			for (unsigned kx=0; kx<3; kx++) {
-				int ix=kx*3;
 				for (int ky=0; ky<3; ky++) {
-					int i = ix+ky;
-					pix * src = (pix *) (img + w*(y-1+ky) + sizeof(pix)*(x-1+kx));
+					pix * src = (pix *) (img + w*(y-1+ky) + (x-1+kx));
 					R += src->r * kernel[kx][ky];
 					G += src->g * kernel[kx][ky];
 					B += src->b * kernel[kx][ky];
 				}
-				dst->r = R;
-				dst->g = G;
-				dst->b = B;
+				//dst->r = R;
+				//dst->g = G;
+				//dst->b = B;
+
+				dst->r = std::min(std::max(R, 0.0), 254.0);
+				dst->g = std::min(std::max(G, 0.0), 254.0);
+				dst->b = std::min(std::max(B, 0.0), 254.0);
 			}
+
+
 		}
-	}
+	} 
 
 	return S;
 }

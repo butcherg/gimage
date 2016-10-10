@@ -12,14 +12,14 @@ OBJECTS := $(addprefix $(OBJDIR)/,nef2jpg.o gimage.o jpegimage.o rawimage.o tiff
 
 
 $(OBJDIR)/nef2jpg: $(OBJECTS)
-	$(CXX) -fopenmp -o$@  $(OBJECTS)   $(LIBS) -lraw -ltiff -ljpeg $(LINLIBS)
+	$(CXX)  -o$@  $(OBJECTS)   $(LIBS) -lraw -ltiff -ljpeg $(LINLIBS)
 
 
 $(OBJDIR)/nef2jpg.o: nef2jpg.cpp
 	$(CC) $(INCLUDES) -c nef2jpg.cpp -o$@
 
 $(OBJDIR)/gimage.o: gimage.cpp
-	$(CXX) $(INCLUDES)  -c gimage.cpp -o$@
+	$(CXX) $(INCLUDES) -c gimage.cpp -o$@
 
 $(OBJDIR)/tiffimage.o: tiffimage.cpp tiffimage.h
 	$(CXX) $(INCLUDES)  -c tiffimage.cpp -o$@
