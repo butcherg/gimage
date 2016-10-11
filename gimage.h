@@ -26,6 +26,8 @@ class gImage
 		unsigned getColors();
 		std::map<std::string,std::string> getInfo();
 
+		void Stats();
+
 		//Image operations
 		gImage * ConvolutionKernel(double kernel[3][3], int threadcount);
 		gImage * Sharpen(int strength, int threadcount);

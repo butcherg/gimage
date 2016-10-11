@@ -33,9 +33,14 @@ int main (int argc, char **argv)
 		printf("%s: %s\n",it->first.c_str(), it->second.c_str());
 	printf("\n");
 
+
+
 	
-	sharperimage = image->Sharpen(1,1);
-	//sharperimage = image->Copy();
+	//sharperimage = image->Sharpen(1,1);
+	sharperimage = image->Copy();
+
+	image->Stats();
+	sharperimage->Stats();
 
 	if (argc >=3) {
 		printf("saving %s...\n",argv[2]);

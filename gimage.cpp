@@ -59,9 +59,9 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 		for (unsigned y=0; y<h; y++) {
 			pix * dst = (pix *) (img + w*y);
 			for (unsigned x=0; x<w; x++) {
-				dst[x].r = src[0]/256;
-				dst[x].g = src[1]/256;
-				dst[x].b = src[2]/256;
+				dst[x].r = (double) src[0]/256.0;
+				dst[x].g = (double) src[1]/256.0;
+				dst[x].b = (double) src[2]/256.0;
 				src += 3;
 			}
 		}
@@ -72,9 +72,9 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 		for (unsigned y=0; y<height; y++) {
 			pix * dst = (pix *) (img + w*y);
 			for (unsigned x=0; x<width; x++) {
-				dst[x].r = src[0];
-				dst[x].g = src[1];
-				dst[x].b = src[2];
+				dst[x].r = (double) src[0];
+				dst[x].g = (double) src[1];
+				dst[x].b = (double) src[2];
 				src += 3;
 			}
 		}
@@ -104,6 +104,13 @@ gImage * gImage::Copy()
 	return new gImage((char *)i, w, h, c, 0, info);
 }
 
+inline
+unsigned char Clamp(int n)
+{
+    n = n>255 ? 255 : n;
+    return n<0 ? 0 : n;
+}
+
 
 char * gImage::getImageData(unsigned bits)
 {
@@ -127,13 +134,18 @@ char * gImage::getImageData(unsigned bits)
 		for (unsigned y=0; y<h; y++) {
 			pix * src = (pix *) (img + w*y);
 			for (unsigned x=0; x<w; x++) {
-				dst[0] = (char) src[x].r; 
-				dst[1] = (char) src[x].g; 
-				dst[2] = (char) src[x].b; 
+				dst[0] = (unsigned char) src[x].r; 
+				dst[1] = (unsigned char) src[x].g; 
+				dst[2] = (unsigned char) src[x].b; 
 
-				//dst[0] = (char) std::min(std::max(int(src[x].r),0),255); 
-				//dst[1] = (char) std::min(std::max(int(src[x].g),0),255);
-				//dst[2] = (char) std::min(std::max(int(src[x].b),0),255); 
+				//dst[0] = (unsigned char) floor(std::min(std::max(src[x].r,0.0),255.0)); 
+				//dst[1] = (unsigned char) floor(std::min(std::max(src[x].g,0.0),255.0));
+				//dst[2] = (unsigned char) floor(std::min(std::max(src[x].b,0.0),255.0)); 
+
+				//if (src[x].r > 255) dst[0] = (unsigned char) 255; if (src[x].r < 0) dst[0] = (unsigned char) 0;
+				//if (src[x].g > 255) dst[1] = (unsigned char) 255; if (src[x].g < 0) dst[1] = (unsigned char) 0;
+				//if (src[x].b > 255) dst[2] = (unsigned char) 255; if (src[x].b < 0) dst[2] = (unsigned char) 0;
+
 				dst += 3;
 			}
 		}
@@ -186,16 +198,22 @@ gImage * gImage::ConvolutionKernel(double kernel[3][3], int threadcount)
 					G += src->g * kernel[kx][ky];
 					B += src->b * kernel[kx][ky];
 				}
-				dst->r = R;
-				dst->g = G;
-				dst->b = B;
+				//dst->r = R;
+				//dst->g = G;
+				//dst->b = B;
 
 				//dst->r = floor(std::min(std::max(R, 0.0), 255.0));
 				//dst->g = floor(std::min(std::max(G, 0.0), 255.0));
 				//dst->b = floor(std::min(std::max(B, 0.0), 255.0));
 			}
 
+			dst->r = R;
+			dst->g = G;
+			dst->b = B;
 
+			//dst->r = floor(std::min(std::max(R, 0.0), 255.0));
+			//dst->g = floor(std::min(std::max(G, 0.0), 255.0));
+			//dst->b = floor(std::min(std::max(B, 0.0), 255.0));
 		}
 	} 
 
@@ -222,6 +240,28 @@ gImage * gImage::Sharpen(int strength, int threadcount)
 
 	return ConvolutionKernel(kernel, threadcount);
 
+}
+
+void gImage::Stats()
+{
+	double rmin, rmax, gmin, gmax, bmin, bmax;
+	rmin = img->r; rmax = img->r; gmin=img->g; gmax = img->g; bmin = img->b; bmax = img->b;
+	int iter = 0;
+
+	for(unsigned y = 1; y < h; y++) {
+		for(unsigned x = 1; x < w; x++) {
+			pix * p = (pix *) img + y + x;
+			if (p->r > rmax) rmax = p->r;
+			if (p->g > gmax) gmax = p->g;
+			if (p->b > bmax) bmax = p->b;
+			if (p->r < rmin) rmin = p->r;
+			if (p->g < gmin) gmin = p->g;
+			if (p->b < bmin) bmin = p->b;
+			iter++;
+		}
+	}
+	printf("rmin: %f  rmax: %f   gmin: %f   gmax: %f   bmin: %f   bmax: %f\n", rmin, rmax, gmin, gmax, bmin, bmax);
+	printf("iterations: %d\n", iter);
 }
 
 
