@@ -36,8 +36,8 @@ int main (int argc, char **argv)
 
 
 	
-	//sharperimage = image->Sharpen(1,1);
-	sharperimage = image->Copy();
+	sharperimage = image->Sharpen(1,1);
+	//sharperimage = image->Copy();
 
 	image->Stats();
 	sharperimage->Stats();
