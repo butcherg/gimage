@@ -8,18 +8,18 @@ LIBRAW_FLAGS=-DLIBRAW_NODLL
 WINLIBS=-lws2_32
 LINLIBS=-ljasper -llcms2 -lm -lstdc++  -llzma -ljbig -lz
 
-OBJECTS := $(addprefix $(OBJDIR)/,nef2jpg.o gimage.o jpegimage.o rawimage.o tiffimage.o)
+OBJECTS := $(addprefix $(OBJDIR)/,nef2jpg.o gimage.o jpegimage.o rawimage.o tiffimage.o elapsedtime.o)
 
 
 $(OBJDIR)/nef2jpg: $(OBJECTS)
-	$(CXX)  -o$@  $(OBJECTS)   $(LIBS) -lraw -ltiff -ljpeg $(LINLIBS)
+	$(CXX) -fopenmp  -o$@  $(OBJECTS)   $(LIBS) -lraw -ltiff -ljpeg $(LINLIBS)
 
 
 $(OBJDIR)/nef2jpg.o: nef2jpg.cpp
 	$(CC) $(INCLUDES) -c nef2jpg.cpp -o$@
 
 $(OBJDIR)/gimage.o: gimage.cpp
-	$(CXX) $(INCLUDES) -c gimage.cpp -o$@
+	$(CXX) $(INCLUDES) -O4 -fopenmp -c gimage.cpp -o$@
 
 $(OBJDIR)/tiffimage.o: tiffimage.cpp tiffimage.h
 	$(CXX) $(INCLUDES)  -c tiffimage.cpp -o$@
@@ -29,6 +29,9 @@ $(OBJDIR)/rawimage.o: rawimage.cpp rawimage.h
 
 $(OBJDIR)/jpegimage.o: jpegimage.c jpegimage.h
 	$(CC) $(INCLUDES)  -c jpegimage.c -o$@
+
+$(OBJDIR)/elapsedtime.o: elapsedtime.cpp elapsedtime.h
+	$(CXX) $(INCLUDES)  -c elapsedtime.cpp -o$@
 
 clean:
 ifeq ($(OS), windows_NT)

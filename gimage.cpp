@@ -61,9 +61,9 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 		for (unsigned y=0; y<h; y++) {
 			pix * dst = (pix *) (img + w*y);
 			for (unsigned x=0; x<w; x++) {
-				dst[x].r = (double) src[0]/256.0;
-				dst[x].g = (double) src[1]/256.0;
-				dst[x].b = (double) src[2]/256.0;
+				dst[x].r = (unsigned short) src[0]/256;
+				dst[x].g = (unsigned short) src[1]/256;
+				dst[x].b = (unsigned short) src[2]/256;
 				src += 3;
 			}
 		}
@@ -74,9 +74,9 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 		for (unsigned y=0; y<height; y++) {
 			pix * dst = (pix *) (img + w*y);
 			for (unsigned x=0; x<width; x++) {
-				dst[x].r = (double) src[0];
-				dst[x].g = (double) src[1];
-				dst[x].b = (double) src[2];
+				dst[x].r = (unsigned char) src[0];
+				dst[x].g = (unsigned char) src[1];
+				dst[x].b = (unsigned char) src[2];
 				src += 3;
 			}
 		}
@@ -123,9 +123,9 @@ char * gImage::getImageData(unsigned bits)
 		for (unsigned y=0; y<h; y++) {
 			pix * src = (pix *) (img + w*y);
 			for (unsigned x=0; x<w; x++) {
-				dst[0] = (unsigned short) (src[x].r*256.0);
-				dst[1] = (unsigned short) (src[x].g*256.0);
-				dst[2] = (unsigned short) (src[x].b*256.0);
+				dst[0] = (unsigned short) floor(fmin(fmax(src[x].r*256.0,0.0),65535.0)); 
+				dst[1] = (unsigned short) floor(fmin(fmax(src[x].g*256.0,0.0),65535.0));
+				dst[2] = (unsigned short) floor(fmin(fmax(src[x].b*256.0,0.0),65535.0)); 
 				dst += 3;
 			}
 		}
@@ -136,14 +136,9 @@ char * gImage::getImageData(unsigned bits)
 		for (unsigned y=0; y<h; y++) {
 			pix * src = (pix *) (img + w*y);
 			for (unsigned x=0; x<w; x++) {
-				//dst[0] = (unsigned char) src[x].r; 
-				//dst[1] = (unsigned char) src[x].g; 
-				//dst[2] = (unsigned char) src[x].b; 
-
-				dst[0] = (unsigned char) floor(std::min(std::max(src[x].r,0.0),255.0)); 
-				dst[1] = (unsigned char) floor(std::min(std::max(src[x].g,0.0),255.0));
-				dst[2] = (unsigned char) floor(std::min(std::max(src[x].b,0.0),255.0)); 
-
+				dst[0] = (unsigned char) floor(fmin(fmax(src[x].r,0.0),255.0)); 
+				dst[1] = (unsigned char) floor(fmin(fmax(src[x].g,0.0),255.0));
+				dst[2] = (unsigned char) floor(fmin(fmax(src[x].b,0.0),255.0)); 
 				dst += 3;
 			}
 		}
