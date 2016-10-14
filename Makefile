@@ -6,6 +6,7 @@ INCLUDES=-Ijpeg-6b -ILibRaw-0.17.2/libraw -Itiff-4.0.6/libtiff
 LIBRAW_FLAGS=-DLIBRAW_NODLL
 
 WINLIBS=-lws2_32
+WINLINKFLAGS=-static
 LINLIBS=-ljasper -llcms2 -lm -lstdc++  -llzma -ljbig -lz
 
 OBJECTS := $(addprefix $(OBJDIR)/,nef2jpg.o gimage.o jpegimage.o rawimage.o tiffimage.o elapsedtime.o)
