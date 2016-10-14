@@ -20,7 +20,7 @@ char * _loadRAW_m(const char *filename, unsigned *width, unsigned *height, unsig
 #define C RawProcessor.imgdata.color
 #define T RawProcessor.imgdata.thumbnail
 #define P2 RawProcessor.imgdata.other
-#define OUT RawProcessor.imgdata.params
+//#define OUT RawProcessor.imgdata.params
 
 	RawProcessor.imgdata.params.shot_select = 0;
 	RawProcessor.imgdata.params.use_camera_wb = 1;
