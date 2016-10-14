@@ -1,5 +1,9 @@
 OBJDIR=build
 
+CC=gcc
+
+CXX=g++
+
 LIBS=-Ljpeg-6b/ -LLibRaw-0.17.2/lib/.libs -Ltiff-4.0.6/libtiff/.libs
 INCLUDES=-Ijpeg-6b -ILibRaw-0.17.2/libraw -Itiff-4.0.6/libtiff
 
