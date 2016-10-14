@@ -1,4 +1,5 @@
 OBJDIR=build
+SYS=$(shell gcc -dumpmachine)
 
 CC=gcc
 CXX=g++
@@ -7,7 +8,7 @@ CXX=g++
 LIBDIRS=
 LIBS=-lraw -ltiff -ljpeg 
 INCLUDEDIRS=
-CFLAGS=-fopenmp
+CFLAGS=-fopenmp -O4
 LFLAGS=-fopenmp
 
 -include $(OBJDIR)/localmake.txt
@@ -38,8 +39,8 @@ $(OBJDIR)/elapsedtime.o: elapsedtime.cpp elapsedtime.h
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c elapsedtime.cpp -o$@
 
 clean:
-ifeq ($(OS), windows_NT)
-	rm -f $(OBJDIR)/nef2jpg.exe $(OBJDIR)/*.o
+ifeq ($(SYS), mingw32)
+	del $(OBJDIR)/nef2jpg.exe $(OBJDIR)/*.o
 else
 	rm -f $(OBJDIR)/nef2jpg $(OBJDIR)/*.o
 endif
