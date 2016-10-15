@@ -246,8 +246,8 @@ void gImage::Stats()
 			iter++;
 		}
 	}
-	printf("rmin: %f  rmax: %f   gmin: %f   gmax: %f   bmin: %f   bmax: %f\n", rmin, rmax, gmin, gmax, bmin, bmax);
-	printf("iterations: %d\n", iter);
+	printf("rmin: %f\trmax: %f\ngmin: %f\tgmax: %f\nbmin: %f\tbmax: %f\n", rmin, rmax, gmin, gmax, bmin, bmax);
+	printf("iterations: %d\n\n", iter);
 }
 
 
