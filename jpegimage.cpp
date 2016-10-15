@@ -1,6 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "jpeg-6b/jpeglib.h"
+
+#ifdef __cplusplus
+}
+#endif
 
 char * _loadJPEG(const char *filename, unsigned *width, unsigned *height, unsigned *numcolors)
 {
@@ -29,7 +38,7 @@ char * _loadJPEG(const char *filename, unsigned *width, unsigned *height, unsign
 
 	row_stride = cinfo.output_width * cinfo.output_components;
 	img = (char *)malloc(cinfo.image_height * row_stride);
-	dst = img;
+	dst = (JSAMPROW) img;
 
 	while (cinfo.output_scanline < cinfo.output_height) {
 		jpeg_read_scanlines(&cinfo, &dst, 1);
@@ -78,7 +87,7 @@ void _writeJPEG(const char *filename, char *imagedata, unsigned width, unsigned 
 
 	row_stride = cinfo.image_width * cinfo.input_components;
 	//img = (char *)malloc(cinfo.image_height * row_stride);
-	dst = imagedata;
+	dst = (JSAMPROW) imagedata;
 
 	while (cinfo.next_scanline < cinfo.image_height) {
 		jpeg_write_scanlines(&cinfo, &dst, 1);

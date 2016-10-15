@@ -32,8 +32,8 @@ $(OBJDIR)/tiffimage.o: tiffimage.cpp tiffimage.h
 $(OBJDIR)/rawimage.o: rawimage.cpp rawimage.h
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS)   -c rawimage.cpp -o$@
 
-$(OBJDIR)/jpegimage.o: jpegimage.c jpegimage.h
-	$(CC) $(CFLAGS) $(INCLUDEDIRS) -c jpegimage.c -o$@
+$(OBJDIR)/jpegimage.o: jpegimage.cpp jpegimage.h
+	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c jpegimage.cpp -o$@
 
 $(OBJDIR)/jpegexif.o: jpegexif.cpp jpegexif.h
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c jpegexif.cpp -o$@
