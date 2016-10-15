@@ -50,15 +50,15 @@ char * _loadRAW_m(const char *filename, unsigned *width, unsigned *height, unsig
 	icc_m = NULL;
 	*icclength = 0;
 
-	info["iso"] = tostr(P2.iso_speed);
-	info["shutter"] = tostr(P2.shutter);
-	info["aperture"] = tostr(P2.aperture);
-	info["focallength"] = tostr(P2.focal_len);
-	info["shottime"] = tostr(P2.timestamp);
-	info["description"] = P2.desc;
-	info["artist"] = P2.artist;
-	info["make"] = P1.make;
-	info["model"] = P1.model;
+	info["ISOSpeedRatings"] = tostr(P2.iso_speed);  //ISOSpeedRatings, int16u
+	info["ExposureTime"] = tostr(P2.shutter);  //ExposureTime, rational64u
+	info["FNumbe"] = tostr(P2.aperture);  //FNumber, rational64u
+	info["FocalLength"] = tostr(P2.focal_len);  //FocalLength, rational64u
+	info["DateTime"] = tostr(P2.timestamp);  //DateTime, //DateTimeOriginal, string
+	info["ImageDescription"] = P2.desc;  //ImageDescription, string
+	info["Artist"] = P2.artist;  //Artist, string
+	info["Make"] = P1.make;  //Make, string
+	info["Model"] = P1.model;  //Model, string
 
 	RawProcessor.recycle();
 
