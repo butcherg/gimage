@@ -13,7 +13,7 @@ LFLAGS=-fopenmp
 
 -include $(OBJDIR)/localmake.txt
 
-OBJECTS := $(addprefix $(OBJDIR)/,nef2jpg.o gimage.o jpegimage.o rawimage.o tiffimage.o elapsedtime.o)
+OBJECTS := $(addprefix $(OBJDIR)/,nef2jpg.o gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o elapsedtime.o)
 
 
 $(OBJDIR)/nef2jpg: $(OBJECTS)
@@ -34,6 +34,9 @@ $(OBJDIR)/rawimage.o: rawimage.cpp rawimage.h
 
 $(OBJDIR)/jpegimage.o: jpegimage.c jpegimage.h
 	$(CC) $(CFLAGS) $(INCLUDEDIRS) -c jpegimage.c -o$@
+
+$(OBJDIR)/jpegexif.o: jpegexif.cpp jpegexif.h
+	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c jpegexif.cpp -o$@
 
 $(OBJDIR)/elapsedtime.o: elapsedtime.cpp elapsedtime.h
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c elapsedtime.cpp -o$@
