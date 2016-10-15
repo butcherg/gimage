@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <map>
+#include <string>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -11,7 +14,10 @@ extern "C" {
 }
 #endif
 
-char * _loadJPEG(const char *filename, unsigned *width, unsigned *height, unsigned *numcolors)
+
+#include "jpegexif.h"
+
+char * _loadJPEG(const char *filename, unsigned *width, unsigned *height, unsigned *numcolors, std::map<std::string,std::string> &info)
 {
 	struct jpeg_decompress_struct cinfo;
 	struct jpeg_error_mgr jerr;
@@ -30,8 +36,17 @@ char * _loadJPEG(const char *filename, unsigned *width, unsigned *height, unsign
 	}
 	jpeg_stdio_src(&cinfo, infile);
 
+	jpeg_save_markers(&cinfo, JPEG_APP0+1, 0xFFFF);
+
 	jpeg_read_header(&cinfo, TRUE);
 
+	jpeg_marker_struct * marker = cinfo.marker_list;
+	std::map<std::string,std::string> imageinfo;
+
+	while (marker != NULL) {
+		parse_APP1marker(marker->data-2, marker->data_length, info);
+		marker = marker->next;
+	}
 
 	jpeg_start_decompress(&cinfo);
 
@@ -57,7 +72,7 @@ char * _loadJPEG(const char *filename, unsigned *width, unsigned *height, unsign
 }
 
 
-void _writeJPEG(const char *filename, char *imagedata, unsigned width, unsigned height, unsigned components)
+void _writeJPEG(const char *filename, char *imagedata, unsigned width, unsigned height, unsigned components, std::map<std::string,std::string> info)
 {
 
 	struct jpeg_compress_struct cinfo;

@@ -268,8 +268,9 @@ gImage * gImage::loadRAW(const char * filename)
 gImage * gImage::loadJPEG(const char * filename)
 {
 	unsigned width, height, colors, bpp;
-	char * image = _loadJPEG(filename, &width, &height, &colors);
-	gImage * I = new gImage(image, width, height, colors, 8);
+	std::map<std::string,std::string> imgdata;
+	char * image = _loadJPEG(filename, &width, &height, &colors, imgdata);
+	gImage * I = new gImage(image, width, height, colors, 8, imgdata);
 	free(image);
 	return I;
 }
@@ -279,10 +280,8 @@ gImage * gImage::loadTIFF(const char * filename)
 {
 	unsigned width, height, colors, bpp;
 	std::map<std::string,std::string> imgdata;
-
 	char * image = _loadTIFF(filename, &width, &height, &colors, &bpp, imgdata);
 	gImage * I = new gImage(image, width, height, colors, bpp, imgdata);
-
 	free(image);
 	return I;
 }
@@ -292,7 +291,7 @@ gImage * gImage::loadTIFF(const char * filename)
 
 void gImage::saveJPEG(const char * filename)
 {
-	_writeJPEG(filename, getImageData(8),  w, h, c);
+	_writeJPEG(filename, getImageData(8),  w, h, c, imginfo);
 }
 
 void gImage::saveTIFF(const char * filename, unsigned bits)
