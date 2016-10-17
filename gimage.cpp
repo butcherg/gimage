@@ -48,7 +48,6 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 }
 
 
-//needs same type casting as constructor above:
 gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, unsigned bits, std::map<std::string,std::string> imageinfo)
 {
 	img = (pix *) malloc(width*height*sizeof(pix));
@@ -104,13 +103,6 @@ gImage * gImage::Copy()
 	memcpy(i, img, w*h*sizeof(pix));
 	std::map<std::string,std::string> info = imginfo;
 	return new gImage((char *)i, w, h, c, 0, info);
-}
-
-inline
-unsigned char Clamp(int n)
-{
-    n = n>255 ? 255 : n;
-    return n<0 ? 0 : n;
 }
 
 
@@ -253,6 +245,16 @@ void gImage::Stats()
 
 //Loaders:
 
+gImage * gImage::loadImageFile(const char * filename)
+{
+	char ext[5];
+	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
+	if (strcmp(ext,"tif") == 0) return gImage::loadTIFF(filename);
+	if (strcmp(ext,"NEF") == 0) return gImage::loadRAW(filename);
+	if (strcmp(ext,"jpg") == 0) return gImage::loadJPEG(filename);
+	return NULL;
+}
+
 gImage * gImage::loadRAW(const char * filename)
 {
 	unsigned width, height, colors, bpp, icclength;
@@ -288,6 +290,22 @@ gImage * gImage::loadTIFF(const char * filename)
 
 
 //Savers:
+
+bool gImage::saveImageFile(const char * filename)
+{
+	char ext[5];
+	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
+	if (strcmp(ext,"tif") == 0) {
+		saveTIFF(filename, 16);
+		return true;
+	}
+	if (strcmp(ext,"jpg") == 0) {
+		saveJPEG(filename);
+		return true;
+	}
+	return false;
+}
+
 
 void gImage::saveJPEG(const char * filename)
 {

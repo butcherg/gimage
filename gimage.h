@@ -13,6 +13,7 @@ class gImage
 {
 	public:
 		gImage() { }
+		gImage(std::string filename);
 		gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, unsigned bits);
 		gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, unsigned bits, std::map<std::string,std::string> imageinfo);
 		//gImage::gImage(pix * imagedata, unsigned width, unsigned height, unsigned colors, unsigned bits, std::map<std::string,std::string> imageinfo);
@@ -37,10 +38,11 @@ class gImage
 		static gImage * loadRAW(const char * filename);
 		static gImage * loadJPEG(const char * filename);
 		static gImage * loadTIFF(const char * filename);
-
+		static gImage * loadImageFile(const char * filename);
 		//Image savers. 
 		void saveJPEG(const char * filename);
 		void saveTIFF(const char * filename, unsigned bits);
+		bool saveImageFile(const char * filename);
 
 
 	private:

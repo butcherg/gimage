@@ -13,15 +13,21 @@ LFLAGS=-fopenmp
 
 -include $(OBJDIR)/localmake.txt
 
-OBJECTS := $(addprefix $(OBJDIR)/,nef2jpg.o gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o elapsedtime.o)
+OBJECTS := $(addprefix $(OBJDIR)/,gimg.o gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o elapsedtime.o)
 
 
-$(OBJDIR)/nef2jpg: $(OBJECTS)
+#$(OBJDIR)/nef2jpg: $(OBJECTS)
+#	$(CXX) $(LFLAGS) -o$@  $(OBJECTS) $(LIBDIRS) $(LIBS)
+
+$(OBJDIR)/gimg: $(OBJECTS)
 	$(CXX) $(LFLAGS) -o$@  $(OBJECTS) $(LIBDIRS) $(LIBS)
 
 
-$(OBJDIR)/nef2jpg.o: nef2jpg.cpp
-	$(CC) $(CFLAGS) $(INCLUDEDIRS) -c nef2jpg.cpp -o$@
+#$(OBJDIR)/nef2jpg.o: nef2jpg.cpp
+#	$(CC) $(CFLAGS) $(INCLUDEDIRS) -c nef2jpg.cpp -o$@
+
+$(OBJDIR)/gimg.o: gimg.cpp
+	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c gimg.cpp -o$@
 
 $(OBJDIR)/gimage.o: gimage.cpp
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -O4 -fopenmp -c gimage.cpp -o$@
@@ -43,7 +49,7 @@ $(OBJDIR)/elapsedtime.o: elapsedtime.cpp elapsedtime.h
 
 clean:
 ifeq ($(SYS), mingw32)
-	del $(OBJDIR)/nef2jpg.exe $(OBJDIR)/*.o
+	rm $(OBJDIR)/nef2jpg.exe $(OBJDIR)/*.o
 else
 	rm -f $(OBJDIR)/nef2jpg $(OBJDIR)/*.o
 endif
