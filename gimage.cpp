@@ -171,7 +171,7 @@ gImage * gImage::ConvolutionKernel(double kernel[3][3], int threadcount)
 	gImage *S = Copy();
 	pix * cpy = S->getImageData();
 
-	//#pragma omp parallel for num_threads(threadcount)
+	#pragma omp parallel for num_threads(threadcount)
 	for(unsigned y = 1; y < h-1; y++) {
 		for(unsigned x = 1; x < w-1; x++) {
 			pix * dst = (pix *) (cpy + w*y + x);
