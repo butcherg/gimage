@@ -449,7 +449,7 @@ for (int f=0; f<files.size(); f++)
 	if (dib->saveImageFile(output_filename)) 
 		printf("done. (%fsec)\n\n",_duration());
 	else
-		printf("Error: bad output file specification:\n\n",output_filename);
+		printf("Error: bad output file specification: %s\n\n",output_filename);
 
 	dib->~gImage();
 
