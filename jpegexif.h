@@ -6,7 +6,7 @@
 
 
 void parse_APP1marker(unsigned char * marker, unsigned length, std::map<std::string,std::string> &imageinfo);
-const char * construct_APP1marker(std::map<std::string,std::string> imageinfo);
+unsigned char * construct_APP1marker(std::map<std::string,std::string> imageinfo, unsigned *markerlen);
 
 
 #endif

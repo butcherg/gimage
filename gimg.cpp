@@ -199,6 +199,12 @@ for (int f=0; f<files.size(); f++)
 		exit(1);
 	}
 
+
+	std::map<std::string,std::string> imginfo = dib->getInfo();
+	for (std::map<std::string,std::string>::iterator it=imginfo.begin(); it!=imginfo.end(); ++it)
+		printf("%s: %s\n",it->first.c_str(), it->second.c_str());
+	printf("\n");
+
 	
 	for (int i=0; i<commands.size(); i++) {
 		char c[256];

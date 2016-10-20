@@ -56,6 +56,7 @@ std::string FormatName(int fmt)
 
 typedef struct {
     unsigned short Tag;
+    unsigned short Fmt;
     const char * Desc;
 }TagTable_t;
 
@@ -691,8 +692,59 @@ void parse_APP1marker(unsigned char * marker, unsigned length, std::map<std::str
 
 
 
-const char * construct_APP1marker(std::map<std::string,std::string> imageinfo)
+unsigned char * construct_APP1marker(std::map<std::string,std::string> imageinfo, unsigned *markerlen)
 {
+	char Buffer[256];
+
+	unsigned short NumEntries;
+	int DataWriteIndex;
+	int DateIndex;
+	int DirIndex;
+	int DirContinuation;
+    
+	MotorolaOrder = 0;
+
+	memcpy(Buffer+2, "Exif\0\0II",8);
+	Put16u(Buffer+10, 0x2a);
+
+	DataWriteIndex = 16;
+	Put32u(Buffer+12, DataWriteIndex-8); // first IFD offset.  Means start 16 bytes in.
+
+	{
+		DirIndex = DataWriteIndex;
+		//NumEntries = imageinfo.size();
+		NumEntries = 1;
+		DataWriteIndex += 2 + NumEntries*12 + 4;
+
+		Put16u(Buffer+DirIndex, NumEntries); // Number of entries
+		DirIndex += 2;
+
+        		Put16u(Buffer+DirIndex, 	TAG_IMAGE_DESCRIPTION);			// Tag
+        		Put16u(Buffer+DirIndex + 2,	FMT_STRING);				// Format
+       			Put32u(Buffer+DirIndex + 4,	imageinfo["DateTime"].size()+1);	// Components
+        		Put32u(Buffer+DirIndex + 8,	DataWriteIndex-8);			// Pointer or value.
+       			DirIndex += 12;
+
+			memcpy(Buffer+DataWriteIndex, imageinfo["Artist"].c_str(), imageinfo["DateTime"].size()+1);
+			DataWriteIndex += imageinfo["DateTime"].size()+1;
+
+			for (std::map<std::string,std::string>::iterator it=imageinfo.begin(); it!=imageinfo.end(); ++it) {
+				printf("%s: %s\n",it->first.c_str(), it->second.c_str());
+			}
+
+	}
+
+	Buffer[0] = (unsigned char)(DataWriteIndex >> 8);
+	Buffer[1] = (unsigned char)DataWriteIndex;
+
+	unsigned char * NewBuf = (unsigned char *) malloc(DataWriteIndex);
+	if (NewBuf == NULL){
+		printf("Could not allocate memory\n");
+	}
+	memcpy(NewBuf, Buffer, DataWriteIndex);
+
+	*markerlen = (unsigned int) DataWriteIndex;
+	return NewBuf;
 
 }
 
