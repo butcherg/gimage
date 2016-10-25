@@ -190,7 +190,7 @@ for (int f=0; f<files.size(); f++)
 
 	printf("Loading file %s... ",fname);
 	_mark();
-	dib = gImage::loadImageFile(fname);
+	dib = gImage::loadImageFile(fname, "");
 	if (dib) {
 		printf("done. (%fsec)\nImage size: %dx%d\n",_duration(), dib->getWidth(),dib->getHeight());
 	}

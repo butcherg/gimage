@@ -245,22 +245,22 @@ void gImage::Stats()
 
 //Loaders:
 
-gImage * gImage::loadImageFile(const char * filename)
+gImage * gImage::loadImageFile(const char * filename, std::string params)
 {
 	char ext[5];
 	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
-	if (strcmp(ext,"tif") == 0) return gImage::loadTIFF(filename);
-	if (strcmp(ext,"NEF") == 0) return gImage::loadRAW(filename);
-	if (strcmp(ext,"jpg") == 0) return gImage::loadJPEG(filename);
+	if (strcmp(ext,"tif") == 0) return gImage::loadTIFF(filename, params);
+	if (strcmp(ext,"NEF") == 0) return gImage::loadRAW(filename, params);
+	if (strcmp(ext,"jpg") == 0) return gImage::loadJPEG(filename, params);
 	return NULL;
 }
 
-gImage * gImage::loadRAW(const char * filename)
+gImage * gImage::loadRAW(const char * filename, std::string params)
 {
 	unsigned width, height, colors, bpp, icclength;
 	char * iccprofile;
 	std::map<std::string,std::string> imgdata;
-	std::string params = "autobright=1";
+	//std::string params = "autobright=1";
 	char * image = _loadRAW_m(filename, &width, &height, &colors, &bpp, imgdata, params, iccprofile, &icclength);
 	gImage * I = new gImage(image, width, height, colors, bpp, imgdata);
 	free(image);
@@ -268,7 +268,7 @@ gImage * gImage::loadRAW(const char * filename)
 
 }
 
-gImage * gImage::loadJPEG(const char * filename)
+gImage * gImage::loadJPEG(const char * filename, std::string params)
 {
 	unsigned width, height, colors, bpp;
 	std::map<std::string,std::string> imgdata;
@@ -279,7 +279,7 @@ gImage * gImage::loadJPEG(const char * filename)
 }
 
 
-gImage * gImage::loadTIFF(const char * filename)
+gImage * gImage::loadTIFF(const char * filename, std::string params)
 {
 	unsigned width, height, colors, bpp;
 	std::map<std::string,std::string> imgdata;

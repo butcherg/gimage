@@ -40,7 +40,7 @@ char * _loadRAW_m(const char *filename, unsigned *width, unsigned *height, unsig
 	RawProcessor.imgdata.params.gamm[1] = 4.5;	//1;
 
 	if (p.find("autobright") != p.end()) {
-		RawProcessor.imgdata.params.no_auto_bright = atoi(p["autobright"].c_str()); //1;
+		RawProcessor.imgdata.params.no_auto_bright = atoi(p["autobright"].c_str()); 
 	}
 
 	RawProcessor.open_file(filename);

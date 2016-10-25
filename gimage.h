@@ -35,10 +35,10 @@ class gImage
 
 
 		//Image loaders.  Return a new gImage
-		static gImage * loadRAW(const char * filename);
-		static gImage * loadJPEG(const char * filename);
-		static gImage * loadTIFF(const char * filename);
-		static gImage * loadImageFile(const char * filename);
+		static gImage * loadRAW(const char * filename, std::string params);
+		static gImage * loadJPEG(const char * filename, std::string params);
+		static gImage * loadTIFF(const char * filename, std::string params);
+		static gImage * loadImageFile(const char * filename, std::string params);
 		//Image savers. 
 		void saveJPEG(const char * filename);
 		void saveTIFF(const char * filename, unsigned bits);
