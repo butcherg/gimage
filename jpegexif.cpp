@@ -56,7 +56,6 @@ std::string FormatName(int fmt)
 
 typedef struct {
     unsigned short Tag;
-    unsigned short Fmt;
     const char * Desc;
 }TagTable_t;
 
@@ -692,59 +691,200 @@ void parse_APP1marker(unsigned char * marker, unsigned length, std::map<std::str
 
 
 
-unsigned char * construct_APP1marker(std::map<std::string,std::string> imageinfo, unsigned *markerlen)
+unsigned char * construct_APP1marker(std::map<std::string,std::string> imageinfo, unsigned *markerlength)
 {
-	char Buffer[256];
+    unsigned char Buffer[256];
 
-	unsigned short NumEntries;
-	int DataWriteIndex;
-	int DateIndex;
-	int DirIndex;
-	int DirContinuation;
+    unsigned short NumEntries;
+    int DataWriteIndex;
+    int DateIndex;
+    int DirIndex;
+    int DirContinuation;
     
-	MotorolaOrder = 0;
+    MotorolaOrder = 0;
 
-	memcpy(Buffer+2, "Exif\0\0II",8);
-	Put16u(Buffer+10, 0x2a);
+    memcpy(Buffer+2, "Exif\0\0II",8);
+    Put16u(Buffer+10, 0x2a);
 
-	DataWriteIndex = 16;
-	Put32u(Buffer+12, DataWriteIndex-8); // first IFD offset.  Means start 16 bytes in.
+    DataWriteIndex = 16;
+    Put32u(Buffer+12, DataWriteIndex-8); // first IFD offset.  Means start 16 bytes in.
 
-	{
-		DirIndex = DataWriteIndex;
-		//NumEntries = imageinfo.size();
-		NumEntries = 1;
-		DataWriteIndex += 2 + NumEntries*12 + 4;
+    {
+        DirIndex = DataWriteIndex;
+        NumEntries = 8;
+        DataWriteIndex += 2 + NumEntries*12 + 4;
 
-		Put16u(Buffer+DirIndex, NumEntries); // Number of entries
-		DirIndex += 2;
+        Put16u(Buffer+DirIndex, NumEntries); // Number of entries
+        DirIndex += 2;
+  
+        // Enitries go here...
+        {
+            // Date/time entry
+            Put16u(Buffer+DirIndex, TAG_DATETIME);         // Tag
+            Put16u(Buffer+DirIndex + 2, FMT_STRING);       // Format
+            Put32u(Buffer+DirIndex + 4, 20);               // Components
+            Put32u(Buffer+DirIndex + 8, DataWriteIndex-8); // Pointer or value.
+            DirIndex += 12;
 
-        		Put16u(Buffer+DirIndex, 	TAG_IMAGE_DESCRIPTION);			// Tag
-        		Put16u(Buffer+DirIndex + 2,	FMT_STRING);				// Format
-       			Put32u(Buffer+DirIndex + 4,	imageinfo["DateTime"].size()+1);	// Components
-        		Put32u(Buffer+DirIndex + 8,	DataWriteIndex-8);			// Pointer or value.
-       			DirIndex += 12;
+            DateIndex = DataWriteIndex;
+            //if (ImageInfo.numDateTimeTags){
+            //    // If we had a pre-existing exif header, use time from that.
+                memcpy(Buffer+DataWriteIndex, "foo                ", 19);
+                Buffer[DataWriteIndex+19] = '\0';
+            //}else{
+            //    // Oterwise, use the file's timestamp.
+            //    ////FileTimeAsString(Buffer+DataWriteIndex);
+            //}
+            DataWriteIndex += 20;
 
-			memcpy(Buffer+DataWriteIndex, imageinfo["Artist"].c_str(), imageinfo["DateTime"].size()+1);
-			DataWriteIndex += imageinfo["DateTime"].size()+1;
 
-			for (std::map<std::string,std::string>::iterator it=imageinfo.begin(); it!=imageinfo.end(); ++it) {
-				printf("%s: %s\n",it->first.c_str(), it->second.c_str());
-			}
+		// Make:
+		Put16u(Buffer+DirIndex, TAG_MAKE);         // Tag
+		Put16u(Buffer+DirIndex + 2, FMT_STRING);       // Format
+		Put32u(Buffer+DirIndex + 4, imageinfo["Make"].length()+1);               // Components
+		Put32u(Buffer+DirIndex + 8, DataWriteIndex-8); // Pointer or value.
+		DirIndex += 12;
+		strcpy((char *) Buffer+DataWriteIndex, imageinfo["Make"].c_str());
+		DataWriteIndex += imageinfo["Make"].length()+1;
 
-	}
+		// Model:
+		Put16u(Buffer+DirIndex, TAG_MODEL);         // Tag
+		Put16u(Buffer+DirIndex + 2, FMT_STRING);       // Format
+		Put32u(Buffer+DirIndex + 4, imageinfo["Model"].length()+1);               // Components
+		Put32u(Buffer+DirIndex + 8, DataWriteIndex-8); // Pointer or value.
+		DirIndex += 12;
+		strcpy((char *) Buffer+DataWriteIndex, imageinfo["Model"].c_str());
+		DataWriteIndex += imageinfo["Model"].length()+1;
 
-	Buffer[0] = (unsigned char)(DataWriteIndex >> 8);
-	Buffer[1] = (unsigned char)DataWriteIndex;
+		// FNumber:
+		Put16u(Buffer+DirIndex, TAG_FNUMBER);		// Tag
+		Put16u(Buffer+DirIndex + 2, FMT_URATIONAL);	// Format
+		Put32u(Buffer+DirIndex + 4, 1);			// Components
+		Put32u(Buffer+DirIndex + 8, DataWriteIndex-8);	// Pointer or value.
+		DirIndex += 12;
+		Put32u(Buffer+DataWriteIndex, (int)(atof(imageinfo["FNumber"].c_str())*10000000.0));
+		Put32u(Buffer+DataWriteIndex+4, 10000000);
+		DataWriteIndex += 8;
 
-	unsigned char * NewBuf = (unsigned char *) malloc(DataWriteIndex);
-	if (NewBuf == NULL){
-		printf("Could not allocate memory\n");
-	}
-	memcpy(NewBuf, Buffer, DataWriteIndex);
+		// ExposureTime:
+		Put16u(Buffer+DirIndex, TAG_EXPOSURETIME);	// Tag
+		Put16u(Buffer+DirIndex + 2, FMT_URATIONAL);	// Format
+		Put32u(Buffer+DirIndex + 4, 1);			// Components
+		Put32u(Buffer+DirIndex + 8, DataWriteIndex-8);	// Pointer or value.
+		DirIndex += 12;
+		Put32u(Buffer+DataWriteIndex, (int)(atof(imageinfo["ExposureTime"].c_str())*10000000.0));
+		Put32u(Buffer+DataWriteIndex+4, 10000000);
+		DataWriteIndex += 8;
 
-	*markerlen = (unsigned int) DataWriteIndex;
-	return NewBuf;
+		// FocalLength:
+		Put16u(Buffer+DirIndex, TAG_FOCALLENGTH);	// Tag
+		Put16u(Buffer+DirIndex + 2, FMT_URATIONAL);	// Format
+		Put32u(Buffer+DirIndex + 4, 1);			// Components
+		Put32u(Buffer+DirIndex + 8, DataWriteIndex-8);	// Pointer or value.
+		DirIndex += 12;
+		Put32u(Buffer+DataWriteIndex, (int)(atof(imageinfo["FocalLength"].c_str())*10000000.0));
+		Put32u(Buffer+DataWriteIndex+4, 10000000);
+		DataWriteIndex += 8;
+
+		// ISOSpeedRatings:
+		Put16u(Buffer+DirIndex, TAG_ISO_EQUIVALENT);	// Tag
+		Put16u(Buffer+DirIndex + 2, FMT_USHORT);	// Format
+		Put32u(Buffer+DirIndex + 4, 1);			// Components
+		Put16u(Buffer+DirIndex + 8, atoi(imageinfo["ISOSpeedRatings"].c_str())); // Pointer or value.
+		DirIndex += 12;
+
+
+        
+            // Link to exif dir entry
+            Put16u(Buffer+DirIndex, TAG_EXIF_OFFSET);      // Tag
+            Put16u(Buffer+DirIndex + 2, FMT_ULONG);        // Format
+            Put32u(Buffer+DirIndex + 4, 1);                // Components
+            Put32u(Buffer+DirIndex + 8, DataWriteIndex-8); // Pointer or value.
+            DirIndex += 12;
+        }
+
+        // End of directory - contains optional link to continued directory.
+        DirContinuation = DirIndex;
+    }
+
+    {
+        DirIndex = DataWriteIndex;
+        NumEntries = 1;
+        DataWriteIndex += 2 + NumEntries*12 + 4;
+
+        Put16u(Buffer+DirIndex, NumEntries); // Number of entries
+        DirIndex += 2;
+
+        // Original date/time entry
+        Put16u(Buffer+DirIndex, TAG_DATETIME_ORIGINAL);// Tag
+        Put16u(Buffer+DirIndex + 2, FMT_STRING);       // Format
+        Put32u(Buffer+DirIndex + 4, 20);               // Components
+        Put32u(Buffer+DirIndex + 8, DataWriteIndex-8); // Pointer or value.
+        DirIndex += 12;
+
+        memcpy(Buffer+DataWriteIndex, Buffer+DateIndex, 20);
+        DataWriteIndex += 20;
+        
+        // End of directory - contains optional link to continued directory.
+        Put32u(Buffer+DirIndex, 0);
+    }
+
+    {
+        //Continuation which links to this directory;
+        Put32u(Buffer+DirContinuation, DataWriteIndex-8);
+        DirIndex = DataWriteIndex;
+        NumEntries = 2;
+        DataWriteIndex += 2 + NumEntries*12 + 4;
+
+        Put16u(Buffer+DirIndex, NumEntries); // Number of entries
+        DirIndex += 2;
+        {
+            // Link to exif dir entry
+            Put16u(Buffer+DirIndex, TAG_THUMBNAIL_OFFSET);         // Tag
+            Put16u(Buffer+DirIndex + 2, FMT_ULONG);       // Format
+            Put32u(Buffer+DirIndex + 4, 1);               // Components
+            Put32u(Buffer+DirIndex + 8, DataWriteIndex-8); // Pointer or value.
+            DirIndex += 12;
+        }
+
+        {
+            // Link to exif dir entry
+            Put16u(Buffer+DirIndex, TAG_THUMBNAIL_LENGTH);         // Tag
+            Put16u(Buffer+DirIndex + 2, FMT_ULONG);       // Format
+            Put32u(Buffer+DirIndex + 4, 1);               // Components
+            Put32u(Buffer+DirIndex + 8, 0); // Pointer or value.
+            DirIndex += 12;
+        }
+
+        // End of directory - contains optional link to continued directory.
+        Put32u(Buffer+DirIndex, 0);
+    }
+
+    
+    Buffer[0] = (unsigned char)(DataWriteIndex >> 8);
+    Buffer[1] = (unsigned char)DataWriteIndex;
+
+    // Remove old exif section, if there was one.
+    //RemoveSectionType(M_EXIF);
+
+    //{
+        // Sections need malloced buffers, so do that now, especially because
+        // we now know how big it needs to be allocated.
+        unsigned char * NewBuf = (unsigned char *) malloc(DataWriteIndex);
+        if (NewBuf == NULL){
+            //////ErrFatal("Could not allocate memory");
+        }
+        memcpy(NewBuf, Buffer, DataWriteIndex);
+
+        //CreateSection(M_EXIF, NewBuf, DataWriteIndex);
+
+        // Re-parse new exif section, now that its in place
+        // otherwise, we risk touching data that has already been freed.
+        //process_EXIF(NewBuf, DataWriteIndex);
+    //}
+
+    *markerlength = DataWriteIndex;
+    return NewBuf;
 
 }
 

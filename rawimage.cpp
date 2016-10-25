@@ -63,7 +63,7 @@ char * _loadRAW_m(const char *filename, unsigned *width, unsigned *height, unsig
 
 	info["ISOSpeedRatings"] = tostr(P2.iso_speed);  //ISOSpeedRatings, int16u
 	info["ExposureTime"] = tostr(P2.shutter);  //ExposureTime, rational64u
-	info["FNumbe"] = tostr(P2.aperture);  //FNumber, rational64u
+	info["FNumber"] = tostr(P2.aperture);  //FNumber, rational64u
 	info["FocalLength"] = tostr(P2.focal_len);  //FocalLength, rational64u
 	info["DateTime"] = tostr(P2.timestamp);  //DateTime, //DateTimeOriginal, string
 	info["ImageDescription"] = P2.desc;  //ImageDescription, string

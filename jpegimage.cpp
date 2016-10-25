@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include <map>
 #include <string>
@@ -16,8 +15,7 @@ extern "C" {
 #endif
 
 
-//#include "jpegexif.h"
-#include <libexif/exif-data.h>
+#include "jpegexif.h"
 
 char * _loadJPEG(const char *filename, unsigned *width, unsigned *height, unsigned *numcolors, std::map<std::string,std::string> &info)
 {
@@ -32,8 +30,6 @@ char * _loadJPEG(const char *filename, unsigned *width, unsigned *height, unsign
 	unsigned row_stride;
 	FILE * infile;
 
-	char name[1024], val[1024];
-
 	if ((infile = fopen(filename, "rb")) == NULL) {
 	    fprintf(stderr, "can't open %s\n", filename);
 	    exit(1);
@@ -46,15 +42,6 @@ char * _loadJPEG(const char *filename, unsigned *width, unsigned *height, unsign
 
 	jpeg_marker_struct * marker = cinfo.marker_list;
 	std::map<std::string,std::string> imageinfo;
-	ExifData *ed;
-	ExifEntry *entry;
-	ExifByte v_byte;
-	ExifShort v_short;
-	ExifSShort v_sshort;
-	ExifLong v_long;
-	ExifRational v_rat;
-	ExifSRational v_srat;
-	ExifSLong v_slong;
 
 	while (marker != NULL) {
 		ed = exif_data_new_from_data( marker->data, marker->data_length);
@@ -123,8 +110,8 @@ char * _loadJPEG(const char *filename, unsigned *width, unsigned *height, unsign
 		marker = marker->next;
 	}
 
-
 	jpeg_start_decompress(&cinfo);
+
 
 	row_stride = cinfo.output_width * cinfo.output_components;
 	img = (char *)malloc(cinfo.image_height * row_stride);
@@ -245,6 +232,9 @@ void _writeJPEG(const char *filename, char *imagedata, unsigned width, unsigned 
 	cinfo.err = jpeg_std_error(&jerr);
 	jpeg_create_compress(&cinfo);
 
+	unsigned char * marker;
+	unsigned markerlength;
+
 	FILE * outfile;
 	unsigned row_stride;
 	JSAMPROW dst;
@@ -264,13 +254,11 @@ void _writeJPEG(const char *filename, char *imagedata, unsigned width, unsigned 
 
 	jpeg_start_compress(&cinfo, TRUE);
 
-	exif_data_save_data(exif, &exif_data, &exif_data_len);
-	//assert(exif_data != NULL);
 
-	//unsigned exiflen;
-	//unsigned char *exif = construct_APP1marker(info, &exiflen);
-	jpeg_write_marker(&cinfo, JPEG_APP0+1, exif_data, exif_data_len);
-	//free(exif);
+	marker =  construct_APP1marker(info, &markerlength);
+	jpeg_write_marker(&cinfo, JPEG_APP0+1, marker+2, markerlength);
+	free(marker);
+	
 
 	row_stride = cinfo.image_width * cinfo.input_components;
 	//img = (char *)malloc(cinfo.image_height * row_stride);

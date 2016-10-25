@@ -200,7 +200,6 @@ for (int f=0; f<files.size(); f++)
 	}
 
 
-
 	
 	for (int i=0; i<commands.size(); i++) {
 		char c[256];
@@ -441,11 +440,13 @@ for (int f=0; f<files.size(); f++)
 	char outfilename[256];
 	strncpy(outfilename, files[f].outfile.c_str(), 255);
 
-	if (strcmp(outfilename,"info") == NULL) {
+
+	if (strcmp(outfilename, "info") == 0) {
 		std::map<std::string,std::string> imginfo = dib->getInfo();
 		for (std::map<std::string,std::string>::iterator it=imginfo.begin(); it!=imginfo.end(); ++it)
 			printf("%s: %s\n",it->first.c_str(), it->second.c_str());
 		printf("\n");
+		dib->~gImage();
 		exit(0);
 	}
 			
