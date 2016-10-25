@@ -200,10 +200,6 @@ for (int f=0; f<files.size(); f++)
 	}
 
 
-	std::map<std::string,std::string> imginfo = dib->getInfo();
-	for (std::map<std::string,std::string>::iterator it=imginfo.begin(); it!=imginfo.end(); ++it)
-		printf("%s: %s\n",it->first.c_str(), it->second.c_str());
-	printf("\n");
 
 	
 	for (int i=0; i<commands.size(); i++) {
@@ -444,6 +440,14 @@ for (int f=0; f<files.size(); f++)
 
 	char outfilename[256];
 	strncpy(outfilename, files[f].outfile.c_str(), 255);
+
+	if (strcmp(outfilename,"info") == NULL) {
+		std::map<std::string,std::string> imginfo = dib->getInfo();
+		for (std::map<std::string,std::string>::iterator it=imginfo.begin(); it!=imginfo.end(); ++it)
+			printf("%s: %s\n",it->first.c_str(), it->second.c_str());
+		printf("\n");
+		exit(0);
+	}
 			
 	flags = 100;
 	const char *output_filename = strtok(outfilename,":");
