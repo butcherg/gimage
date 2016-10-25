@@ -66,7 +66,7 @@ char * _loadJPEG(const char *filename, unsigned *width, unsigned *height, unsign
 					ExifEntry *e = content->entries[j];
 					const ExifByteOrder o = exif_data_get_byte_order (e->parent->parent);
 					//exif_entry_dump(e,0);
- 					sprintf(name, "%s: ", exif_tag_get_name_in_ifd (e->tag, exif_entry_get_ifd(e)));
+ 					sprintf(name, "%s", exif_tag_get_name_in_ifd (e->tag, exif_entry_get_ifd(e)));
 					switch (e->format) {
 						case EXIF_FORMAT_ASCII:
 							strncpy (val, (char *) e->data, 1024);
@@ -146,12 +146,101 @@ char * _loadJPEG(const char *filename, unsigned *width, unsigned *height, unsign
 
 }
 
+ExifEntry *init_tag(ExifData *exif, ExifIfd ifd, ExifTag tag)
+{
+	ExifEntry *entry;
+	/* Return an existing tag if one exists */
+	if (!((entry = exif_content_get_entry (exif->ifd[ifd], tag)))) {
+	    /* Allocate a new entry */
+	    entry = exif_entry_new ();
+	    //assert(entry != NULL); /* catch an out of memory condition */
+	    entry->tag = tag; /* tag must be set before calling
+				 exif_content_add_entry */
+
+	    /* Attach the ExifEntry to an IFD */
+	    exif_content_add_entry (exif->ifd[ifd], entry);
+
+	    /* Allocate memory for the entry and fill with default data */
+	    exif_entry_initialize (entry, tag);
+
+	    /* Ownership of the ExifEntry has now been passed to the IFD.
+	     * One must be very careful in accessing a structure after
+	     * unref'ing it; in this case, we know "entry" won't be freed
+	     * because the reference count was bumped when it was added to
+	     * the IFD.
+	     */
+	    exif_entry_unref(entry);
+	}
+	return entry;
+}
+
+void AddEntry(ExifData *exif, ExifIfd ifd, std::string name, std::string value) 
+{
+	ExifEntry *entry;
+	entry = exif_entry_new ();
+	entry->tag = exif_tag_from_name(name.c_str());
+	exif_content_add_entry (exif->ifd[ifd], entry);
+	exif_entry_initialize (entry, entry->tag);
+
+	switch (entry->format) {
+		case EXIF_FORMAT_BYTE:
+			break;
+		case EXIF_FORMAT_ASCII:
+			break;
+		case EXIF_FORMAT_SHORT:
+			break;
+		case EXIF_FORMAT_LONG:
+			break;
+		case EXIF_FORMAT_RATIONAL:
+			break;
+		case EXIF_FORMAT_SBYTE:
+			break;
+		case EXIF_FORMAT_UNDEFINED:
+			break;
+		case EXIF_FORMAT_SSHORT:
+			break;
+		case EXIF_FORMAT_SLONG:
+			break;
+		case EXIF_FORMAT_SRATIONAL:
+			break;
+		case EXIF_FORMAT_FLOAT:
+			break;
+		case EXIF_FORMAT_DOUBLE:
+			break;
+	}
+
+	exif_entry_unref(entry);
+}
+
 
 void _writeJPEG(const char *filename, char *imagedata, unsigned width, unsigned height, unsigned components, std::map<std::string,std::string> info)
 {
 
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
+
+	unsigned char *exif_data;
+	unsigned int exif_data_len;
+	ExifEntry *entry;
+	ExifData *exif = exif_data_new();
+
+	exif_data_set_option(exif, EXIF_DATA_OPTION_FOLLOW_SPECIFICATION);
+	exif_data_set_data_type(exif, EXIF_DATA_TYPE_COMPRESSED);
+	exif_data_set_byte_order(exif, EXIF_BYTE_ORDER_INTEL);
+
+	/* Create the mandatory EXIF fields with default data */
+	exif_data_fix(exif);
+
+	/* All these tags are created with default values by exif_data_fix() */
+	/* Change the data to the correct values for this image. */
+	entry = init_tag(exif, EXIF_IFD_EXIF, EXIF_TAG_PIXEL_X_DIMENSION);
+	exif_set_long(entry->data, EXIF_BYTE_ORDER_INTEL, width);
+
+	entry = init_tag(exif, EXIF_IFD_EXIF, EXIF_TAG_PIXEL_Y_DIMENSION);
+	exif_set_long(entry->data, EXIF_BYTE_ORDER_INTEL, height);
+
+	entry = init_tag(exif, EXIF_IFD_EXIF, EXIF_TAG_COLOR_SPACE);
+	exif_set_short(entry->data, EXIF_BYTE_ORDER_INTEL, 1);
 
 	cinfo.err = jpeg_std_error(&jerr);
 	jpeg_create_compress(&cinfo);
@@ -175,9 +264,12 @@ void _writeJPEG(const char *filename, char *imagedata, unsigned width, unsigned 
 
 	jpeg_start_compress(&cinfo, TRUE);
 
+	exif_data_save_data(exif, &exif_data, &exif_data_len);
+	//assert(exif_data != NULL);
+
 	//unsigned exiflen;
 	//unsigned char *exif = construct_APP1marker(info, &exiflen);
-	//jpeg_write_marker(&cinfo, JPEG_APP0+1, exif+2, exiflen);
+	jpeg_write_marker(&cinfo, JPEG_APP0+1, exif_data, exif_data_len);
 	//free(exif);
 
 	row_stride = cinfo.image_width * cinfo.input_components;
