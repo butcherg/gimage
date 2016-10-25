@@ -3,17 +3,25 @@
 
 #include <string>
 #include <map>
+#include <vector>
 #include "strutil.h"
 #include "LibRaw-0.17.2/libraw/libraw.h"
 
 
-char * _loadRAW_m(const char *filename, unsigned *width, unsigned *height, unsigned *numcolors, unsigned *numbits, std::map<std::string,std::string>& info, char * icc_m, unsigned  *icclength)
+char * _loadRAW_m(const char *filename, unsigned *width, unsigned *height, unsigned *numcolors, unsigned *numbits, std::map<std::string,std::string>& info, std::string params, char * icc_m, unsigned  *icclength)
 {
 
 	int w, h, c, b;
 	LibRaw RawProcessor;
 	char * img;
 	char imgdata[4096];
+
+	std::map<std::string,std::string> p = parseparams(params);
+
+	//for (std::map<std::string,std::string>::iterator it=p.begin(); it!=p.end(); ++it)
+	//	std::cout << it->first << ": " << it->second << std::endl;
+	//printf("\n");
+	
 
 #define P1 RawProcessor.imgdata.idata
 #define S RawProcessor.imgdata.sizes
@@ -30,7 +38,10 @@ char * _loadRAW_m(const char *filename, unsigned *width, unsigned *height, unsig
 	RawProcessor.imgdata.params.output_bps = 8;
 	RawProcessor.imgdata.params.gamm[0] = 1/2.222;	//1;
 	RawProcessor.imgdata.params.gamm[1] = 4.5;	//1;
-	RawProcessor.imgdata.params.no_auto_bright = 0; //1;
+
+	if (p.find("autobright") != p.end()) {
+		RawProcessor.imgdata.params.no_auto_bright = atoi(p["autobright"].c_str()); //1;
+	}
 
 	RawProcessor.open_file(filename);
 	RawProcessor.unpack();

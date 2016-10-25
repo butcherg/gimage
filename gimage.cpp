@@ -260,7 +260,8 @@ gImage * gImage::loadRAW(const char * filename)
 	unsigned width, height, colors, bpp, icclength;
 	char * iccprofile;
 	std::map<std::string,std::string> imgdata;
-	char * image = _loadRAW_m(filename, &width, &height, &colors, &bpp, imgdata, iccprofile, &icclength);
+	std::string params = "autobright=1";
+	char * image = _loadRAW_m(filename, &width, &height, &colors, &bpp, imgdata, params, iccprofile, &icclength);
 	gImage * I = new gImage(image, width, height, colors, bpp, imgdata);
 	free(image);
 	return I;

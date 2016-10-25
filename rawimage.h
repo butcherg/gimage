@@ -10,6 +10,7 @@ char * _loadRAW_m(const char *filename,
 			unsigned *numcolors, 
 			unsigned *numbits, 
 			std::map<std::string,std::string> &info, 
+			std::string params,
 			char * icc_m, 
 			unsigned  *icclength);
 
