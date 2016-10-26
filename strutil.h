@@ -2,6 +2,8 @@
 #define _strutil_h_
 
 #include <string>
+#include <vector>
+#include <map>
 #include <iostream>
 #include <sstream> 
 
