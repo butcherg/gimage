@@ -52,7 +52,7 @@ $(OBJDIR)/strutil.o: strutil.cpp strutil.h
 
 clean:
 ifeq ($(SYS), mingw32)
-	rm $(OBJDIR)/gimg.exe $(OBJDIR)/*.o
+	rm -f $(OBJDIR)/gimg.exe $(OBJDIR)/*.o
 else
 	rm -f $(OBJDIR)/gimg $(OBJDIR)/*.o
 endif
