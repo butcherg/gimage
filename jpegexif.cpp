@@ -2,15 +2,16 @@
 #include <string.h>
 #include <time.h>
 #include <stdio.h>
+#include "strutil.h"
 
 #include <string>
 #include <map>
 
-#include <sstream>
+//#include <sstream>
 //#define tostr( x ) static_cast< std::ostringstream & >( \
         ( std::ostringstream() << std::dec << x ) ).str()
 
-
+/*
 template <typename T>
   std::string tostr ( T Number )
   {
@@ -18,7 +19,7 @@ template <typename T>
      ss << Number;
      return ss.str();
   }
-
+*/
 
 const int BytesPerFormat[] = {0,1,1,2,4,8,1,1,2,4,8,4,8};
 #define NUM_FORMATS 12
@@ -559,7 +560,7 @@ bool ProcessExifDir(unsigned char * DirStart, unsigned char * OffsetBase, unsign
 				//PrintFormatNumber(ValuePtr, Format, ByteCount);
 				//printf("\n");
 				//tagvalue = FormatNumber(ValuePtr, Format, ByteCount);
-				tagvalue = tostr(ConvertAnyFormat(ValuePtr, Format));
+				tagvalue = std::to_string(ConvertAnyFormat(ValuePtr, Format));
 		}
 
 		imageinfo[tagname] = tagvalue;

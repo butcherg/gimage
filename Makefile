@@ -8,12 +8,12 @@ CXX=g++
 LIBDIRS=
 LIBS=-lraw -ltiff -ljpeg 
 INCLUDEDIRS=
-CFLAGS=-fopenmp -O4
+CFLAGS=-fopenmp -O4 -std=c++11
 LFLAGS=-fopenmp
 
 -include $(OBJDIR)/localmake.txt
 
-OBJECTS := $(addprefix $(OBJDIR)/,gimg.o gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o elapsedtime.o)
+OBJECTS := $(addprefix $(OBJDIR)/,gimg.o gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o elapsedtime.o strutil.o)
 
 
 #$(OBJDIR)/nef2jpg: $(OBJECTS)
@@ -30,7 +30,7 @@ $(OBJDIR)/gimg.o: gimg.cpp
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c gimg.cpp -o$@
 
 $(OBJDIR)/gimage.o: gimage.cpp
-	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -O4 -fopenmp -c gimage.cpp -o$@
+	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c gimage.cpp -o$@
 
 $(OBJDIR)/tiffimage.o: tiffimage.cpp tiffimage.h
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c tiffimage.cpp -o$@
@@ -47,10 +47,13 @@ $(OBJDIR)/jpegexif.o: jpegexif.cpp jpegexif.h
 $(OBJDIR)/elapsedtime.o: elapsedtime.cpp elapsedtime.h
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c elapsedtime.cpp -o$@
 
+$(OBJDIR)/strutil.o: strutil.cpp strutil.h
+	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c strutil.cpp -o$@
+
 clean:
 ifeq ($(SYS), mingw32)
-	rm $(OBJDIR)/nef2jpg.exe $(OBJDIR)/*.o
+	rm $(OBJDIR)/gimg.exe $(OBJDIR)/*.o
 else
-	rm -f $(OBJDIR)/nef2jpg $(OBJDIR)/*.o
+	rm -f $(OBJDIR)/gimg $(OBJDIR)/*.o
 endif
 

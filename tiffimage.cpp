@@ -47,7 +47,7 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 			timestruct.tm_hour  = atoi(strtok(NULL, ":"));
 			timestruct.tm_min   = atoi(strtok(NULL, ":"));
 			timestruct.tm_sec   = atoi(strtok(NULL, " "));
-			info["DateTime"] = tostr(mktime(&timestruct));
+			info["DateTime"] = std::to_string(mktime(&timestruct));
 		}
 		
 
