@@ -61,11 +61,11 @@ char * _loadRAW_m(const char *filename, unsigned *width, unsigned *height, unsig
 	icc_m = NULL;
 	*icclength = 0;
 
-	info["ISOSpeedRatings"] = std::to_string(P2.iso_speed);  //ISOSpeedRatings, int16u
-	info["ExposureTime"] = std::to_string(P2.shutter);  //ExposureTime, rational64u
-	info["FNumber"] = std::to_string(P2.aperture);  //FNumber, rational64u
-	info["FocalLength"] = std::to_string(P2.focal_len);  //FocalLength, rational64u
-	info["DateTime"] = std::to_string(P2.timestamp);  //DateTime, //DateTimeOriginal, string
+	info["ISOSpeedRatings"] = tostr(P2.iso_speed);  //ISOSpeedRatings, int16u
+	info["ExposureTime"] = tostr(P2.shutter);  //ExposureTime, rational64u
+	info["FNumber"] = tostr(P2.aperture);  //FNumber, rational64u
+	info["FocalLength"] = tostr(P2.focal_len);  //FocalLength, rational64u
+	info["DateTime"] = tostr(P2.timestamp);  //DateTime, //DateTimeOriginal, string
 	info["ImageDescription"] = P2.desc;  //ImageDescription, string
 	info["Artist"] = P2.artist;  //Artist, string
 	info["Make"] = P1.make;  //Make, string

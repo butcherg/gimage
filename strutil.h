@@ -5,7 +5,7 @@
 #include <vector>
 #include <map>
 
-template <typename T> std::string tostr(const T& t);
+std::string tostr(double t);
 std::vector<std::string> split(std::string s, std::string delim);
 std::map<std::string, std::string> parseparams(std::string params);
 

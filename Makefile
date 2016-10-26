@@ -8,7 +8,7 @@ CXX=g++
 LIBDIRS=
 LIBS=-lraw -ltiff -ljpeg 
 INCLUDEDIRS=
-CFLAGS=-fopenmp -O4 -std=c++11
+CFLAGS=-fopenmp -O4 
 LFLAGS=-fopenmp
 
 -include $(OBJDIR)/localmake.txt

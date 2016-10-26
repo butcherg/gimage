@@ -560,7 +560,7 @@ bool ProcessExifDir(unsigned char * DirStart, unsigned char * OffsetBase, unsign
 				//PrintFormatNumber(ValuePtr, Format, ByteCount);
 				//printf("\n");
 				//tagvalue = FormatNumber(ValuePtr, Format, ByteCount);
-				tagvalue = std::to_string(ConvertAnyFormat(ValuePtr, Format));
+				tagvalue = tostr(ConvertAnyFormat(ValuePtr, Format));
 		}
 
 		imageinfo[tagname] = tagvalue;
