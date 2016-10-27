@@ -15,6 +15,7 @@
 
 #include "gimage.h"
 #include "elapsedtime.h"
+#include "strutil.h"
 
 
 std::string matchspec(std::string fname, std::string fspec)
@@ -148,16 +149,19 @@ int main (int argc, char **argv)
 		exit(1);
 	}
 
-	if (countchar(std::string(argv[1]),'*') == 1) {
-		if (countchar(std::string(argv[argc-1]),'*') == 1) {
+	std::vector<std::string> infile = split(std::string(argv[1]),":");
+	std::vector<std::string> outfile = split(std::string(argv[argc-1]),":");
+
+	if (countchar(infile[0],'*') == 1) {
+		if (countchar(outfile[0],'*') == 1) {
 			std::vector<std::string> flist = filelist(".");
 			for (int i=0; i<flist.size(); i++) {
-				std::string variant = matchspec(flist[i], std::string(argv[1]));
-				matchspec(flist[i], std::string(argv[1]));
+				std::string variant = matchspec(flist[i], infile[0]);
+				matchspec(flist[i], infile[0]);
 				if (variant == "") continue;
 				fnames f;
 				f.infile = flist[i];
-				f.outfile = makename(variant,argv[argc-1]);
+				f.outfile = makename(variant,outfile[0]);
 				files.push_back(f);
 			}
 				
@@ -170,8 +174,8 @@ int main (int argc, char **argv)
 	}
 	else {
 		fnames f;
-		f.infile = argv[1];
-		f.outfile = argv[argc-1];
+		f.infile = infile[0];
+		f.outfile = outfile[0];
 		files.push_back(f);
 	}
 	
