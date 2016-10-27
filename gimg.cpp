@@ -150,7 +150,11 @@ int main (int argc, char **argv)
 	}
 
 	std::vector<std::string> infile = split(std::string(argv[1]),":");
+	if (infile.size() < 2) infile.push_back("");
 	std::vector<std::string> outfile = split(std::string(argv[argc-1]),":");
+	if (outfile.size() < 2) outfile.push_back("");
+
+
 
 	if (countchar(infile[0],'*') == 1) {
 		if (countchar(outfile[0],'*') == 1) {
@@ -194,7 +198,7 @@ for (int f=0; f<files.size(); f++)
 
 	printf("Loading file %s... ",fname);
 	_mark();
-	dib = gImage::loadImageFile(fname, "");
+	dib = gImage::loadImageFile(fname, infile[1]);
 	if (dib) {
 		printf("done. (%fsec)\nImage size: %dx%d\n",_duration(), dib->getWidth(),dib->getHeight());
 	}

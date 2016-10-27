@@ -16,7 +16,7 @@ char * _loadRAW_m(const char *filename, unsigned *width, unsigned *height, unsig
 	char * img;
 	char imgdata[4096];
 
-	//std::map<std::string,std::string> p = parseparams(params);
+	std::map<std::string,std::string> p = parseparams(params);
 
 	//for (std::map<std::string,std::string>::iterator it=p.begin(); it!=p.end(); ++it)
 	//	std::cout << it->first << ": " << it->second << std::endl;
@@ -37,10 +37,10 @@ char * _loadRAW_m(const char *filename, unsigned *width, unsigned *height, unsig
 
 	RawProcessor.imgdata.params.output_bps = 16;
 
-	RawProcessor.imgdata.params.gamm[0] = 1/2.222;
-	RawProcessor.imgdata.params.gamm[1] = 4.5;
+	RawProcessor.imgdata.params.gamm[0] = 1/1.0;   //1/2.222;
+	RawProcessor.imgdata.params.gamm[1] = 1.0;     //4.5;
 
-/*
+
 
 	//# colorspace:raw|srgb|adobe|wide|prophoto|xyz - Output color space, default=srgb
 	if (p.find("colorspace") != p.end()) {
@@ -106,7 +106,7 @@ char * _loadRAW_m(const char *filename, unsigned *width, unsigned *height, unsig
 		RawProcessor.imgdata.params.no_auto_bright = 0; 
 	else
 		RawProcessor.imgdata.params.no_auto_bright = 1; 
-*/
+
 
 	RawProcessor.open_file(filename);
 	RawProcessor.unpack();
@@ -116,8 +116,6 @@ char * _loadRAW_m(const char *filename, unsigned *width, unsigned *height, unsig
 	*height = h;
 	*numcolors = c;
 	*numbits = b;
-
-printf("numbits: %d\n",b);
 
 	img = (char *)malloc(w*h*c*(b/8));
 	
