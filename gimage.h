@@ -27,6 +27,8 @@ class gImage
 		unsigned getColors();
 		std::map<std::string,std::string> getInfo();
 
+		void setInfo(std::string name, std::string value);
+
 		void Stats();
 
 		//Image operations

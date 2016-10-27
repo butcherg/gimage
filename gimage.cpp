@@ -163,6 +163,13 @@ std::map<std::string,std::string> gImage::getInfo()
 	return imginfo;
 }
 
+// Setters:
+
+void gImage::setInfo(std::string name, std::string value)
+{
+	imginfo[name] = value;
+}
+
 
 //Image Operations:
 
