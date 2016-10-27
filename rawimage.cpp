@@ -93,11 +93,11 @@ char * _loadRAW_m(const char *filename, unsigned *width, unsigned *height, unsig
 		}
 	}
 
-	//# gammaval:2.222 - Set specific gamma value, default=2.222
+	//# gammaval:2.222 - Set specific gamma value, overrides preset, default=1.0 (linear)
 	if (p.find("gammaval") != p.end()) 
 		RawProcessor.imgdata.params.gamm[0] = atof(p["gammaval"].c_str());
 
-	//# gammatoe:4.5 - Set specific gamma toe, default=4.5
+	//# gammatoe:4.5 - Set specific gamma toe, overrides preset, default=1.0 (linear)
 	if (p.find("gammatoe") != p.end()) 
 		RawProcessor.imgdata.params.gamm[0] = atof(p["gammatoe"].c_str());
 
