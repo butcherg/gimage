@@ -465,6 +465,7 @@ for (int f=0; f<files.size(); f++)
 
 	_mark();
 	printf("Saving file %s... ",output_filename);
+	dib->setInfo("Software","gimg 0.1");
 	if (dib->saveImageFile(output_filename)) 
 		printf("done. (%fsec)\n\n",_duration());
 	else
