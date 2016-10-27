@@ -44,8 +44,7 @@ char * _loadJPEG(const char *filename, unsigned *width, unsigned *height, unsign
 	std::map<std::string,std::string> imageinfo;
 
 	while (marker != NULL) {
-		//ed = exif_data_new_from_data( marker->data, marker->data_length);
-		parse_APP1marker(marker->data, marker->data_length, info);
+		parse_APP1marker(marker->data-2, marker->data_length, info);
 		marker = marker->next;
 	}
 
@@ -109,7 +108,6 @@ void _writeJPEG(const char *filename, char *imagedata, unsigned width, unsigned 
 	jpeg_set_defaults(&cinfo);
 
 	jpeg_start_compress(&cinfo, TRUE);
-
 
 	marker =  construct_APP1marker(info, &markerlength);
 	jpeg_write_marker(&cinfo, JPEG_APP0+1, marker+2, markerlength);
