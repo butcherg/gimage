@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <string>
 #include <map>
@@ -126,15 +127,22 @@ char * _loadRAW_m(const char *filename, unsigned *width, unsigned *height, unsig
 	icc_m = NULL;
 	*icclength = 0;
 
-	info["ISOSpeedRatings"] = tostr(P2.iso_speed);  //ISOSpeedRatings, int16u
-	info["ExposureTime"] = tostr(P2.shutter);  //ExposureTime, rational64u
-	info["FNumber"] = tostr(P2.aperture);  //FNumber, rational64u
-	info["FocalLength"] = tostr(P2.focal_len);  //FocalLength, rational64u
-	info["DateTime"] = tostr(P2.timestamp);  //DateTime, //DateTimeOriginal, string
-	info["ImageDescription"] = P2.desc;  //ImageDescription, string
-	info["Artist"] = P2.artist;  //Artist, string
-	info["Make"] = P1.make;  //Make, string
-	info["Model"] = P1.model;  //Model, string
+	info["ISOSpeedRatings"] = tostr(P2.iso_speed);  
+	info["ExposureTime"] = tostr(P2.shutter);  
+	info["FNumber"] = tostr(P2.aperture);  
+	info["FocalLength"] = tostr(P2.focal_len);  
+	info["ImageDescription"] = P2.desc;  
+	info["Artist"] = P2.artist; 
+	info["Make"] = P1.make;  
+	info["Model"] = P1.model;  
+
+	time_t rawtime = P2.timestamp;
+	struct tm * timeinfo;
+	char buffer [80];
+	timeinfo = localtime (&rawtime);
+	strftime (buffer,80,"%Y:%m:%d %H:%M:%S",timeinfo);
+	info["DateTime"] = buffer;  
+
 
 	RawProcessor.recycle();
 

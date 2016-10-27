@@ -712,7 +712,7 @@ unsigned char * construct_APP1marker(std::map<std::string,std::string> imageinfo
 
     {
         DirIndex = DataWriteIndex;
-        NumEntries = 8;
+        NumEntries = 9;
         DataWriteIndex += 2 + NumEntries*12 + 4;
 
         Put16u(Buffer+DirIndex, NumEntries); // Number of entries
@@ -720,23 +720,14 @@ unsigned char * construct_APP1marker(std::map<std::string,std::string> imageinfo
   
         // Enitries go here...
         {
-            // Date/time entry
-            Put16u(Buffer+DirIndex, TAG_DATETIME);         // Tag
-            Put16u(Buffer+DirIndex + 2, FMT_STRING);       // Format
-            Put32u(Buffer+DirIndex + 4, 20);               // Components
-            Put32u(Buffer+DirIndex + 8, DataWriteIndex-8); // Pointer or value.
-            DirIndex += 12;
-
-            DateIndex = DataWriteIndex;
-            //if (ImageInfo.numDateTimeTags){
-            //    // If we had a pre-existing exif header, use time from that.
-                memcpy(Buffer+DataWriteIndex, "foo                ", 19);
-                Buffer[DataWriteIndex+19] = '\0';
-            //}else{
-            //    // Oterwise, use the file's timestamp.
-            //    ////FileTimeAsString(Buffer+DataWriteIndex);
-            //}
-            DataWriteIndex += 20;
+		// Date/time entry
+		Put16u(Buffer+DirIndex, TAG_DATETIME);         // Tag
+		Put16u(Buffer+DirIndex + 2, FMT_STRING);       // Format
+		Put32u(Buffer+DirIndex + 4, imageinfo["DateTime"].length()+1);               // Components
+		Put32u(Buffer+DirIndex + 8, DataWriteIndex-8); // Pointer or value.
+		DirIndex += 12;
+		strcpy((char *) Buffer+DataWriteIndex, imageinfo["DateTime"].c_str());
+		DataWriteIndex += imageinfo["DateTime"].length()+1;
 
 
 		// Make:
@@ -794,6 +785,16 @@ unsigned char * construct_APP1marker(std::map<std::string,std::string> imageinfo
 		Put16u(Buffer+DirIndex + 8, atoi(imageinfo["ISOSpeedRatings"].c_str())); // Pointer or value.
 		DirIndex += 12;
 
+		// Software:
+		Put16u(Buffer+DirIndex, TAG_SOFTWARE);         // Tag
+		Put16u(Buffer+DirIndex + 2, FMT_STRING);       // Format
+		Put32u(Buffer+DirIndex + 4, imageinfo["Software"].length()+1);               // Components
+		Put32u(Buffer+DirIndex + 8, DataWriteIndex-8); // Pointer or value.
+		DirIndex += 12;
+		strcpy((char *) Buffer+DataWriteIndex, imageinfo["Software"].c_str());
+		DataWriteIndex += imageinfo["Software"].length()+1;
+
+
 
         
             // Link to exif dir entry
@@ -819,12 +820,16 @@ unsigned char * construct_APP1marker(std::map<std::string,std::string> imageinfo
         // Original date/time entry
         Put16u(Buffer+DirIndex, TAG_DATETIME_ORIGINAL);// Tag
         Put16u(Buffer+DirIndex + 2, FMT_STRING);       // Format
-        Put32u(Buffer+DirIndex + 4, 20);               // Components
+        Put32u(Buffer+DirIndex + 4, imageinfo["DateTime"].length()+1);               // Components
         Put32u(Buffer+DirIndex + 8, DataWriteIndex-8); // Pointer or value.
         DirIndex += 12;
 
-        memcpy(Buffer+DataWriteIndex, Buffer+DateIndex, 20);
-        DataWriteIndex += 20;
+        //memcpy(Buffer+DataWriteIndex, Buffer+DateIndex, 20);
+        //DataWriteIndex += 20;
+
+	strcpy((char *) Buffer+DataWriteIndex, imageinfo["DateTime"].c_str());
+	DataWriteIndex += imageinfo["DateTime"].length()+1;
+
         
         // End of directory - contains optional link to continued directory.
         Put32u(Buffer+DirIndex, 0);
