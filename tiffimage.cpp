@@ -39,19 +39,8 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 		if (TIFFGetField(tif, TIFFTAG_COPYRIGHT, &infobuf))  info["Copyright"]=infobuf; 
 		if (TIFFGetField(tif, TIFFTAG_LENSINFO, &infobuf))  info["LensInfo"]=infobuf; 
 		if (TIFFGetField(tif, TIFFTAG_IMAGEDESCRIPTION, &infobuf))  info["ImageDescription"]=infobuf; 
-		if (TIFFGetField(tif, TIFFTAG_DATETIME, &infobuf)) {
-			struct tm timestruct;
-			timestruct.tm_year  = atoi(strtok(infobuf, ":"))-1900;
-			timestruct.tm_mon   = atoi(strtok(NULL, ":"))-1;
-			timestruct.tm_mday  = atoi(strtok(NULL, " "));
-			timestruct.tm_hour  = atoi(strtok(NULL, ":"));
-			timestruct.tm_min   = atoi(strtok(NULL, ":"));
-			timestruct.tm_sec   = atoi(strtok(NULL, " "));
-			info["DateTime"] = tostr(mktime(&timestruct));
-		}
+		if (TIFFGetField(tif, TIFFTAG_DATETIME, &infobuf)) info["DateTime"]=infobuf;
 		
-
-
 
 		if (b != 16) return NULL;
 		if (c != 3) return NULL;
@@ -117,16 +106,7 @@ void _writeTIFF(const char *filename, char *imagedata, unsigned width, unsigned 
 		if (info.find("Software") != info.end())  TIFFSetField(tif, TIFFTAG_SOFTWARE, info["Software"].c_str());
 		if (info.find("Copyright") != info.end())  TIFFSetField(tif, TIFFTAG_COPYRIGHT, info["Copyright"].c_str());
 		if (info.find("LensInfo") != info.end())  TIFFSetField(tif, TIFFTAG_LENSINFO, info["LensInfo"].c_str());
-
-		if (info.find("DateTime") != info.end()) {
-			char timestr[256];
-			struct tm *tmp;
-			time_t t;
-			t = (time_t)  atoi(info["shottime"].c_str());
-			tmp = gmtime(&t);
-			if (strftime(timestr, 255, "%Y:%m:%d %T %Z", tmp))
-				TIFFSetField(tif, TIFFTAG_DATETIME, timestr);
-		}
+		if (info.find("DateTime") != info.end()) TIFFSetField(tif, TIFFTAG_DATETIME, info["DateTime"].c_str());
 		if (info.find("ImageDescription") != info.end())  TIFFSetField(tif, TIFFTAG_IMAGEDESCRIPTION, info["ImageDescription"].c_str());
 		
 
