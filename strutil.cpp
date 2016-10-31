@@ -19,8 +19,8 @@ std::string tostr(double t)
 std::vector<std::string> split(std::string s, std::string delim)
 {
 	std::vector<std::string> v;
-	unsigned pos=0;
-	unsigned start;
+	size_t pos=0;
+	size_t start;
 	while (pos < s.length()) {
 		start = pos;
 		pos = s.find(delim,pos);
