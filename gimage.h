@@ -8,6 +8,10 @@ struct pix {
 	double r, g, b;
 };
 
+enum FILTER {
+	LANCZOS3
+};
+
 
 class gImage 
 {
@@ -16,6 +20,8 @@ class gImage
 		gImage(std::string filename);
 		gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, unsigned bits);
 		gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, unsigned bits, std::map<std::string,std::string> imageinfo);
+		gImage(unsigned width, unsigned height,  unsigned colors, std::map<std::string,std::string> imageinfo);
+
 		//gImage::gImage(pix * imagedata, unsigned width, unsigned height, unsigned colors, unsigned bits, std::map<std::string,std::string> imageinfo);
 		~gImage();
 
@@ -34,6 +40,7 @@ class gImage
 		//Image operations
 		gImage * ConvolutionKernel(double kernel[3][3], int threadcount);
 		gImage * Sharpen(int strength, int threadcount);
+		gImage * Resize(unsigned width, unsigned height, FILTER filter, int threadcount);
 
 
 		//Image loaders.  Return a new gImage

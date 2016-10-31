@@ -400,6 +400,25 @@ for (int f=0; f<files.size(); f++)
 			printf("done (%fsec).\n",d);
 		}
 
+		if (strcmp(cmd,"resize") == 0) {  //#resize:x,y      
+			//double sharp=0.0;
+			unsigned w, h;
+			char *wstr = strtok(NULL,", ");
+			char *hstr = strtok(NULL," ");
+			if (wstr) w = atoi(wstr);
+			if (hstr) h = atoi(hstr);
+			printf("resize: %dx%d... ",w,h);
+
+			_mark();
+			int threadcount=1;
+			gImage * dst = dib->Resize(w,h, LANCZOS3, threadcount);
+			dib->~gImage();
+			dib = dst;
+			double d = _duration();
+
+			printf("done (%fsec).\n",d);
+		}
+
 /*
 		else if (strcmp(cmd,"saturation") == 0) {  //#saturation:[0 - 5.0, default=1.0, no change]
 			double d;

@@ -83,8 +83,24 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 	if (bits == 0) img = (pix *) imagedata; // imagedata is already pix *
 
 	imginfo = imageinfo;
-	
 
+}
+
+gImage::gImage(unsigned width, unsigned height, unsigned colors, std::map<std::string,std::string> imageinfo)
+{
+	img = (pix *) malloc(width*height*sizeof(pix));
+	w=width;
+	h=height;
+	c=colors;
+	for (unsigned y=0; y<height; y++) {
+		pix * dst = (pix *) (img + w*y);
+		for (unsigned x=0; x<width; x++) {
+			dst[x].r = 0.0;
+			dst[x].g = 0.0;
+			dst[x].b = 0.0;
+		}
+	}
+	imginfo = imageinfo;
 }
 
 
@@ -225,6 +241,154 @@ gImage * gImage::Sharpen(int strength, int threadcount)
 
 	return ConvolutionKernel(kernel, threadcount);
 
+}
+
+double sinc(double x)
+{
+	x *= M_PI;
+	if(x != 0) return(sin(x) / x);
+	return(1.0);
+}
+
+double Lanczos3_filter(double t)
+{
+	if(t < 0) t = -t;
+	if(t < 3.0) return(sinc(t) * sinc(t/3.0));
+	return(0.0);
+}
+
+
+	typedef struct {
+		int	pixel;
+		double	weight;
+	} CONTRIB;
+
+	typedef struct {
+		int	n;		/* number of contributors */
+		CONTRIB	*p;		/* pointer to list of contributions */
+	} CLIST;
+
+void dumpContrib(CLIST *c, unsigned w)
+{
+	for (unsigned i=0; i<w; i++) {
+		for (unsigned j=0; j<c[i].n; j++) {
+			printf("p:%d, w:%f",c[i].p[j].pixel,c[i].p[j].weight);
+		}
+		printf("\n\n");
+	}
+}
+
+gImage * gImage::Resize(unsigned width, unsigned height, FILTER filter, int threadcount)
+{
+
+
+
+
+
+
+	CLIST	*contrib;		/* array of contribution lists */
+
+	double xscale, yscale;		/* zoom scale factors */
+	int i, j, k;			/* loop variables */
+	int n;				/* pixel number */
+	double center, left, right;	/* filter calculation variables */
+	double wi, fscale, weight;	/* filter calculation variables */
+
+	//hardcoded lanczos3
+	double fwidth = 3.0; //for lanczos3
+	double (*filterf)(double) = Lanczos3_filter;
+printf("Resize: 1...\n");
+	gImage *S = new gImage(width, height, c, imginfo);
+	pix * dst = S->getImageData();
+	gImage * tmp = new gImage(width, h, c, imginfo);
+	pix * src = getImageData();
+printf("Resize: 2...\n");
+	xscale = (double) width / (double) w;
+	yscale = (double) height / (double) h;
+	contrib = (CLIST *)calloc(width, sizeof(CLIST));
+	if(xscale < 1.0) {
+		wi = fwidth / xscale;
+		fscale = 1.0 / xscale;
+		for(i = 0; i < width; ++i) {
+			contrib[i].n = 0;
+			contrib[i].p = (CONTRIB *)calloc((int) (wi * 2 + 1),
+					sizeof(CONTRIB));
+			center = (double) i / xscale;
+			left = ceil(center - wi);
+			right = floor(center + wi);
+			for(j = (int)left; j <= (int)right; ++j) {
+				weight = center - (double) j;
+				weight = (*filterf)(weight / fscale) / fscale;
+				if(j < 0) {
+					n = -j;
+				} else if(j >= w) {
+					n = (w - j) + w - 1;
+				} else {
+					n = j;
+				}
+				k = contrib[i].n++;
+				contrib[i].p[k].pixel = n;
+				contrib[i].p[k].weight = weight;
+			}
+		}
+	} else {
+		for(i = 0; i < width; ++i) {
+			contrib[i].n = 0;
+			contrib[i].p = (CONTRIB *)calloc((int) (fwidth * 2 + 1),
+					sizeof(CONTRIB));
+			center = (double) i / xscale;
+			left = ceil(center - fwidth);
+			right = floor(center + fwidth);
+			for(j = (int)left; j <= (int)right; ++j) {
+				weight = center - (double) j;
+				weight = (*filterf)(weight);
+				if(j < 0) {
+					n = -j;
+				} else if(j >= w) {
+					n = (w - j) + w - 1;
+				} else {
+					n = j;
+				}
+				k = contrib[i].n++;
+				contrib[i].p[k].pixel = n;
+				contrib[i].p[k].weight = weight;
+			}
+		}
+	}
+dumpContrib(contrib,width);
+printf("Resize: 3...\n");
+
+/*
+	for(unsigned y = 0; y < tmp->getHeight(); ++y) {
+		pix * raster = (pix *) (src + w*y);
+printf("Resize: 3a...\n");
+		pix * tmpimg = (pix *) (tmp + width*y);
+printf("Resize: 3b...\n");
+		for(unsigned x = 0; x < tmp->getWidth(); ++x) {
+			double weightr = 0.0;
+			double weightg = 0.0;
+			double weightb = 0.0;
+			for(j = 0; j < contrib[x].n; ++j) {
+				weightr += raster[contrib[x].p[j].pixel].r
+					* contrib[x].p[j].weight;
+				weightg += raster[contrib[x].p[j].pixel].g
+					* contrib[x].p[j].weight;
+				weightb += raster[contrib[x].p[j].pixel].b
+					* contrib[x].p[j].weight;
+			}
+printf("Resize: 3c...\n");
+			tmpimg[x].r = weightr;
+			tmpimg[x].g = weightg;
+			tmpimg[x].b = weightb;
+		}
+	}
+printf("Resize: 4...\n");
+*/
+	//delete tmp;
+	//return S;
+
+	delete S;
+	return tmp;
 }
 
 void gImage::Stats()
