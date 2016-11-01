@@ -478,17 +478,17 @@ for (int f=0; f<files.size(); f++)
 	}
 			
 	flags = 100;
-	const char *output_filename = strtok(outfilename,":");
-	const char *fl = strtok(NULL," ");
-	if (fl) flags = atoi(fl);
+	//const char *output_filename = strtok(outfilename,":");
+	//const char *fl = strtok(NULL," ");
+	//if (fl) flags = atoi(fl);
 
 	_mark();
-	printf("Saving file %s... ",output_filename);
+	printf("Saving file %s... ",outfile[0].c_str());
 	dib->setInfo("Software","gimg 0.1");
-	if (dib->saveImageFile(output_filename)) 
+	if (dib->saveImageFile(outfile[0].c_str())) 
 		printf("done. (%fsec)\n\n",_duration());
 	else
-		printf("Error: bad output file specification: %s\n\n",output_filename);
+		printf("Error: bad output file specification: %s\n\n",outfile[0].c_str());
 
 	dib->~gImage();
 
