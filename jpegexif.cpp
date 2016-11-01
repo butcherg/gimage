@@ -694,7 +694,7 @@ void parse_APP1marker(unsigned char * marker, unsigned length, std::map<std::str
 
 unsigned char * construct_APP1marker(std::map<std::string,std::string> imageinfo, unsigned *markerlength)
 {
-    unsigned char Buffer[256];
+    unsigned char Buffer[512];
 
     unsigned short NumEntries;
     int DataWriteIndex;
