@@ -112,8 +112,6 @@ int main (int argc, char **argv)
 	int c;
 	int flags;
 	gImage *dib =  NULL;
-	//FIBITMAP *dib;
-	//FREE_IMAGE_FORMAT fif;
 
 	if (argc < 2) {
 		//printf("Error: No input file specified.\n");
@@ -127,11 +125,12 @@ int main (int argc, char **argv)
                 //printf("\tblackwhitepoint[:0-127,128-255 default=auto]\n");
                 //printf("\tcontrast:[-100 - 100, default=0]\n");
                 //printf("\tgamma:[0.0 - 5.0, default=1.0]\n");
-                //printf("\tresize:[width],[height],[box|bilinear|bspline|bicubic|catmullrom|\n");
+                printf("\tresize:[width],[height],[box|bilinear|bspline|bicubic|catmullrom|\n");
 		//printf("\t\tlanczos3 (default)]\n");
+		printf("\trotate:[0 - 45, default=0]\n");
                 printf("\tsharpen:[0 - 10, default=0]\n");
                 //printf("\tsaturation:[0 - 5.0, default=1.0, no change]\n");
-                //printf("\tgray (no parameters ,uses the saturate algorithm to desaturate, 0.0)\n");
+                //printf("\tgray (no parameters ,uses the saturate algorithm to desaturate, 0.0)\n\n");
 		exit(1);
 	}
 
