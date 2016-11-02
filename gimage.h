@@ -32,6 +32,7 @@ class gImage
 		unsigned getHeight();
 		unsigned getColors();
 		std::map<std::string,std::string> getInfo();
+		static int ThreadCount();
 
 		void setInfo(std::string name, std::string value);
 

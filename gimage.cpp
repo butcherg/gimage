@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <omp.h>
 
 #include "rawimage.h"
 #include "jpegimage.h"
@@ -179,6 +180,15 @@ std::map<std::string,std::string> gImage::getInfo()
 	return imginfo;
 }
 
+int gImage::ThreadCount()
+{
+#if defined(_OPENMP)
+	return omp_get_max_threads();
+#else
+	return 1;
+#endif
+}
+
 // Setters:
 
 void gImage::setInfo(std::string name, std::string value)
@@ -273,9 +283,9 @@ gImage * gImage::Rotate(double angle, int threadcount)
 	unsigned dw = S->getWidth();
 	unsigned dh = S->getHeight();
 
-	printf("1:%d,%d  2:%d,%d  3:%d,%d\n", x1,y1,x2,y2,x3,y3);
-	printf("min: %d,%d   max:%d,%d\n",minx, miny, maxx, maxy);
-	printf("new image: %dx%d  shift: %d,%d\n", dw, dh, tx, ty);
+	//printf("1:%d,%d  2:%d,%d  3:%d,%d\n", x1,y1,x2,y2,x3,y3);
+	//printf("min: %d,%d   max:%d,%d\n",minx, miny, maxx, maxy);
+	//printf("new image: %dx%d  shift: %d,%d\n", dw, dh, tx, ty);
 
 	for (unsigned y=0; y<h; y++) {
 		for (unsigned x=0; x<w; x++) {

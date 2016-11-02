@@ -387,10 +387,10 @@ for (int f=0; f<files.size(); f++)
 			double sharp=0.0;
 			char *s = strtok(NULL," ");
 			if (s) sharp = atof(s);
-			printf("sharp: %0.2f... ",sharp);
+			int threadcount=gImage::ThreadCount();
+			printf("sharp: %0.2f (%d threads)... ",sharp, threadcount);
 
 			_mark();
-			int threadcount=1;
 			gImage * dst = dib->Sharpen(sharp, threadcount);
 			dib->~gImage();
 			dib = dst;
@@ -411,10 +411,10 @@ for (int f=0; f<files.size(); f++)
 
 			if (h ==  0) h = dh * ((float)w/(float)dw);
 			if (w == 0)  w = dw * ((float)h/(float)dh); 
-			printf("resize: %dx%d... ",w,h);
+			int threadcount=gImage::ThreadCount();
+			printf("resize: %dx%d (%d threads)... ",w,h,threadcount);
 
 			_mark();
-			int threadcount=4;
 			gImage * dst = dib->Resize(w,h, LANCZOS3, threadcount);
 			dib->~gImage();
 			dib = dst;
@@ -427,10 +427,10 @@ for (int f=0; f<files.size(); f++)
 			double angle=0.0;
 			char *s = strtok(NULL," ");
 			if (s) angle = atof(s);
-			printf("rotate: %0.2f... ",angle);
+			int threadcount=gImage::ThreadCount();
+			printf("rotate: %0.2f (%d threads)... ",angle,threadcount);
 
 			_mark();
-			int threadcount=1;
 			gImage * dst = dib->Rotate(angle, threadcount);
 			dib->~gImage();
 			dib = dst;
