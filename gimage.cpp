@@ -243,6 +243,62 @@ gImage * gImage::Sharpen(int strength, int threadcount)
 
 }
 
+
+gImage * gImage::Rotate(double angle, int threadcount)
+{
+
+	pix * src = getImageData();
+
+	double rangle = angle * M_PI / 180.0;
+	double cosine = cos(-rangle);
+	double sine = sin(-rangle);
+
+	int x1 = (int) -(h * sine);
+	int y1 = (int)  (h * cosine);
+	int x2 = (int)  (w * cosine - h * sine);
+	int y2 = (int)  (h * cosine + w * sine);
+	int x3 = (int)  (w * cosine);
+	int y3 = (int)  (w * sine);
+
+	int minx = std::min(0,std::min(x1, std::min(x2,x3)));
+	int miny = std::min(0,std::min(y1, std::min(y2,y3)));
+	int maxx = std::max(x1, std::max(x2,x3));
+	int maxy = std::max(y1, std::max(y2,y3));
+
+	int tx = minx;
+	int ty = -miny;
+
+	gImage *S = new gImage(maxx,maxy-miny, c, imginfo);
+	pix * dst = S->getImageData();
+	unsigned dw = S->getWidth();
+	unsigned dh = S->getHeight();
+
+	printf("1:%d,%d  2:%d,%d  3:%d,%d\n", x1,y1,x2,y2,x3,y3);
+	printf("min: %d,%d   max:%d,%d\n",minx, miny, maxx, maxy);
+	printf("new image: %dx%d  shift: %d,%d\n", dw, dh, tx, ty);
+
+	for (unsigned y=0; y<h; y++) {
+		for (unsigned x=0; x<w; x++) {
+
+			unsigned u = ( cosine * x + sine * y) - tx;
+			unsigned v = (-sine * x + cosine * y) - ty;
+
+			if (u < 0 | u >= dw) continue;
+			if (v < 0 | v >= dh) continue;
+			dst[x + y*dw].r = src[u + v*w].r;
+			dst[x + y*dw].g = src[u + v*w].g;
+			dst[x + y*dw].b = src[u + v*w].b;
+
+		}
+	}
+	
+	return S;
+
+}
+
+
+//Filters for resizing:
+
 double sinc(double x)
 {
 	x *= M_PI;
@@ -258,6 +314,8 @@ double Lanczos3_filter(double t)
 }
 
 
+gImage * gImage::Resize(unsigned width, unsigned height, FILTER filter, int threadcount)
+{
 	typedef struct {
 		int	pixel;
 		double	weight;
@@ -267,23 +325,6 @@ double Lanczos3_filter(double t)
 		int	n;		/* number of contributors */
 		CONTRIB	*p;		/* pointer to list of contributions */
 	} CLIST;
-
-void dumpContrib(CLIST *c, unsigned w)
-{
-	for (unsigned i=0; i<w; i++) {
-		for (unsigned j=0; j<c[i].n; j++) {
-			printf("p:%d, w:%f",c[i].p[j].pixel,c[i].p[j].weight);
-		}
-		printf("\n\n");
-	}
-}
-
-gImage * gImage::Resize(unsigned width, unsigned height, FILTER filter, int threadcount)
-{
-
-
-
-
 
 
 	CLIST	*contrib;		/* array of contribution lists */
@@ -297,14 +338,18 @@ gImage * gImage::Resize(unsigned width, unsigned height, FILTER filter, int thre
 	//hardcoded lanczos3
 	double fwidth = 3.0; //for lanczos3
 	double (*filterf)(double) = Lanczos3_filter;
-printf("Resize: 1...\n");
+
 	gImage *S = new gImage(width, height, c, imginfo);
 	pix * dst = S->getImageData();
-	gImage * tmp = new gImage(width, h, c, imginfo);
+	gImage * T = new gImage(width, h, c, imginfo);
+	pix * tmp = T->getImageData();
 	pix * src = getImageData();
-printf("Resize: 2...\n");
+
 	xscale = (double) width / (double) w;
 	yscale = (double) height / (double) h;
+
+
+	// Compute row contributions:
 	contrib = (CLIST *)calloc(width, sizeof(CLIST));
 	if(xscale < 1.0) {
 		wi = fwidth / xscale;
@@ -355,20 +400,19 @@ printf("Resize: 2...\n");
 			}
 		}
 	}
-dumpContrib(contrib,width);
-printf("Resize: 3...\n");
+	//dumpContrib(contrib,width);
 
-/*
-	for(unsigned y = 0; y < tmp->getHeight(); ++y) {
+	// Apply row contributions:
+	#pragma omp parallel for num_threads(threadcount)
+	for(unsigned y = 0; y < T->getHeight(); ++y) {
 		pix * raster = (pix *) (src + w*y);
-printf("Resize: 3a...\n");
 		pix * tmpimg = (pix *) (tmp + width*y);
-printf("Resize: 3b...\n");
-		for(unsigned x = 0; x < tmp->getWidth(); ++x) {
+
+		for(unsigned x = 0; x < T->getWidth(); ++x) {
 			double weightr = 0.0;
 			double weightg = 0.0;
 			double weightb = 0.0;
-			for(j = 0; j < contrib[x].n; ++j) {
+			for(unsigned j = 0; j < contrib[x].n; ++j) {
 				weightr += raster[contrib[x].p[j].pixel].r
 					* contrib[x].p[j].weight;
 				weightg += raster[contrib[x].p[j].pixel].g
@@ -376,19 +420,103 @@ printf("Resize: 3b...\n");
 				weightb += raster[contrib[x].p[j].pixel].b
 					* contrib[x].p[j].weight;
 			}
-printf("Resize: 3c...\n");
 			tmpimg[x].r = weightr;
 			tmpimg[x].g = weightg;
 			tmpimg[x].b = weightb;
 		}
 	}
-printf("Resize: 4...\n");
-*/
-	//delete tmp;
-	//return S;
 
-	delete S;
-	return tmp;
+	//free the memory allocated for horizontal filter weights:
+	for(i = 0; i < T->getWidth(); ++i) {
+		free(contrib[i].p);
+	}
+	free(contrib);
+
+
+	// Compute column contributions:
+	contrib = (CLIST *)calloc(height, sizeof(CLIST));
+	if(yscale < 1.0) {
+		wi = fwidth / yscale;
+		fscale = 1.0 / yscale;
+		for(i = 0; i < height; ++i) {
+			contrib[i].n = 0;
+			contrib[i].p = (CONTRIB *)calloc((int) (wi * 2 + 1),
+					sizeof(CONTRIB));
+			center = (double) i / yscale;
+			left = ceil(center - wi);
+			right = floor(center + wi);
+			for(j = (int)left; j <= (int)right; ++j) {
+				weight = center - (double) j;
+				weight = (*filterf)(weight / fscale) / fscale;
+				if(j < 0) {
+					n = -j;
+				} else if(j >= h) {
+					n = (h - j) + h - 1;
+				} else {
+					n = j;
+				}
+				k = contrib[i].n++;
+				contrib[i].p[k].pixel = n;
+				contrib[i].p[k].weight = weight;
+			}
+		}
+	} else {
+		for(i = 0; i < height; ++i) {
+			contrib[i].n = 0;
+			contrib[i].p = (CONTRIB *)calloc((int) (fwidth * 2 + 1),
+					sizeof(CONTRIB));
+			center = (double) i / yscale;
+			left = ceil(center - fwidth);
+			right = floor(center + fwidth);
+			for(j = (int)left; j <= (int)right; ++j) {
+				weight = center - (double) j;
+				weight = (*filterf)(weight);
+				if(j < 0) {
+					n = -j;
+				} else if(j >= h) {
+					n = (h - j) + h - 1;
+				} else {
+					n = j;
+				}
+				k = contrib[i].n++;
+				contrib[i].p[k].pixel = n;
+				contrib[i].p[k].weight = weight;
+			}
+		}
+	}
+
+	// Apply column contributions:
+	#pragma omp parallel for num_threads(threadcount)
+	for(unsigned x = 0; x < width; ++x) {
+		for(unsigned y = 0; y < height; ++y) {
+			double weightr = 0.0;
+			double weightg = 0.0;
+			double weightb = 0.0;
+			for(unsigned j = 0; j < contrib[y].n; ++j) {
+				weightr += tmp[x+(width*contrib[y].p[j].pixel)].r
+					* contrib[y].p[j].weight;
+				weightg += tmp[x+(width*contrib[y].p[j].pixel)].g
+					* contrib[y].p[j].weight;
+				weightb += tmp[x+(width*contrib[y].p[j].pixel)].b
+					* contrib[y].p[j].weight;
+			}
+			dst[x+y*width].r = weightr;
+			dst[x+y*width].g = weightg;
+			dst[x+y*width].b = weightb;
+
+		}
+	}
+
+	//free the memory allocated for vertical filter weights:
+	for(i = 0; i < height; ++i) {
+		free(contrib[i].p);
+	}
+	free(contrib);
+
+
+	delete T;
+	return S;
+
 }
 
 void gImage::Stats()

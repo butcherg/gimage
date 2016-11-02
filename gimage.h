@@ -41,6 +41,7 @@ class gImage
 		gImage * ConvolutionKernel(double kernel[3][3], int threadcount);
 		gImage * Sharpen(int strength, int threadcount);
 		gImage * Resize(unsigned width, unsigned height, FILTER filter, int threadcount);
+		gImage * Rotate(double angle, int threadcount);
 
 
 		//Image loaders.  Return a new gImage
