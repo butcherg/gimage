@@ -400,18 +400,39 @@ for (int f=0; f<files.size(); f++)
 			printf("done (%fsec).\n",d);
 		}
 
-		if (strcmp(cmd,"resize") == 0) {  //#resize:x,y      
+		else if (strcmp(cmd,"resize") == 0) {  //#resize:x,y      
 			//double sharp=0.0;
 			unsigned w, h;
 			char *wstr = strtok(NULL,", ");
 			char *hstr = strtok(NULL," ");
 			if (wstr) w = atoi(wstr);
 			if (hstr) h = atoi(hstr);
+			unsigned dw = dib->getWidth();
+			unsigned dh = dib->getHeight();
+
+			if (h ==  0) h = dh * ((float)w/(float)dw);
+			if (w == 0)  w = dw * ((float)h/(float)dh); 
 			printf("resize: %dx%d... ",w,h);
 
 			_mark();
-			int threadcount=1;
+			int threadcount=4;
 			gImage * dst = dib->Resize(w,h, LANCZOS3, threadcount);
+			dib->~gImage();
+			dib = dst;
+			double d = _duration();
+
+			printf("done (%fsec).\n",d);
+		}
+
+		else if (strcmp(cmd,"rotate") == 0) {  //#rotate:[0 - 45, default=0] 
+			double angle=0.0;
+			char *s = strtok(NULL," ");
+			if (s) angle = atof(s);
+			printf("rotate: %0.2f... ",angle);
+
+			_mark();
+			int threadcount=1;
+			gImage * dst = dib->Rotate(angle, threadcount);
 			dib->~gImage();
 			dib = dst;
 			double d = _duration();
