@@ -390,6 +390,7 @@ gImage *gImage::Crop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int thr
 	gImage *S = new gImage(x2-x1, y2-y1, c, imginfo);
 	pix * dst = S->getImageData();
 	unsigned dw = S->getWidth();
+	#pragma omp parallel for num_threads(threadcount)
 	for (unsigned x=0; x<S->getWidth(); x++) {
 		for (unsigned y=0; y<S->getHeight(); y++) {
 			dst[x + y*dw].r = src[x1+x + ((y+y1) * w)].r;
