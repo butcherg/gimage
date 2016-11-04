@@ -5,7 +5,7 @@
 #include <map>
 
 struct pix {
-	double r, g, b;
+	float r, g, b;
 };
 
 enum FILTER {
