@@ -392,11 +392,13 @@ for (int f=0; f<files.size(); f++)
 
 			_mark();
 			gImage * dst = dib->Sharpen(sharp, threadcount);
-			dib->~gImage();
-			dib = dst;
-			double d = _duration();
-
-			printf("done (%fsec).\n",d);
+			if (dst) {
+				dib->~gImage();
+				dib = dst;
+				double d = _duration();
+				printf("done (%fsec).\n",d);
+			}
+			else printf("failed, continuing.\n");
 		}
 
 		else if (strcmp(cmd,"resize") == 0) {  //#resize:x,y      
@@ -416,11 +418,13 @@ for (int f=0; f<files.size(); f++)
 
 			_mark();
 			gImage * dst = dib->Resize(w,h, LANCZOS3, threadcount);
-			dib->~gImage();
-			dib = dst;
-			double d = _duration();
-
-			printf("done (%fsec).\n",d);
+			if (dst) {
+				dib->~gImage();
+				dib = dst;
+				double d = _duration();
+				printf("done (%fsec).\n",d);
+			}
+			else printf("failed, continuing.\n");
 		}
 
 		else if (strcmp(cmd,"rotate") == 0) {  //#rotate:[0 - 45, default=0] 
@@ -432,12 +436,41 @@ for (int f=0; f<files.size(); f++)
 
 			_mark();
 			gImage * dst = dib->Rotate(angle, threadcount);
-			dib->~gImage();
-			dib = dst;
-			double d = _duration();
-
-			printf("done (%fsec).\n",d);
+			if (dst) {
+				dib->~gImage();
+				dib = dst;
+				double d = _duration();
+				printf("done (%fsec).\n",d);
+			}
+			else printf("failed, continuing.\n");
 		}
+
+		else if (strcmp(cmd,"crop") == 0) {  //#crop:x,y,w,h      
+			unsigned x=0, y=0, width=0, height=0;
+			char *xstr = strtok(NULL,", ");
+			char *ystr = strtok(NULL,", ");
+			char *wstr = strtok(NULL,", ");
+			char *hstr = strtok(NULL," ");
+			if (xstr) x = atoi(xstr);
+			if (ystr) y = atoi(ystr);
+			if (wstr) width = atoi(wstr);
+			if (hstr) height = atoi(hstr);
+			width += x;
+			height += y;
+			int threadcount=gImage::ThreadCount();
+			printf("crop: %d,%d %dx%d (%d threads)... ",x,y,width,height,threadcount);
+
+			_mark();
+			gImage * dst = dib->Crop(x,y,width,height,threadcount);
+			if (dst) {
+				dib->~gImage();
+				dib = dst;
+				double d = _duration();
+				printf("done (%fsec).\n",d);
+			}
+			else printf("failed, continuing.\n");
+		}
+
 
 /*
 		else if (strcmp(cmd,"saturation") == 0) {  //#saturation:[0 - 5.0, default=1.0, no change]

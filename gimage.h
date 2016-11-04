@@ -43,6 +43,7 @@ class gImage
 		gImage * Sharpen(int strength, int threadcount);
 		gImage * Resize(unsigned width, unsigned height, FILTER filter, int threadcount);
 		gImage * Rotate(double angle, int threadcount);
+		gImage * Crop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int threadcount);
 
 
 		//Image loaders.  Return a new gImage
@@ -54,6 +55,10 @@ class gImage
 		void saveJPEG(const char * filename);
 		void saveTIFF(const char * filename, unsigned bits);
 		bool saveImageFile(const char * filename);
+
+	protected:
+		gImage * XShear(double rangle, int threadcount);
+		gImage * YShear(double rangle, int threadcount);
 
 
 	private:

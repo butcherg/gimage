@@ -253,7 +253,7 @@ gImage * gImage::Sharpen(int strength, int threadcount)
 
 }
 
-
+/*
 gImage * gImage::Rotate(double angle, int threadcount)
 {
 
@@ -304,6 +304,100 @@ gImage * gImage::Rotate(double angle, int threadcount)
 	
 	return S;
 
+}
+*/
+
+gImage * gImage::Rotate(double angle, int threadcount)
+{
+	gImage *I, *J, *K, *L;
+	double rangle = angle * M_PI / 180.0;
+
+	I = XShear(rangle,threadcount);
+	J = I->YShear(rangle,threadcount);
+	delete I;
+	K = J->XShear(rangle,threadcount);
+	delete J;
+	//L = K->Crop(100,100,1000,1000,threadcount);
+	//delete K;
+	//return L;
+	return K;
+}
+
+gImage *gImage::XShear(double rangle, int threadcount)
+{
+	double sine = sin(rangle);
+	double tangent = tan(rangle/2.0);
+	int dw = tangent * (double) h;
+	unsigned nw = w+abs(dw);
+
+
+	gImage *S = new gImage(nw, h, c, imginfo);
+	pix * src = getImageData();
+	pix * dst = S->getImageData();
+
+	if (dw < 0) dw = 0;
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned y=0; y<h; y++) {
+		for (unsigned x=0; x<w; x++) {
+			unsigned u = (x - tangent * y) + dw;
+			unsigned v = y;
+			if (u >= nw) continue;
+			if (v >= h) continue;
+			dst[u + v*nw].r = src[x + y*w].r;
+			dst[u + v*nw].g = src[x + y*w].g;
+			dst[u + v*nw].b = src[x + y*w].b;
+		}
+	}
+	return S;
+}
+
+gImage *gImage::YShear(double rangle, int threadcount)
+{
+	double sine = sin(rangle);
+	double tangent = tan(rangle/2.0);
+	int dh = sine * (double) w;
+	unsigned nh = h+abs(dh);
+	unsigned dw = w;
+
+	if (dh < 0) dh = -dh; else dh = 0;
+
+	gImage *S = new gImage(w, nh, c, imginfo);
+	pix * src = getImageData();
+	pix * dst = S->getImageData();
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned x=0; x<w; x++) {
+		for (unsigned y=0; y<h; y++) {
+			unsigned u = x;
+			unsigned v = (y + sine * x) + dh;
+			if (u >= w) continue;
+			if (v >= nh) continue;
+			dst[u + v*dw].r = src[x + y*w].r;
+			dst[u + v*dw].g = src[x + y*w].g;
+			dst[u + v*dw].b = src[x + y*w].b;
+		}
+	}
+	return S;
+}
+
+gImage *gImage::Crop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int threadcount)
+{
+	if (x1>w | y1>h | x2>w | y2>h) return NULL;
+	if (x1>=x2 | y1>=y2) return NULL;
+
+	pix * src = getImageData();
+	gImage *S = new gImage(x2-x1, y2-y1, c, imginfo);
+	pix * dst = S->getImageData();
+	unsigned dw = S->getWidth();
+	for (unsigned x=0; x<S->getWidth(); x++) {
+		for (unsigned y=0; y<S->getHeight(); y++) {
+			dst[x + y*dw].r = src[x1+x + ((y+y1) * w)].r;
+			dst[x + y*dw].g = src[x1+x + ((y+y1) * w)].g;
+			dst[x + y*dw].b = src[x1+x + ((y+y1) * w)].b;
+		}
+	}
+	return S;
 }
 
 
