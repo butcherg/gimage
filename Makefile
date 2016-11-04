@@ -16,15 +16,8 @@ LFLAGS=-fopenmp
 OBJECTS := $(addprefix $(OBJDIR)/,gimg.o gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o elapsedtime.o strutil.o)
 
 
-#$(OBJDIR)/nef2jpg: $(OBJECTS)
-#	$(CXX) $(LFLAGS) -o$@  $(OBJECTS) $(LIBDIRS) $(LIBS)
-
 $(OBJDIR)/gimg: $(OBJECTS)
 	$(CXX) $(LFLAGS) -o$@  $(OBJECTS) $(LIBDIRS) $(LIBS)
-
-
-#$(OBJDIR)/nef2jpg.o: nef2jpg.cpp
-#	$(CC) $(CFLAGS) $(INCLUDEDIRS) -c nef2jpg.cpp -o$@
 
 $(OBJDIR)/gimg.o: gimg.cpp
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c gimg.cpp -o$@
