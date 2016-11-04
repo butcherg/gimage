@@ -6,6 +6,8 @@
 #include <iostream>
 #include <sstream> 
 
+#include <stdio.h>
+
 
 std::string tostr(double t)
 { 
@@ -42,7 +44,10 @@ std::map<std::string, std::string> parseparams(std::string params)
 	for (std::vector<std::string>::iterator it=l.begin(); it!=l.end(); ++it) {
 		std::string name, val;
 		std::vector<std::string> nameval = split(*it,"=");
-		p[nameval[0]] = nameval[1];
+		if (nameval.size() == 2)
+			p[nameval[0]] = nameval[1];
+		else
+			p[nameval[0]] = "1";
 	}
 	return p;
 }
