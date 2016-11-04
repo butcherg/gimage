@@ -317,9 +317,6 @@ gImage * gImage::Rotate(double angle, int threadcount)
 	delete I;
 	K = J->XShear(rangle,threadcount);
 	delete J;
-	//L = K->Crop(100,100,1000,1000,threadcount);
-	//delete K;
-	//return L;
 	return K;
 }
 
@@ -344,9 +341,11 @@ gImage *gImage::XShear(double rangle, int threadcount)
 			unsigned v = y;
 			if (u >= nw) continue;
 			if (v >= h) continue;
-			dst[u + v*nw].r = src[x + y*w].r;
-			dst[u + v*nw].g = src[x + y*w].g;
-			dst[u + v*nw].b = src[x + y*w].b;
+			unsigned dpos =u + v*nw;
+			unsigned spos = x + y*w;
+			dst[dpos].r = src[spos].r;
+			dst[dpos].g = src[spos].g;
+			dst[dpos].b = src[spos].b;
 		}
 	}
 	return S;
@@ -373,9 +372,11 @@ gImage *gImage::YShear(double rangle, int threadcount)
 			unsigned v = (y + sine * x) + dh;
 			if (u >= w) continue;
 			if (v >= nh) continue;
-			dst[u + v*dw].r = src[x + y*w].r;
-			dst[u + v*dw].g = src[x + y*w].g;
-			dst[u + v*dw].b = src[x + y*w].b;
+			unsigned dpos = u + v*dw;
+			unsigned spos = x + y*w;
+			dst[dpos].r = src[spos].r;
+			dst[dpos].g = src[spos].g;
+			dst[dpos].b = src[spos].b;
 		}
 	}
 	return S;
@@ -393,9 +394,11 @@ gImage *gImage::Crop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int thr
 	#pragma omp parallel for num_threads(threadcount)
 	for (unsigned x=0; x<S->getWidth(); x++) {
 		for (unsigned y=0; y<S->getHeight(); y++) {
-			dst[x + y*dw].r = src[x1+x + ((y+y1) * w)].r;
-			dst[x + y*dw].g = src[x1+x + ((y+y1) * w)].g;
-			dst[x + y*dw].b = src[x1+x + ((y+y1) * w)].b;
+			unsigned dpos = x + y*dw;
+			unsigned spos = x1+x + ((y+y1) * w);
+			dst[dpos].r = src[spos].r;
+			dst[dpos].g = src[spos].g;
+			dst[dpos].b = src[spos].b;
 		}
 	}
 	return S;
