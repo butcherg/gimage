@@ -213,13 +213,11 @@ for (int f=0; f<files.size(); f++)
 		strncpy(c, commands[i].c_str(), 255);
 		char* cmd = strtok(c,":");
 
-/*        
+        
 		if (strcmp(cmd,"bright") == 0) {  //#bright:[-100 - 100, default=0]
 			double bright=0.0;
 			char *b = strtok(NULL," ");
 			if (b) bright = atof(b);
-			int bpp = FreeImage_GetBPP(dib);
-			printf("brightness: %0.2f (%dbpp)... ",bright,bpp);
 
 			Curve ctrlpts;
 			ctrlpts.insertpoint(0,0);
@@ -228,15 +226,21 @@ for (int f=0; f<files.size(); f++)
 			else
 				ctrlpts.insertpoint(255-bright,255);
 
-			int threadcount=0;
-			FIBITMAP *dst = FreeImage_Clone(dib);
-			double d = ApplyCurve(dib, dst, ctrlpts.getControlPoints(), threadcount);
-			FreeImage_Unload(dib);
-			dib = dst;
-			printf("done (%f).\n",d);
+			int threadcount=gImage::ThreadCount();
+			printf("bright: %0.2f (%d threads)... ",bright,threadcount);
+
+			_mark();
+			gImage * dst = dib->ApplyCurve(ctrlpts.getControlPoints(), threadcount);
+			if (dst) {
+				dib->~gImage();
+				dib = dst;
+				double d = _duration();
+				printf("done (%fsec).\n",d);
+			}
+			else printf("failed, continuing.\n");
 		}
-*/
-/*
+
+
 		else if (strcmp(cmd,"blackwhitepoint") == 0) {  //#blackwhitepoint[:0-127,128-255 default=auto]
 			double blk, wht;
 			char *b = strtok(NULL,",");
@@ -244,10 +248,8 @@ for (int f=0; f<files.size(); f++)
 			wht = 255; blk = 0;
 			if (!b) {
 				int i;
-				DWORD hdata[256]; DWORD hmax=0;
-				FIBITMAP *hdib = FreeImage_ConvertTo24Bits(dib);
-				FreeImage_GetHistogram(hdib, hdata);
-				FreeImage_Unload(hdib);
+				std::vector<long> hdata = dib->Histogram();
+				long hmax=0;
 				for (i=0; i<256; i++) if (hdata[i] > hmax) hmax = hdata[i];
 				for (i=1; i<128; i++) if ((double)hdata[i]/(double)hmax > 0.05) break;
 				blk = (double) i;
@@ -255,35 +257,35 @@ for (int f=0; f<files.size(); f++)
 				wht = (double) i;
 			}
 			else {
-
-
 				if (w) wht = atof(w);
 				if (b) blk = atof(b);
 			}
-
-			int bpp = FreeImage_GetBPP(dib);
-			printf("blackwhitepoint: %0.2f,%0.2f (%dbpp)... ",blk,wht,bpp);
 
 			Curve ctrlpts;
 			ctrlpts.insertpoint(blk,0);
 			ctrlpts.insertpoint(wht,255);
 
-			int threadcount=0;
-			FIBITMAP *dst = FreeImage_Clone(dib);
-			double d = ApplyCurve(dib, dst, ctrlpts.getControlPoints(), threadcount);
-			FreeImage_Unload(dib);
-			dib = dst;
-			printf("done (%f).\n",d);
-		}
-*/
+			int threadcount=gImage::ThreadCount();
+			printf("blackwhitepoint: %0.2f,%0.2f (%d threads)... ",blk,wht,threadcount);
 
-/*
+			_mark();
+			gImage * dst = dib->ApplyCurve(ctrlpts.getControlPoints(), threadcount);
+			//gImage * dst = dib->ApplyLine(blk, wht, threadcount);
+			if (dst) {
+				dib->~gImage();
+				dib = dst;
+				double d = _duration();
+				printf("done (%fsec).\n",d);
+			}
+			else printf("failed, continuing.\n");
+		}
+
+
+
 		else if (strcmp(cmd,"contrast") == 0) {  //#contrast:[-100 - 100, default=0]
 			double contrast=0.0;
 			char *c = strtok(NULL," ");
 			if (c) contrast = atof(c);
-			int bpp = FreeImage_GetBPP(dib);
-			printf("contrast: %0.2f (%dbpp)... ",contrast,bpp);
 
 			Curve ctrlpts;
 			if (contrast < 0) {
@@ -295,14 +297,20 @@ for (int f=0; f<files.size(); f++)
 				ctrlpts.insertpoint(255-contrast,255);
 			}
 
-			int threadcount=0;
-			FIBITMAP *dst = FreeImage_Clone(dib);
-			double d = ApplyCurve(dib, dst, ctrlpts.getControlPoints(), threadcount);
-			FreeImage_Unload(dib);
-			dib = dst;
-			printf("done (%f).\n",d);
+			int threadcount=gImage::ThreadCount();
+			printf("contrast: %0.2f (%d threads)... ",contrast,threadcount);
+
+			_mark();
+			gImage * dst = dib->ApplyCurve(ctrlpts.getControlPoints(), threadcount);
+			if (dst) {
+				dib->~gImage();
+				dib = dst;
+				double d = _duration();
+				printf("done (%fsec).\n",d);
+			}
+			else printf("failed, continuing.\n");
 		}
-*/
+
 
 /*
 		else if (strcmp(cmd,"gamma") == 0) {  //#gamma:[0.0 - 5.0, default=1.0]
@@ -383,7 +391,7 @@ for (int f=0; f<files.size(); f++)
 */
 
 
-		if (strcmp(cmd,"sharpen") == 0) {  //#sharpen:[0 - 10, default=0]      //add in else when other commands are uncommented
+		else if (strcmp(cmd,"sharpen") == 0) {  //#sharpen:[0 - 10, default=0]      //add in else when other commands are uncommented
 			double sharp=0.0;
 			char *s = strtok(NULL," ");
 			if (s) sharp = atof(s);

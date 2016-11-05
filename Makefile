@@ -20,10 +20,10 @@ $(OBJDIR)/gimg: $(OBJECTS)
 	$(CXX) $(LFLAGS) -o$@  $(OBJECTS) $(LIBDIRS) $(LIBS)
 
 $(OBJDIR)/gimg.o: gimg.cpp
-	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c gimg.cpp -o$@
+	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c -w gimg.cpp -o$@
 
 $(OBJDIR)/gimage.o: gimage.cpp
-	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c gimage.cpp -o$@
+	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c -w gimage.cpp -o$@
 
 $(OBJDIR)/tiffimage.o: tiffimage.cpp tiffimage.h
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c tiffimage.cpp -o$@

@@ -404,24 +404,47 @@ gImage *gImage::Crop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int thr
 	return S;
 }
 
-/*
-gImage *gImage::ApplyLUT(const float *LUT, int threadcount)
+
+gImage *gImage::ApplyCurve(std::vector<cp> ctpts, int threadcount)
 {
-	gImage *S = new gImage(w, nh, c, imginfo);
+	gImage *S = new gImage(w, h, c, imginfo);
 	pix * src = getImageData();
 	pix * dst = S->getImageData();
+	Curve c;
+	c.setControlPoints(ctpts);
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned x=0; x<w; x++) {
+		for (unsigned y=0; y<h; y++) {
+			unsigned pos = x + y*w;
+			dst[pos].r = c.getpoint(src[pos].r);
+			dst[pos].g = c.getpoint(src[pos].g);
+			dst[pos].b = c.getpoint(src[pos].b);
+		}
+	}
+	return S;
+}
+
+gImage *gImage::ApplyLine(double low, double high, int threadcount)
+{
+	gImage *S = new gImage(w, h, c, imginfo);
+	pix * src = getImageData();
+	pix * dst = S->getImageData();
+
+	double slope = 255.0 / (high-low);
 
 	#pragma omp parallel for num_threads(threadcount)
 	for (unsigned x=0; x<w; x++) {
 		for (unsigned y=0; y<h; y++) {
-			unsigned pos = x + y*dw;
-			dst[pos].r = src[pos].r;
-			dst[pos].g = src[pos].g;
-			dst[pos].b = src[pos].b;
+			unsigned pos = x + y*w;
+			dst[pos].r = src[pos].r * slope;
+			dst[pos].g = src[pos].g * slope;
+			dst[pos].b = src[pos].b * slope;
 		}
 	}
+
+	return S;
 }
-*/
+
 
 //Filters for resizing:
 
@@ -665,6 +688,21 @@ void gImage::Stats()
 	}
 	printf("rmin: %f\trmax: %f\ngmin: %f\tgmax: %f\nbmin: %f\tbmax: %f\n", rmin, rmax, gmin, gmax, bmin, bmax);
 	printf("iterations: %d\n\n", iter);
+}
+
+std::vector<long> gImage::Histogram()
+{
+	std::vector<long> histogram(256, 0);
+	for(unsigned y = 0; y < h; y++) {
+		for(unsigned x = 0; x < w; x++) {
+			unsigned pos = x + y*w;
+			double t = (img[pos].r + img[pos].g + img[pos].b) / 3.0;
+			if (t < 0.0) t = 0.0;
+			if (t > 255.0) t = 255.0;
+			histogram[floor(t+0.5)]++;
+		}
+	}
+	return histogram;
 }
 
 

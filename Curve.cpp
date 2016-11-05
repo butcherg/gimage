@@ -1,7 +1,6 @@
 
 #define NDEBUG
 
-#include "spline.h"
 //#include <vector>
 #include <string>
 #include <cmath>

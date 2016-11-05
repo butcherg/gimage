@@ -2,7 +2,10 @@
 #define _gimage_h
 
 #include <string>
+#include <vector>
 #include <map>
+
+#include "Curve.h"
 
 struct pix {
 	float r, g, b;
@@ -37,6 +40,7 @@ class gImage
 		void setInfo(std::string name, std::string value);
 
 		void Stats();
+		std::vector<long> Histogram();
 
 		//Image operations
 		gImage * ConvolutionKernel(double kernel[3][3], int threadcount);
@@ -44,6 +48,8 @@ class gImage
 		gImage * Resize(unsigned width, unsigned height, FILTER filter, int threadcount);
 		gImage * Rotate(double angle, int threadcount);
 		gImage * Crop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int threadcount);
+		gImage * ApplyCurve(std::vector<cp> ctpts, int threadcount);
+		gImage * ApplyLine(double low, double high, int threadcount);
 
 
 		//Image loaders.  Return a new gImage

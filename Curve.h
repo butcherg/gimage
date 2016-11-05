@@ -3,7 +3,7 @@
 
 #define NDEBUG
 
-//#include "spline.h"
+#include "spline.h"
 #include <vector>
 //#include <string>
 //#include <cmath>
@@ -39,7 +39,7 @@ class Curve
 		std::vector<double> X, Y;
 		tk::spline s;
 		cp ctrlpoint;
-		double mn, mx;
+		double mn, mx, slope;
 
 		void sortpoints();
 		void setpoints ();
