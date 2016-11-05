@@ -13,7 +13,7 @@ LFLAGS=-fopenmp
 
 -include $(OBJDIR)/localmake.txt
 
-OBJECTS := $(addprefix $(OBJDIR)/,gimg.o gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o elapsedtime.o strutil.o)
+OBJECTS := $(addprefix $(OBJDIR)/,gimg.o gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o elapsedtime.o strutil.o Curve.o)
 
 
 $(OBJDIR)/gimg: $(OBJECTS)
@@ -42,6 +42,9 @@ $(OBJDIR)/elapsedtime.o: elapsedtime.cpp elapsedtime.h
 
 $(OBJDIR)/strutil.o: strutil.cpp strutil.h
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c strutil.cpp -o$@
+
+$(OBJDIR)/Curve.o: Curve.cpp Curve.h
+	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c -w Curve.cpp -o$@
 
 clean:
 ifeq ($(SYS), mingw32)

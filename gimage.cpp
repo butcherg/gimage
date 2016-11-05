@@ -404,6 +404,24 @@ gImage *gImage::Crop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int thr
 	return S;
 }
 
+/*
+gImage *gImage::ApplyLUT(const float *LUT, int threadcount)
+{
+	gImage *S = new gImage(w, nh, c, imginfo);
+	pix * src = getImageData();
+	pix * dst = S->getImageData();
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned x=0; x<w; x++) {
+		for (unsigned y=0; y<h; y++) {
+			unsigned pos = x + y*dw;
+			dst[pos].r = src[pos].r;
+			dst[pos].g = src[pos].g;
+			dst[pos].b = src[pos].b;
+		}
+	}
+}
+*/
 
 //Filters for resizing:
 
