@@ -452,6 +452,16 @@ gImage *gImage::ApplyLine(double low, double high, int threadcount)
 }
 
 
+//Saturation
+//
+//Credit: Darel Rex Finley, http://alienryderflex.com/saturation.html
+//
+//This is a simple HSL saturation routine.  There are better ways to 
+//manipulate color, but this one is self-contained to a RGB color space.
+//Maybe later...
+//
+
+
 #define  Pr  .299
 #define  Pg  .587
 #define  Pb  .114
@@ -486,6 +496,14 @@ gImage *gImage::Saturate(double saturate, int threadcount)
 	return S;
 }
 
+//Tint
+//
+//Credit:
+//
+//Tint allows the addition or subtraction of a single value from a single
+//channel.  My use case is to introduce tint to grayscale images.
+//
+
 gImage *gImage::Tint(double red,double green,double blue, int threadcount)
 {
 	gImage *S = new gImage(w, h, c, imginfo);
@@ -506,6 +524,21 @@ gImage *gImage::Tint(double red,double green,double blue, int threadcount)
 
 	return S;
 }
+
+//Grayscaling
+//
+//Credit: Various
+//
+//Grayscaling an image is essentially computing a single tone value from the red, green, and blue
+//components of each pixel.  This is typically done by giving each component a percentage weight
+//in a sum; the typical percentages used are red=0.21, green=0.72, and blue=0.07; see 
+//https://en.wikipedia.org/wiki/Grayscale for a discussion.
+//
+//The algorithm implemented allows for individual specification of the percentages.  It does not
+//produce a single-valued image matrix; it loads the same gray tone in all three channels.  My
+//thought would be to make an option to convert to, say, an 8-bit grayscale image when saving.
+//Retaining the three-channel image allows subsequent manipulation of the channels to introduce
+//tint.
 
 gImage *gImage::Gray(double redpct, double greenpct, double bluepct, int threadcount)
 {
@@ -528,6 +561,23 @@ gImage *gImage::Gray(double redpct, double greenpct, double bluepct, int threadc
 
 	return S;
 }
+
+//NLMeans Denoise
+//
+//Credit: Antoni Buades, et.al., and David Tschumperlé, principal programmer of GMIC
+//
+//Denoising an image removes the "speckle" produced usually by low exposure values, where
+//the light signal is not too far from the noise signal inherent in the sensor.  The
+//essential operation is to 'average' surrounding pixels as the result value for the 
+//source pixel.  In that regard, a 'blur' operation reduces noise, but at the expense of
+//image detail because the average doesn't recognize edges.
+//
+//The Non-Local Means algorithm, first described by Antoni Buades, Bartomeu Coll and 
+//Jean-Michel Morel in the IPOL Journal attempts to address this expense by recognizing similar
+//toned pixels in the group, and giving them more weight in the average.  The implementation
+//below is a simplistic but straightforward interpretation of the algorithm presented as a 
+//GMIC script by David Tschumperlé in his blog at http://gmic.eu
+//
 
 
 gImage *gImage::NLMeans(double sigma, int local, int patch, int threadcount)
@@ -606,7 +656,32 @@ gImage *gImage::NLMeans(double sigma, int local, int patch, int threadcount)
 }
 
 
-//Filters for resizing:
+//Resizing
+//
+//Credit: Graphics Gems
+//
+//Resizing an image is either an interpolation (reduction) or extrapolation (expansion) of an image's 
+//dimensions.  In the former case, it is the summarization of a group of pixels into one; in the 
+//latter, it is essentially the creation of information not captured in the original image. This
+//endeavor has to be well-formed in order to render a pleasing result.
+//
+//The essential operation of resize has two parts: 1) reduction/expansion in one dimension, then
+//2) reduction/expansion of the intermediate image in the other direction.  So, the inter/extrapolation
+//of a pixel is peformed with its row or column neighbors.  The amalgamation of neighbor pixels is
+//performed with a filter algorithm, essentially a lookup of an equation based on distance from the
+//source pixel.  Numerous filters have been presented in the literature; a representative sample is 
+//included in this library.  
+//
+//The resize algorithm presented by .... in Graphics Gems optimizes the application of a filter in 
+//four steps: 1) for the destination image size in one dimension, calculate the filter contributions
+//for each pixel in one row/colum of that dimension; 2) apply those contributions to the source image to 
+//produce an intermediate image changed in size for that dimension; 3) calculate the filter contributions
+//for each pixel in one row/colum of the other dimension; 4) apply those contributions to the
+//intermediate image to produce the destination image.
+//
+//The relevant code below are the functions for each of the filters, followed by the Resize method 
+//programmed in the pattern describe above.
+//
 
 double sinc(double x)
 {
