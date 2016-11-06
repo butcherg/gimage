@@ -197,7 +197,59 @@ void gImage::setInfo(std::string name, std::string value)
 }
 
 
+
+
 //Image Operations:
+//
+//This is a compendium of basic image operations, kept simple for 
+//ease of understanding while maintaining basic image quality
+
+
+
+
+//Convolution Kernels and Sharpening
+//
+//Credit: Various
+//
+//Changing a pixel depending on the values of its neighbors is probably the
+//second fundamental image transformation to understand, after so-called
+//curve-based lookup tables.  Particularly, there are a set of matrices
+//describing weights of the center pixel and its neigbors that produce
+//various effects, such as blurring and edge highlighting.  The general
+//algorith traverses the image and calculates a new value for each pixel
+//based on the sum of the weighted values of its neighbors.
+//
+//In the ConvolutionKernal algorithm presented below, the inner kx and ky 
+//loops do the collection of the weighted neighbor pixel values using the 
+//kernel parameter, which is hard-coded to be a 3x3 matrix of doubles.  
+//Larger matrices are discussed elsewhere for more control and 'quality', 
+//but the simple 3x3 matrix is quite suitable for what I consider to be the 
+//most useful convolution kernel application - sharpening downsized images.
+//
+//The Sharpen method below defines a kernel specific to image sharpening,
+//or more specifically, the enhancement of edge contrast.  The kernel is 
+//described in numerous places, usually as a moderate application:
+//
+// 0 -1  0
+//-1  5 -1
+// 0 -1  0
+//
+//So, if you multiply the source pixel by 5, and each of the surrounding
+//pixels by the corresponding values, and then sum it all up, you get a
+//new value for the source pixel that will present more 'edge contrast',
+//or acutance.  The method actually implements a range of sharpening by
+//computing a matrix based on a linear 'strength', 0=no sharpening, 
+//10=ludicrous sharpening.  The matrix values are calculated from 
+//the strength number, preserving the relationship expressed in the 
+//matrix described above.
+//
+//There are more complex algorithms available for 'sharpening', as it 
+//were, but I find the simple 3x3 convolution kernel to work nicely
+//for re-introducing acutance lost in down-sizing an image for web
+//publication.  The application for that purpose is most valuable 
+//going from 0 to 1 in strength, for ~640x480 images; 2 and above 
+//start to introduce the halos and ringing that most find offensive.
+//
 
 gImage * gImage::ConvolutionKernel(double kernel[3][3], int threadcount)
 {
@@ -249,6 +301,29 @@ gImage * gImage::Sharpen(int strength, int threadcount)
 	return ConvolutionKernel(kernel, threadcount);
 
 }
+
+
+//Rotate
+//
+//Credit: Alan Paeth, "A Fast Algorithm for General Raster Rotation", Graphics Interface '86
+//
+//Image rotation is a deceivingly complex operation.  One would think it to be sufficient to 
+//apply the sine and cosine of the rotation angle to each pixel coordinate, but you also have to
+//manage the new image boundary, and the image can develop blocky aliasing in the edges.
+//I started my exploration of image rotation with such an approach, and I've left it in 
+//commented-out.
+//
+//These days, most 'quality' image rotation is done using Paeth's approach, which is the 
+//application of three shears, one in the X direction, one in the Y direction, and a final
+//one in the X direction to produce the rotation.  One wonders about the thinking required 
+//to determine such transformations would produce the desired result.
+//
+//Three methods are presented to perform Paeth roatation: XShear and YShear, and a Rotate
+//method to use them in the proscribed order.  Not implemented at this writing is an 
+//intelligent adjustment of the rotated pixel to reflect its changed relationship with 
+//adjunct pixels.  This does not seem to be an egregious issue with large out-of-camera
+//images.
+//
 
 /*
 gImage * gImage::Rotate(double angle, int threadcount)
@@ -383,6 +458,15 @@ gImage *gImage::YShear(double rangle, int threadcount)
 	return S;
 }
 
+
+//Crop
+//
+//Credit: me
+//
+//Cropping an image is trivial.  This method uses a left-top and right-bottom bound to 
+//extricate the portion of the image of interest.
+//
+
 gImage *gImage::Crop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int threadcount)
 {
 	if (x1>w | y1>h | x2>w | y2>h) return NULL;
@@ -406,6 +490,35 @@ gImage *gImage::Crop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int thr
 
 	return S;
 }
+
+//Curve
+//
+//Credit: Tino Kluge, http://kluge.in-chemnitz.de/opensource/spline/, GPLV2
+//
+//The so-called curve is an extremely useful construct for manipulating image attributes.
+//Really, the concept is that of a lookup-table, where a tone or color is looked up to 
+//determine a new value, based on some previously computed translation to produce the 
+//table.  The curve notion provides an intuitive (well, to some) paradigm for building
+//these lookup tables. When  you want to boost the tone of shadows, for instance, you 
+//want to manage the transition from that transform into the highlights, or the image
+//will show the manipulation quite obviously.  A spline-based graph used to  produce
+//the lookup table helps to manage the 'budget' of tones when you go to make a transform.
+//
+//The algorithm implemented below uses a C++ spline library published by Tino Kluge. Its
+//input is a list of 'control points', through which a smooth curve is posited, and its
+//output is a Y value for a specified X coordinate at any point on the curve.  A
+//challenge is presented in gimage by using floating point RGB values, in that a 
+//lookup table for distinct values is impractical.  Accordingly, the actual transformation 
+//is not a table lookup but instead the actual spline coordinate computation.  This makes
+//the curve application computationally-intensive, and correspondingly slower than its
+//lookup equivalent.
+//
+//Also presented with ApplyCurve is an ApplyLine method, presented in the notion that
+//a number of useful 'curves' are really just straight lines, such as those used for
+//contrast, brightness, and black-white point adjustment, and should require just a simple
+//slope calculation rather than the spline interpolation.  At this writing, the benefit
+//is not clear.
+//
 
 
 gImage *gImage::ApplyCurve(std::vector<cp> ctpts, int threadcount)
@@ -454,7 +567,7 @@ gImage *gImage::ApplyLine(double low, double high, int threadcount)
 
 //Saturation
 //
-//Credit: Darel Rex Finley, http://alienryderflex.com/saturation.html
+//Credit: Darel Rex Finley, http://alienryderflex.com/saturation.html, public domain
 //
 //This is a simple HSL saturation routine.  There are better ways to 
 //manipulate color, but this one is self-contained to a RGB color space.
@@ -564,7 +677,7 @@ gImage *gImage::Gray(double redpct, double greenpct, double bluepct, int threadc
 
 //NLMeans Denoise
 //
-//Credit: Antoni Buades, et.al., and David Tschumperlé, principal programmer of GMIC
+//Credit: Antoni Buades, et.al., and David Tschumperlé, principal programmer of GMIC, non-commercial use
 //
 //Denoising an image removes the "speckle" produced usually by low exposure values, where
 //the light signal is not too far from the noise signal inherent in the sensor.  The
@@ -658,7 +771,8 @@ gImage *gImage::NLMeans(double sigma, int local, int patch, int threadcount)
 
 //Resizing
 //
-//Credit: Graphics Gems
+//Credit: Graphics Gems III: Schumacher, Dale A., General Filtered Image Rescaling, p. 8-16
+//https://github.com/erich666/GraphicsGems/blob/master/gemsiii/filter.c, public domain
 //
 //Resizing an image is either an interpolation (reduction) or extrapolation (expansion) of an image's 
 //dimensions.  In the former case, it is the summarization of a group of pixels into one; in the 
@@ -672,7 +786,7 @@ gImage *gImage::NLMeans(double sigma, int local, int patch, int threadcount)
 //source pixel.  Numerous filters have been presented in the literature; a representative sample is 
 //included in this library.  
 //
-//The resize algorithm presented by .... in Graphics Gems optimizes the application of a filter in 
+//The resize algorithm presented by Schumacher in Graphics Gems optimizes the application of a filter in 
 //four steps: 1) for the destination image size in one dimension, calculate the filter contributions
 //for each pixel in one row/colum of that dimension; 2) apply those contributions to the source image to 
 //produce an intermediate image changed in size for that dimension; 3) calculate the filter contributions
@@ -680,7 +794,10 @@ gImage *gImage::NLMeans(double sigma, int local, int patch, int threadcount)
 //intermediate image to produce the destination image.
 //
 //The relevant code below are the functions for each of the filters, followed by the Resize method 
-//programmed in the pattern describe above.
+//programmed in the pattern describe above.  You'll recognize a lot of the Schumacher's code; the
+//contribution collection loops and data structures are pasted verbatim, as well as the filter
+//functions.  At this writing, only the Lanczos3 filter is used, but that will change in later
+//commits.
 //
 
 double sinc(double x)
@@ -905,6 +1022,9 @@ gImage * gImage::Resize(unsigned width, unsigned height, RESIZE_FILTER filter, i
 
 }
 
+
+//Image Information:
+
 void gImage::Stats()
 {
 	double rmin, rmax, gmin, gmax, bmin, bmax;
@@ -941,6 +1061,8 @@ std::vector<long> gImage::Histogram()
 	}
 	return histogram;
 }
+
+
 
 
 //Loaders:
