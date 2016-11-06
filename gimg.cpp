@@ -500,6 +500,27 @@ for (int f=0; f<files.size(); f++)
 
 		}
 
+		else if (strcmp(cmd,"denoise") == 0) {  //#saturation:[0 - 5.0, default=1.0, no change]
+			double sigma=0.0;
+			char *s = strtok(NULL," ");
+			if (s) sigma = atof(s);
+
+			int threadcount=gImage::ThreadCount();
+			printf("denoise: %0.2f (%d threads)... ",sigma,threadcount);
+
+			_mark();
+			gImage * dst = dib->NLMeans(sigma, 3, 1, threadcount);
+			if (dst) {
+				dib->~gImage();
+				dib = dst;
+				double d = _duration();
+				printf("done (%fsec).\n",d);
+			}
+			else printf("failed, continuing.\n");
+
+		}
+
+
 		else if (strcmp(cmd,"tint") == 0) {  //#tint:r,g,b
 			double red=0.0; double green=0.0; double blue = 0.0;
 			char *r = strtok(NULL,", ");

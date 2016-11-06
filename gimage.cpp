@@ -511,6 +511,81 @@ gImage *gImage::Tint(double red,double green,double blue, int threadcount)
 	return S;
 }
 
+gImage *gImage::NLMeans(double sigma, int local, int patch, int threadcount)
+{
+
+	gImage *S = new gImage(w, h, c, imginfo);
+	pix * srcbits = getImageData();
+	pix * dstbits = S->getImageData();
+
+	unsigned spitch = w;
+	unsigned dpitch = w;
+
+	unsigned iw = w;
+	unsigned ih = h;
+	double sigma2 = pow(2*sigma,2);
+
+	//y|x upper|lower bound computations, used to offset patch to avoid out-of-image references 
+	unsigned yplb = patch+local+1;
+	unsigned ypub = ih-yplb;
+	unsigned xplb = yplb;
+	unsigned xpub = iw-xplb;
+
+	#pragma omp parallel for num_threads(threadcount)
+	for(unsigned y = local; y < ih-local; y++) {
+		unsigned py = y;
+		if (py<yplb) py = yplb;
+		if (py>ypub) py = ypub;
+		for(unsigned x = local; x < iw-local; x++) {
+			unsigned px = x;
+			if (px<xplb) px = xplb;
+			if (px>xpub) px = xpub;
+			pix * wdstpix = dstbits + dpitch*y + x;
+			double valueR = 0.0;
+			double valueG = 0.0;
+			double valueB = 0.0;
+			double sum_weightsR = 0.0;
+			double sum_weightsG = 0.0;
+			double sum_weightsB = 0.0;
+			for (int q = -local; q<=local; ++q) {
+				for (int p = -local; p<=local; ++p) {
+					double diffR = 0.0;
+					double diffG = 0.0;
+					double diffB = 0.0;
+					for (int s = -patch; s<=patch; ++s) {
+						for (int r = -patch; r<=patch; ++r) {
+							pix * ppix = srcbits + spitch*(py+q+s) + (px+p+r);
+							pix * lpix = srcbits + spitch*(py+s) + (px+r);
+							diffR += pow((ppix->r - lpix->r),2);
+							diffG += pow((ppix->g - lpix->g),2);
+							diffB += pow((ppix->b - lpix->b),2);
+							//gmic: diff += pow(i[x+p+r,y+q+s] - i[x+r,y+s],2);
+						}
+					}
+					double weightR = exp(-diffR/sigma2);
+					double weightG = exp(-diffG/sigma2);
+					double weightB = exp(-diffB/sigma2);
+					pix * localpix = srcbits + spitch*(y+q) + (x+p);
+					valueR += weightR*localpix->r;
+					valueG += weightG*localpix->g;
+					valueB += weightB*localpix->b;
+					//gmic: value += weight*i(x+p,y+q);
+					sum_weightsR += weightR;
+					sum_weightsG += weightG;
+					sum_weightsB += weightB;
+
+				}
+			}
+			wdstpix->r   = (valueR/(1e-5 + sum_weightsR));
+			wdstpix->g = (valueG/(1e-5 + sum_weightsG));
+			wdstpix->b  = (valueB/(1e-5 + sum_weightsB));
+		}
+	}
+
+	return S;
+
+}
+
 
 //Filters for resizing:
 

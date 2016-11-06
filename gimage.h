@@ -52,6 +52,7 @@ class gImage
 		gImage * Tint(double red,double green,double blue, int threadcount);
 		gImage * ApplyCurve(std::vector<cp> ctpts, int threadcount);
 		gImage * ApplyLine(double low, double high, int threadcount);
+		gImage * NLMeans(double sigma, int local, int patch, int threadcount);
 
 
 		//Image loaders.  Return a new gImage
