@@ -511,6 +511,29 @@ gImage *gImage::Tint(double red,double green,double blue, int threadcount)
 	return S;
 }
 
+gImage *gImage::Gray(double redpct, double greenpct, double bluepct, int threadcount)
+{
+	gImage *S = new gImage(w, h, c, imginfo);
+	pix * src = getImageData();
+	pix * dst = S->getImageData();
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned x=0; x<w; x++) {
+		for (unsigned y=0; y<h; y++) {
+			unsigned pos = x + y*w;
+			double G = floor(src[pos].r*redpct + src[pos].g*greenpct + src[pos].b*bluepct)+0.5;
+			dst[pos].r=G;
+			dst[pos].g=G;
+			dst[pos].b=G;
+
+		}
+	}
+	#pragma omp barrier
+
+	return S;
+}
+
+
 gImage *gImage::NLMeans(double sigma, int local, int patch, int threadcount)
 {
 

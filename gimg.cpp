@@ -546,24 +546,31 @@ for (int f=0; f<files.size(); f++)
 		}
 
 
-/*
-		else if (strcmp(cmd,"gray") == 0) {  //#gray (no parameters ,uses the saturate algorithm to desaturate)
-			double d;
-			double saturation=0.0;
-			//char *s = strtok(NULL," ");
-			//if (s) saturation = atof(s);
-			int bpp = FreeImage_GetBPP(dib);
-			printf("gray: (%dbpp)... ",bpp);
 
-			int threadcount=0;
+		else if (strcmp(cmd,"gray") == 0) {  //#gray:[r],[g],[b] 
+			double red=0.21; double green=0.72; double blue = 0.07;
+			char *r = strtok(NULL,", ");
+			char *g = strtok(NULL,", ");
+			char *b = strtok(NULL," ");
+			if (r) red = atof(r);
+			if (g) green = atof(g);
+			if (b) blue = atof(b);
 
-			FIBITMAP *dst = FreeImage_Clone(dib);
-			d = ApplySaturation(dib, dst, saturation, threadcount);
-			FreeImage_Unload(dib);
-			dib = dst;
-			printf("done (%f).\n",d);
+			int threadcount=gImage::ThreadCount();
+			printf("gray: %0.2f,%0.2f,%0.2f (%d threads)... ",red,green,blue,threadcount);
+
+			_mark();
+			gImage * dst = dib->Gray(red,green,blue, threadcount);
+			if (dst) {
+				dib->~gImage();
+				dib = dst;
+				double d = _duration();
+				printf("done (%fsec).\n",d);
+			}
+			else printf("failed, continuing.\n");
+
 		}
-*/
+
 
 		else printf("Unrecognized command: %s.  Continuing...\n",cmd);
 
