@@ -9,7 +9,15 @@
 #include "LibRaw-0.17.2/libraw/libraw.h"
 
 
-char * _loadRAW_m(const char *filename, unsigned *width, unsigned *height, unsigned *numcolors, unsigned *numbits, std::map<std::string,std::string>& info, std::string params, char * icc_m, unsigned  *icclength)
+char * _loadRAW_m(const char *filename, 
+			unsigned *width, 
+			unsigned *height, 
+			unsigned *numcolors, 
+			unsigned *numbits, 
+			std::map<std::string,std::string> &info, 
+			std::string params="",
+			char * icc_m=NULL, 
+			unsigned  *icclength=0)
 {
 
 	int w, h, c, b;

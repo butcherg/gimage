@@ -17,7 +17,14 @@ extern "C" {
 
 #include "jpegexif.h"
 
-char * _loadJPEG(const char *filename, unsigned *width, unsigned *height, unsigned *numcolors, std::map<std::string,std::string> &info)
+char * _loadJPEG(const char *filename, 
+			unsigned *width, 
+			unsigned *height, 
+			unsigned *numcolors, 
+			std::map<std::string,std::string> &info,
+			std::string params="",
+			char * icc_m=NULL, 
+			unsigned  *icclength=0)
 {
 	struct jpeg_decompress_struct cinfo;
 	struct jpeg_error_mgr jerr;
@@ -75,7 +82,15 @@ char * _loadJPEG(const char *filename, unsigned *width, unsigned *height, unsign
 
 
 
-void _writeJPEG(const char *filename, char *imagedata, unsigned width, unsigned height, unsigned components, std::map<std::string,std::string> info)
+void _writeJPEG(const char *filename, 
+			char *imagedata, 
+			unsigned width, 
+			unsigned height, 
+			unsigned numcolors, 
+			std::map<std::string,std::string> info,
+			std::string params="",
+			char * icc_m=NULL, 
+			unsigned  *icclength=0)
 {
 
 	struct jpeg_compress_struct cinfo;
@@ -102,7 +117,7 @@ void _writeJPEG(const char *filename, char *imagedata, unsigned width, unsigned 
 
 	cinfo.image_width = width; 	/* image width and height, in pixels */
 	cinfo.image_height = height;
-	cinfo.input_components = components;	/* # of color components per pixel */
+	cinfo.input_components = numcolors;	/* # of color components per pixel */
 	cinfo.in_color_space = JCS_RGB; /* colorspace of input image */
 
 	jpeg_set_defaults(&cinfo);
