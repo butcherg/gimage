@@ -24,7 +24,8 @@ void Curve::setControlPoints(std::vector<cp> pts)
 {
 	controlpts.clear();
 	controlpts = pts;
-	loaded=false;
+	setpoints();
+	loaded=true;
 }
 
 void Curve::clearpoints()
