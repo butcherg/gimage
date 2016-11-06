@@ -1114,7 +1114,7 @@ gImage * gImage::loadTIFF(const char * filename, std::string params)
 
 //Savers:
 
-bool gImage::saveImageFile(const char * filename)
+bool gImage::saveImageFile(const char * filename, std::string params)
 {
 	char ext[5];
 	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
@@ -1123,16 +1123,16 @@ bool gImage::saveImageFile(const char * filename)
 		return true;
 	}
 	if (strcmp(ext,"jpg") == 0) {
-		saveJPEG(filename);
+		saveJPEG(filename, params);
 		return true;
 	}
 	return false;
 }
 
 
-void gImage::saveJPEG(const char * filename)
+void gImage::saveJPEG(const char * filename, std::string params)
 {
-	_writeJPEG(filename, getImageData(8),  w, h, c, imginfo);
+	_writeJPEG(filename, getImageData(8),  w, h, c, imginfo, params);
 }
 
 void gImage::saveTIFF(const char * filename, unsigned bits)

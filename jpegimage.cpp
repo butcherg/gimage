@@ -125,7 +125,7 @@ void _writeJPEG(const char *filename,
 
 	jpeg_set_defaults(&cinfo);
 
-	if (p.find("quality") != p.end())
+	if (p.find("quality") != p.end()) 
 		jpeg_set_quality(&cinfo, atoi(p["quality"].c_str()), TRUE);
 
 	jpeg_start_compress(&cinfo, TRUE);

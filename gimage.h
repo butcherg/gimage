@@ -67,9 +67,9 @@ class gImage
 		static gImage * loadTIFF(const char * filename, std::string params);
 		static gImage * loadImageFile(const char * filename, std::string params);
 		//Image savers. 
-		void saveJPEG(const char * filename);
+		void saveJPEG(const char * filename, std::string params="");
 		void saveTIFF(const char * filename, unsigned bits);
-		bool saveImageFile(const char * filename);
+		bool saveImageFile(const char * filename, std::string params="");
 
 	protected:
 		gImage * XShear(double rangle, int threadcount);
