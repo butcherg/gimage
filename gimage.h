@@ -11,8 +11,13 @@ struct pix {
 	float r, g, b;
 };
 
-enum FILTER {
-	LANCZOS3
+enum RESIZE_FILTER {
+	FILTER_BOX,
+	FILTER_BILINEAR,
+	FILTER_BSPLINE,
+	FILTER_BICUBIC,
+	FILTER_CATMULLROM,
+	FILTER_LANCZOS3
 };
 
 
@@ -45,7 +50,7 @@ class gImage
 		//Image operations
 		gImage * ConvolutionKernel(double kernel[3][3], int threadcount);
 		gImage * Sharpen(int strength, int threadcount);
-		gImage * Resize(unsigned width, unsigned height, FILTER filter, int threadcount);
+		gImage * Resize(unsigned width, unsigned height, RESIZE_FILTER filter, int threadcount);
 		gImage * Rotate(double angle, int threadcount);
 		gImage * Crop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int threadcount);
 		gImage * Saturate(double saturate, int threadcount);

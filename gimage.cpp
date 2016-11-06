@@ -216,10 +216,6 @@ gImage * gImage::ConvolutionKernel(double kernel[3][3], int threadcount)
 					G += src->g * kernel[kx][ky];
 					B += src->b * kernel[kx][ky];
 				}
-				//dst->r = R;
-				//dst->g = G;
-				//dst->b = B;
-
 			}
 
 			dst->r = R;
@@ -627,7 +623,7 @@ double Lanczos3_filter(double t)
 }
 
 
-gImage * gImage::Resize(unsigned width, unsigned height, FILTER filter, int threadcount)
+gImage * gImage::Resize(unsigned width, unsigned height, RESIZE_FILTER filter, int threadcount)
 {
 	typedef struct {
 		int	pixel;

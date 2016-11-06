@@ -424,7 +424,7 @@ for (int f=0; f<files.size(); f++)
 			printf("resize: %dx%d (%d threads)... ",w,h,threadcount);
 
 			_mark();
-			gImage * dst = dib->Resize(w,h, LANCZOS3, threadcount);
+			gImage * dst = dib->Resize(w,h, FILTER_LANCZOS3, threadcount);
 			if (dst) {
 				dib->~gImage();
 				dib = dst;
