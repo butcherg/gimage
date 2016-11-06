@@ -227,6 +227,7 @@ gImage * gImage::ConvolutionKernel(double kernel[3][3], int threadcount)
 			dst->b = B;
 		}
 	} 
+	#pragma omp barrier
 
 	return S;
 }
@@ -348,6 +349,8 @@ gImage *gImage::XShear(double rangle, int threadcount)
 			dst[dpos].b = src[spos].b;
 		}
 	}
+	#pragma omp barrier
+
 	return S;
 }
 
@@ -379,6 +382,8 @@ gImage *gImage::YShear(double rangle, int threadcount)
 			dst[dpos].b = src[spos].b;
 		}
 	}
+	#pragma omp barrier
+
 	return S;
 }
 
@@ -401,6 +406,8 @@ gImage *gImage::Crop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int thr
 			dst[dpos].b = src[spos].b;
 		}
 	}
+	#pragma omp barrier
+
 	return S;
 }
 
@@ -412,15 +419,18 @@ gImage *gImage::ApplyCurve(std::vector<cp> ctpts, int threadcount)
 	pix * dst = S->getImageData();
 	Curve c;
 	c.setControlPoints(ctpts);
+
 	#pragma omp parallel for num_threads(threadcount)
-	for (unsigned x=0; x<w; x++) {
-		for (unsigned y=0; y<h; y++) {
-			unsigned pos = x + y*w;
+	for (int x=0; x<w; x++) {
+		for (int y=0; y<h; y++) {
+			int pos = x + y*w;
 			dst[pos].r = c.getpoint(src[pos].r);
 			dst[pos].g = c.getpoint(src[pos].g);
 			dst[pos].b = c.getpoint(src[pos].b);
 		}
 	}
+	#pragma omp barrier
+
 	return S;
 }
 
@@ -441,6 +451,62 @@ gImage *gImage::ApplyLine(double low, double high, int threadcount)
 			dst[pos].b = src[pos].b * slope;
 		}
 	}
+	#pragma omp barrier
+	return S;
+}
+
+
+#define  Pr  .299
+#define  Pg  .587
+#define  Pb  .114
+
+gImage *gImage::Saturate(double saturate, int threadcount)
+{
+	gImage *S = new gImage(w, h, c, imginfo);
+	pix * src = getImageData();
+	pix * dst = S->getImageData();
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned x=0; x<w; x++) {
+		for (unsigned y=0; y<h; y++) {
+			unsigned pos = x + y*w;
+			double R = src[pos].r;
+			double G = src[pos].g;
+			double B = src[pos].b;
+
+			double  P=sqrt(
+			R*R*Pr+
+			G*G*Pg+
+			B*B*Pb ) ;
+
+			dst[pos].r=P+(R-P)*saturate;
+			dst[pos].g=P+(G-P)*saturate;
+			dst[pos].b=P+(B-P)*saturate;
+
+		}
+	}
+	#pragma omp barrier
+
+	return S;
+}
+
+gImage *gImage::Tint(double red,double green,double blue, int threadcount)
+{
+	gImage *S = new gImage(w, h, c, imginfo);
+	pix * src = getImageData();
+	pix * dst = S->getImageData();
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned x=0; x<w; x++) {
+		for (unsigned y=0; y<h; y++) {
+			unsigned pos = x + y*w;
+			dst[pos].r=src[pos].r + red;
+			dst[pos].g=src[pos].g + green;
+			dst[pos].b=src[pos].b + blue;
+
+		}
+	}
+	#pragma omp barrier
 
 	return S;
 }
@@ -574,6 +640,7 @@ gImage * gImage::Resize(unsigned width, unsigned height, FILTER filter, int thre
 			tmpimg[x].b = weightb;
 		}
 	}
+	#pragma omp barrier
 
 	//free the memory allocated for horizontal filter weights:
 	for(i = 0; i < T->getWidth(); ++i) {
@@ -655,6 +722,7 @@ gImage * gImage::Resize(unsigned width, unsigned height, FILTER filter, int thre
 
 		}
 	}
+	#pragma omp barrier
 
 	//free the memory allocated for vertical filter weights:
 	for(i = 0; i < height; ++i) {

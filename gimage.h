@@ -48,6 +48,8 @@ class gImage
 		gImage * Resize(unsigned width, unsigned height, FILTER filter, int threadcount);
 		gImage * Rotate(double angle, int threadcount);
 		gImage * Crop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int threadcount);
+		gImage * Saturate(double saturate, int threadcount);
+		gImage * Tint(double red,double green,double blue, int threadcount);
 		gImage * ApplyCurve(std::vector<cp> ctpts, int threadcount);
 		gImage * ApplyLine(double low, double high, int threadcount);
 

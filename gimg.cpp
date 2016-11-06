@@ -212,7 +212,6 @@ for (int f=0; f<files.size(); f++)
 		char c[256];
 		strncpy(c, commands[i].c_str(), 255);
 		char* cmd = strtok(c,":");
-
         
 		if (strcmp(cmd,"bright") == 0) {  //#bright:[-100 - 100, default=0]
 			double bright=0.0;
@@ -480,24 +479,51 @@ for (int f=0; f<files.size(); f++)
 		}
 
 
-/*
+
 		else if (strcmp(cmd,"saturation") == 0) {  //#saturation:[0 - 5.0, default=1.0, no change]
-			double d;
-			double saturation=1.0;
+			double saturation=0.0;
 			char *s = strtok(NULL," ");
 			if (s) saturation = atof(s);
-			int bpp = FreeImage_GetBPP(dib);
-			printf("saturation: %0.1f (%dbpp)... ",saturation,bpp);
 
-			int threadcount=0;
+			int threadcount=gImage::ThreadCount();
+			printf("saturate: %0.2f (%d threads)... ",saturation,threadcount);
 
-			FIBITMAP *dst = FreeImage_Clone(dib);
-			d = ApplySaturation(dib, dst, saturation, threadcount);
-			FreeImage_Unload(dib);
-			dib = dst;
-			printf("done (%f).\n",d);
+			_mark();
+			gImage * dst = dib->Saturate(saturation, threadcount);
+			if (dst) {
+				dib->~gImage();
+				dib = dst;
+				double d = _duration();
+				printf("done (%fsec).\n",d);
+			}
+			else printf("failed, continuing.\n");
+
 		}
-*/
+
+		else if (strcmp(cmd,"tint") == 0) {  //#tint:r,g,b
+			double red=0.0; double green=0.0; double blue = 0.0;
+			char *r = strtok(NULL,", ");
+			char *g = strtok(NULL,", ");
+			char *b = strtok(NULL," ");
+			if (r) red = atof(r);
+			if (g) green = atof(g);
+			if (b) blue = atof(b);
+
+			int threadcount=gImage::ThreadCount();
+			printf("tint: %0.2f,%0.2f,%0.2f (%d threads)... ",red,green,blue,threadcount);
+
+			_mark();
+			gImage * dst = dib->Tint(red,green,blue, threadcount);
+			if (dst) {
+				dib->~gImage();
+				dib = dst;
+				double d = _duration();
+				printf("done (%fsec).\n",d);
+			}
+			else printf("failed, continuing.\n");
+
+		}
+
 
 /*
 		else if (strcmp(cmd,"gray") == 0) {  //#gray (no parameters ,uses the saturate algorithm to desaturate)
