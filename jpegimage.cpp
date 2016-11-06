@@ -15,6 +15,7 @@ extern "C" {
 #endif
 
 
+#include "strutil.h"
 #include "jpegexif.h"
 
 char * _loadJPEG(const char *filename, 
@@ -93,6 +94,8 @@ void _writeJPEG(const char *filename,
 			unsigned  *icclength=0)
 {
 
+	std::map<std::string,std::string> p = parseparams(params);
+
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
 
@@ -121,6 +124,9 @@ void _writeJPEG(const char *filename,
 	cinfo.in_color_space = JCS_RGB; /* colorspace of input image */
 
 	jpeg_set_defaults(&cinfo);
+
+	if (p.find("quality") != p.end())
+		jpeg_set_quality(&cinfo, atoi(p["quality"].c_str()), TRUE);
 
 	jpeg_start_compress(&cinfo, TRUE);
 
