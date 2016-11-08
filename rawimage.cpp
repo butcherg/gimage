@@ -116,6 +116,14 @@ char * _loadRAW_m(const char *filename,
 	else
 		RawProcessor.imgdata.params.no_auto_bright = 1; 
 
+	//# bright=1.0 - brighten image, default=1.0
+	if (p.find("bright") != p.end()) 
+		RawProcessor.imgdata.params.bright = atof(p["bright"].c_str());
+
+	//# highlight=0|1|2|3+ - deal with image highlights, clip=0, 1=unclip, 2=blend, 3+=rebuild
+	if (p.find("highlight") != p.end()) 
+		RawProcessor.imgdata.params.highlight = atoi(p["highlight"].c_str());
+
 
 	RawProcessor.open_file(filename);
 	RawProcessor.unpack();
