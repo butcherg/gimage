@@ -51,7 +51,7 @@ char * _loadRAW_m(const char *filename,
 
 
 
-	//# colorspace:raw|srgb|adobe|wide|prophoto|xyz - Output color space, default=srgb
+	//# colorspace=raw|srgb|adobe|wide|prophoto|xyz - Output color space, default=srgb
 	if (p.find("colorspace") != p.end()) {
 		if (p["colorspace"].compare("raw") == 0) 
 			RawProcessor.imgdata.params.output_color = 0;
@@ -67,7 +67,7 @@ char * _loadRAW_m(const char *filename,
 			RawProcessor.imgdata.params.output_color = 5;
 	}
 
-	//# demosaic:linear|vng|ppg|ahd|dcb - Demosaic algorithm, default=ahd
+	//# demosaic=linear|vng|ppg|ahd|dcb - Demosaic algorithm, default=ahd
 	if (p.find("demosaic") != p.end()) {
 		if (p["demosaic"].compare("linear") == 0) 
 			RawProcessor.imgdata.params.user_qual = 0;
@@ -81,11 +81,11 @@ char * _loadRAW_m(const char *filename,
 			RawProcessor.imgdata.params.user_qual = 4;
 	}
 
-	//# bps:8|16 - bits per sample, default=16
+	//# bps=8|16 - bits per sample, default=16
 	if (p.find("bps") != p.end()) 
 		RawProcessor.imgdata.params.gamm[0] = atoi(p["bps"].c_str());
 
-	//# gamma:bt709|srgb|linear - Apply one of the gamma presets
+	//# gamma=bt709|srgb|linear - Apply one of the gamma presets
 	if (p.find("gamma") != p.end()) {
 		if (p["gamma"].compare("bt709") == 0) {
 			RawProcessor.imgdata.params.gamm[0] = 1/2.222;
@@ -101,11 +101,11 @@ char * _loadRAW_m(const char *filename,
 		}
 	}
 
-	//# gammaval:2.222 - Set specific gamma value, overrides preset, default=1.0 (linear)
+	//# gammaval=2.222 - Set specific gamma value, overrides preset, default=1.0 (linear)
 	if (p.find("gammaval") != p.end()) 
 		RawProcessor.imgdata.params.gamm[0] = atof(p["gammaval"].c_str());
 
-	//# gammatoe:4.5 - Set specific gamma toe, overrides preset, default=1.0 (linear)
+	//# gammatoe=4.5 - Set specific gamma toe, overrides preset, default=1.0 (linear)
 	if (p.find("gammatoe") != p.end()) 
 		RawProcessor.imgdata.params.gamm[0] = atof(p["gammatoe"].c_str());
 
