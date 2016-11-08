@@ -382,6 +382,7 @@ gImage * gImage::Rotate(double angle, int threadcount)
 gImage * gImage::Rotate(double angle, int threadcount)
 {
 	gImage *I, *J, *K, *L;
+	unsigned x1, x2, y1, y2;
 	double rangle = angle * M_PI / 180.0;
 
 	I = XShear(rangle,threadcount);
@@ -389,7 +390,10 @@ gImage * gImage::Rotate(double angle, int threadcount)
 	delete I;
 	K = J->XShear(rangle,threadcount);
 	delete J;
-	return K;
+	K->ImageBounds(&x1, &x2, &y1, &y2);
+	L = K->Crop(x1, y1, x2, y2,threadcount);
+	delete K;
+	return L;
 }
 
 gImage *gImage::XShear(double rangle, int threadcount)
@@ -456,6 +460,53 @@ gImage *gImage::YShear(double rangle, int threadcount)
 	#pragma omp barrier
 
 	return S;
+}
+
+void gImage::ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2)
+{
+	*x1 = 0; *x2 = w; *y1 = 0; *y2 = h;
+	pix * src = getImageData();
+	for (int x=0; x<w; x++) {
+		for (int y=0; y<h; y++) {
+			unsigned pos = x + y*w;
+			if (src[pos].r + src[pos].g + src[pos].b > 0.0) {
+				*x1 = x;
+				goto endx1;
+			}
+		}
+	}
+	endx1:
+	for (int x=w-1; x>0; x--) {
+		for (int y=0; y<h; y++) {
+			unsigned pos = x + y*w;
+			if (src[pos].r + src[pos].g + src[pos].b > 0.0) {
+				*x2 = x;
+				goto endx2;
+			}
+		}
+	}
+	endx2:
+	for (int y=0; y<h; y++) {
+		for (int x=0; x<w; x++) {
+			unsigned pos = x + y*w;
+			if (src[pos].r + src[pos].g + src[pos].b > 0.0) {
+				*y1 = y;
+				goto endy1;
+			}
+		}
+	}
+	endy1:
+	for (int y=h-1; y>0; y--) {
+		for (int x=0; x<w; x++) {
+			unsigned pos = x + y*w;
+			if (src[pos].r + src[pos].g + src[pos].b > 0.0) {
+				*y2 = y;
+				goto endy2;
+			}
+		}
+	}
+	endy2:
+	return;
 }
 
 
