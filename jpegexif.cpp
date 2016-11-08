@@ -874,9 +874,9 @@ unsigned char * construct_APP1marker(std::map<std::string,std::string> imageinfo
     //RemoveSectionType(M_EXIF);
 
     //{
-        // Sections need malloced buffers, so do that now, especially because
+        // Sections need allocated buffers, so do that now, especially because
         // we now know how big it needs to be allocated.
-        unsigned char * NewBuf = (unsigned char *) malloc(DataWriteIndex);
+	unsigned char * NewBuf = new unsigned char[DataWriteIndex]; 
         if (NewBuf == NULL){
             //////ErrFatal("Could not allocate memory");
         }

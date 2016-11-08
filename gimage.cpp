@@ -1,4 +1,4 @@
-
+﻿
 #include "gimage.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -15,7 +15,7 @@
 
 gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, unsigned bits)
 {
-	img = (pix *) malloc(width*height*sizeof(pix));
+	img = new pix[width*height];
 	w=width;
 	h=height;
 	c=colors;
@@ -51,7 +51,7 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 
 gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, unsigned bits, std::map<std::string,std::string> imageinfo)
 {
-	img = (pix *) malloc(width*height*sizeof(pix));
+	img = new pix[width*height];
 	w=width;
 	h=height;
 	c=colors;
@@ -89,7 +89,7 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 
 gImage::gImage(unsigned width, unsigned height, unsigned colors, std::map<std::string,std::string> imageinfo)
 {
-	img = (pix *) malloc(width*height*sizeof(pix));
+	img = new pix[width*height];
 	w=width;
 	h=height;
 	c=colors;
@@ -107,7 +107,7 @@ gImage::gImage(unsigned width, unsigned height, unsigned colors, std::map<std::s
 
 gImage::~gImage()
 {
-	free(img);
+	delete[] img;
 }
 
 
@@ -116,7 +116,7 @@ gImage::~gImage()
 
 gImage * gImage::Copy()
 {
-	pix * i = (pix *) malloc(w*h*sizeof(pix));
+	pix * i = new pix[w*h];
 	memcpy(i, img, w*h*sizeof(pix));
 	std::map<std::string,std::string> info = imginfo;
 	return new gImage((char *)i, w, h, c, 0, info);
@@ -125,7 +125,7 @@ gImage * gImage::Copy()
 
 char * gImage::getImageData(unsigned bits)
 {
-	char *imagedata = (char*) malloc(w*h*c*(bits/8));
+	char *imagedata = new char[w*h*c*(bits/8)];
 
 	if (bits == 16) {
 		unsigned short * dst = (unsigned short *) imagedata;
@@ -851,14 +851,13 @@ gImage * gImage::Resize(unsigned width, unsigned height, RESIZE_FILTER filter, i
 
 
 	// Compute row contributions:
-	contrib = (CLIST *)calloc(width, sizeof(CLIST));
+	contrib = new CLIST[width];
 	if(xscale < 1.0) {
 		wi = fwidth / xscale;
 		fscale = 1.0 / xscale;
 		for(i = 0; i < width; ++i) {
 			contrib[i].n = 0;
-			contrib[i].p = (CONTRIB *)calloc((int) (wi * 2 + 1),
-					sizeof(CONTRIB));
+			contrib[i].p = new CONTRIB[(int) (wi * 2 + 1)];
 			center = (double) i / xscale;
 			left = ceil(center - wi);
 			right = floor(center + wi);
@@ -880,8 +879,7 @@ gImage * gImage::Resize(unsigned width, unsigned height, RESIZE_FILTER filter, i
 	} else {
 		for(i = 0; i < width; ++i) {
 			contrib[i].n = 0;
-			contrib[i].p = (CONTRIB *)calloc((int) (fwidth * 2 + 1),
-					sizeof(CONTRIB));
+			contrib[i].p = new CONTRIB[(int) (fwidth * 2 + 1)];
 			center = (double) i / xscale;
 			left = ceil(center - fwidth);
 			right = floor(center + fwidth);
@@ -928,22 +926,21 @@ gImage * gImage::Resize(unsigned width, unsigned height, RESIZE_FILTER filter, i
 	}
 	#pragma omp barrier
 
-	//free the memory allocated for horizontal filter weights:
+	//delete the memory allocated for horizontal filter weights:
 	for(i = 0; i < T->getWidth(); ++i) {
-		free(contrib[i].p);
+		delete contrib[i].p;
 	}
-	free(contrib);
+	delete contrib;
 
 
 	// Compute column contributions:
-	contrib = (CLIST *)calloc(height, sizeof(CLIST));
+	contrib = new CLIST[height];
 	if(yscale < 1.0) {
 		wi = fwidth / yscale;
 		fscale = 1.0 / yscale;
 		for(i = 0; i < height; ++i) {
 			contrib[i].n = 0;
-			contrib[i].p = (CONTRIB *)calloc((int) (wi * 2 + 1),
-					sizeof(CONTRIB));
+			contrib[i].p = new CONTRIB[(int) (wi * 2 + 1)];
 			center = (double) i / yscale;
 			left = ceil(center - wi);
 			right = floor(center + wi);
@@ -965,8 +962,7 @@ gImage * gImage::Resize(unsigned width, unsigned height, RESIZE_FILTER filter, i
 	} else {
 		for(i = 0; i < height; ++i) {
 			contrib[i].n = 0;
-			contrib[i].p = (CONTRIB *)calloc((int) (fwidth * 2 + 1),
-					sizeof(CONTRIB));
+			contrib[i].p = new CONTRIB[(int) (fwidth * 2 + 1)];
 			center = (double) i / yscale;
 			left = ceil(center - fwidth);
 			right = floor(center + fwidth);
@@ -1010,12 +1006,11 @@ gImage * gImage::Resize(unsigned width, unsigned height, RESIZE_FILTER filter, i
 	}
 	#pragma omp barrier
 
-	//free the memory allocated for vertical filter weights:
+	//delete the memory allocated for vertical filter weights:
 	for(i = 0; i < height; ++i) {
-		free(contrib[i].p);
+		delete contrib[i].p;
 	}
-	free(contrib);
-
+	delete contrib;
 
 	delete T;
 	return S;
@@ -1085,7 +1080,7 @@ gImage * gImage::loadRAW(const char * filename, std::string params)
 	//std::string params = "autobright=1";
 	char * image = _loadRAW_m(filename, &width, &height, &colors, &bpp, imgdata, params, iccprofile, &icclength);
 	gImage * I = new gImage(image, width, height, colors, bpp, imgdata);
-	free(image);
+	delete image;
 	return I;
 
 }
@@ -1096,7 +1091,7 @@ gImage * gImage::loadJPEG(const char * filename, std::string params)
 	std::map<std::string,std::string> imgdata;
 	char * image = _loadJPEG(filename, &width, &height, &colors, imgdata);
 	gImage * I = new gImage(image, width, height, colors, 8, imgdata);
-	free(image);
+	delete image;
 	return I;
 }
 
@@ -1107,7 +1102,7 @@ gImage * gImage::loadTIFF(const char * filename, std::string params)
 	std::map<std::string,std::string> imgdata;
 	char * image = _loadTIFF(filename, &width, &height, &colors, &bpp, imgdata);
 	gImage * I = new gImage(image, width, height, colors, bpp, imgdata);
-	free(image);
+	delete image;
 	return I;
 }
 

@@ -44,7 +44,7 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 		if (b != 16) return NULL;
 		if (c != 3) return NULL;
 
-		img = (char*) malloc(w*h*c*(b/8));
+		img = new char[w*h*c*(b/8)];
 		unsigned short * dst = (unsigned short *) img;
 
 		buf = (char *) _TIFFmalloc(TIFFScanlineSize(tif));

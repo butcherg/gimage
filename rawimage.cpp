@@ -126,11 +126,11 @@ char * _loadRAW_m(const char *filename,
 	*numcolors = c;
 	*numbits = b;
 
-	img = (char *)malloc(w*h*c*(b/8));
+	img = new char[w*h*c*(b/8)];
 	
 	libraw_processed_image_t *image = RawProcessor.dcraw_make_mem_image();
 	memcpy(img, image->data, image->data_size);
-	free(image);
+	LibRaw::dcraw_clear_mem(image);
 
 	icc_m = NULL;
 	*icclength = 0;

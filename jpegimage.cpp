@@ -60,7 +60,7 @@ char * _loadJPEG(const char *filename,
 
 
 	row_stride = cinfo.output_width * cinfo.output_components;
-	img = (char *)malloc(cinfo.image_height * row_stride);
+	img = new char[cinfo.image_height * row_stride];
 	dst = (JSAMPROW) img;
 
 	while (cinfo.output_scanline < cinfo.output_height) {
@@ -132,11 +132,9 @@ void _writeJPEG(const char *filename,
 
 	marker =  construct_APP1marker(info, &markerlength);
 	jpeg_write_marker(&cinfo, JPEG_APP0+1, marker+2, markerlength);
-	free(marker);
-	
+	delete marker;
 
 	row_stride = cinfo.image_width * cinfo.input_components;
-	//img = (char *)malloc(cinfo.image_height * row_stride);
 	dst = (JSAMPROW) imagedata;
 
 	while (cinfo.next_scanline < cinfo.image_height) {

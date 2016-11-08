@@ -231,7 +231,7 @@ for (int f=0; f<files.size(); f++)
 			_mark();
 			gImage * dst = dib->ApplyCurve(ctrlpts.getControlPoints(), threadcount);
 			if (dst) {
-				dib->~gImage();
+				delete dib;
 				dib = dst;
 				double d = _duration();
 				printf("done (%fsec).\n",d);
@@ -271,7 +271,7 @@ for (int f=0; f<files.size(); f++)
 			gImage * dst = dib->ApplyCurve(ctrlpts.getControlPoints(), threadcount);
 			//gImage * dst = dib->ApplyLine(blk, wht, threadcount);
 			if (dst) {
-				dib->~gImage();
+				delete dib;
 				dib = dst;
 				double d = _duration();
 				printf("done (%fsec).\n",d);
@@ -302,7 +302,7 @@ for (int f=0; f<files.size(); f++)
 			_mark();
 			gImage * dst = dib->ApplyCurve(ctrlpts.getControlPoints(), threadcount);
 			if (dst) {
-				dib->~gImage();
+				delete dib;
 				dib = dst;
 				double d = _duration();
 				printf("done (%fsec).\n",d);
@@ -400,7 +400,7 @@ for (int f=0; f<files.size(); f++)
 			_mark();
 			gImage * dst = dib->Sharpen(sharp, threadcount);
 			if (dst) {
-				dib->~gImage();
+				delete dib;
 				dib = dst;
 				double d = _duration();
 				printf("done (%fsec).\n",d);
@@ -426,7 +426,7 @@ for (int f=0; f<files.size(); f++)
 			_mark();
 			gImage * dst = dib->Resize(w,h, FILTER_LANCZOS3, threadcount);
 			if (dst) {
-				dib->~gImage();
+				delete dib;
 				dib = dst;
 				double d = _duration();
 				printf("done (%fsec).\n",d);
@@ -444,7 +444,7 @@ for (int f=0; f<files.size(); f++)
 			_mark();
 			gImage * dst = dib->Rotate(angle, threadcount);
 			if (dst) {
-				dib->~gImage();
+				delete dib;
 				dib = dst;
 				double d = _duration();
 				printf("done (%fsec).\n",d);
@@ -470,7 +470,7 @@ for (int f=0; f<files.size(); f++)
 			_mark();
 			gImage * dst = dib->Crop(x,y,width,height,threadcount);
 			if (dst) {
-				dib->~gImage();
+				delete dib;
 				dib = dst;
 				double d = _duration();
 				printf("done (%fsec).\n",d);
@@ -491,7 +491,7 @@ for (int f=0; f<files.size(); f++)
 			_mark();
 			gImage * dst = dib->Saturate(saturation, threadcount);
 			if (dst) {
-				dib->~gImage();
+				delete dib;
 				dib = dst;
 				double d = _duration();
 				printf("done (%fsec).\n",d);
@@ -511,7 +511,7 @@ for (int f=0; f<files.size(); f++)
 			_mark();
 			gImage * dst = dib->NLMeans(sigma, 3, 1, threadcount);
 			if (dst) {
-				dib->~gImage();
+				delete dib;
 				dib = dst;
 				double d = _duration();
 				printf("done (%fsec).\n",d);
@@ -536,7 +536,7 @@ for (int f=0; f<files.size(); f++)
 			_mark();
 			gImage * dst = dib->Tint(red,green,blue, threadcount);
 			if (dst) {
-				dib->~gImage();
+				delete dib;
 				dib = dst;
 				double d = _duration();
 				printf("done (%fsec).\n",d);
@@ -562,7 +562,7 @@ for (int f=0; f<files.size(); f++)
 			_mark();
 			gImage * dst = dib->Gray(red,green,blue, threadcount);
 			if (dst) {
-				dib->~gImage();
+				delete dib;
 				dib = dst;
 				double d = _duration();
 				printf("done (%fsec).\n",d);
@@ -588,7 +588,7 @@ for (int f=0; f<files.size(); f++)
 		for (std::map<std::string,std::string>::iterator it=imginfo.begin(); it!=imginfo.end(); ++it)
 			printf("%s: %s\n",it->first.c_str(), it->second.c_str());
 		printf("\n");
-		dib->~gImage();
+		delete dib;
 		exit(0);
 	}
 			
@@ -605,7 +605,7 @@ for (int f=0; f<files.size(); f++)
 	else
 		printf("Error: bad output file specification: %s\n\n",outfile[0].c_str());
 
-	dib->~gImage();
+	delete dib;
 
 }
 
