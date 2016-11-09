@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <exception>
 #include <omp.h>
 
 #include "rawimage.h"
@@ -13,75 +14,40 @@
 
 //Constructor/Destructor:
 
-gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, unsigned bits)
+
+gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, BPP bits, std::map<std::string,std::string> imageinfo)
 {
-	img = new pix[width*height];
+	pix zpix = {};
+	image.assign(width*height,zpix);
 	w=width;
 	h=height;
 	c=colors;
 
-	if (bits == 16) {
+	if (bits ==BPP_16) {
 		unsigned short * src = (unsigned short *) imagedata;
 		for (unsigned y=0; y<h; y++) {
-			pix * dst = (pix *) (img + w*y);
 			for (unsigned x=0; x<w; x++) {
-				dst[x].r =  (unsigned short) src[0]/256;
-				dst[x].g =  (unsigned short) src[1]/256;
-				dst[x].b = (unsigned short) src[2]/256;
+				unsigned pos = x + y*w;
+				image[pos].r = (unsigned short) src[0]/256.0;
+				image[pos].g = (unsigned short) src[1]/256.0;
+				image[pos].b = (unsigned short) src[2]/256.0;
 				src += 3;
 			}
 		}
 	}					
 
-	if (bits == 8) {
+	if (bits == BPP_8) {
 		char * src = (char *) imagedata;
 		for (unsigned y=0; y<height; y++) {
-			pix * dst = (pix *) (img + w*y);
 			for (unsigned x=0; x<width; x++) {
-				dst[x].r = (unsigned char) src[0];
-				dst[x].g = (unsigned char) src[1];
-				dst[x].b = (unsigned char) src[2];
+				unsigned pos = x + y*w;
+				image[pos].r = round((unsigned char) src[0]);
+				image[pos].g = round((unsigned char) src[1]);
+				image[pos].b = round((unsigned char) src[2]);
 				src += 3;
 			}
 		}
 	}
-	if (bits == 0) img = (pix *) imagedata; //supplied by caller
-}
-
-
-gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, unsigned bits, std::map<std::string,std::string> imageinfo)
-{
-	img = new pix[width*height];
-	w=width;
-	h=height;
-	c=colors;
-
-	if (bits == 16) {
-		unsigned short * src = (unsigned short *) imagedata;
-		for (unsigned y=0; y<h; y++) {
-			pix * dst = (pix *) (img + w*y);
-			for (unsigned x=0; x<w; x++) {
-				dst[x].r = (unsigned short) src[0]/256;
-				dst[x].g = (unsigned short) src[1]/256;
-				dst[x].b = (unsigned short) src[2]/256;
-				src += 3;
-			}
-		}
-	}					
-
-	if (bits == 8) {
-		char * src = (char *) imagedata;
-		for (unsigned y=0; y<height; y++) {
-			pix * dst = (pix *) (img + w*y);
-			for (unsigned x=0; x<width; x++) {
-				dst[x].r = (unsigned char) src[0];
-				dst[x].g = (unsigned char) src[1];
-				dst[x].b = (unsigned char) src[2];
-				src += 3;
-			}
-		}
-	}
-	if (bits == 0) img = (pix *) imagedata; // imagedata is already pix *
 
 	imginfo = imageinfo;
 
@@ -89,65 +55,64 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 
 gImage::gImage(unsigned width, unsigned height, unsigned colors, std::map<std::string,std::string> imageinfo)
 {
-	img = new pix[width*height];
+	pix zpix; zpix.r = 0.0; zpix.g = 0.0; zpix.b = 0.0;
+	image.assign(width*height,zpix);
 	w=width;
 	h=height;
 	c=colors;
+
 	for (unsigned y=0; y<height; y++) {
-		pix * dst = (pix *) (img + w*y);
 		for (unsigned x=0; x<width; x++) {
-			dst[x].r = 0.0;
-			dst[x].g = 0.0;
-			dst[x].b = 0.0;
+			unsigned pos = x + y*w;
+			image[pos].r = 0.0;
+			image[pos].g = 0.0;
+			image[pos].b = 0.0;
 		}
 	}
+
 	imginfo = imageinfo;
 }
 
 
 gImage::~gImage()
 {
-	delete[] img;
+
 }
 
 
 //Getters:
 
-
-gImage * gImage::Copy()
+char * gImage::getImageData(BPP bits)
 {
-	pix * i = new pix[w*h];
-	memcpy(i, img, w*h*sizeof(pix));
-	std::map<std::string,std::string> info = imginfo;
-	return new gImage((char *)i, w, h, c, 0, info);
-}
+	char * imagedata;
+	if (bits == BPP_16)
+		imagedata = new char[w*h*c*2];
+	else if (bits == BPP_8)
+		imagedata = new char[w*h*c];
+	else
+		return NULL;
 
-
-char * gImage::getImageData(unsigned bits)
-{
-	char *imagedata = new char[w*h*c*(bits/8)];
-
-	if (bits == 16) {
+	if (bits == BPP_16) {
 		unsigned short * dst = (unsigned short *) imagedata;
 		for (unsigned y=0; y<h; y++) {
-			pix * src = (pix *) (img + w*y);
 			for (unsigned x=0; x<w; x++) {
-				dst[0] = (unsigned short) floor(fmin(fmax(src[x].r*256.0,0.0),65535.0)); 
-				dst[1] = (unsigned short) floor(fmin(fmax(src[x].g*256.0,0.0),65535.0));
-				dst[2] = (unsigned short) floor(fmin(fmax(src[x].b*256.0,0.0),65535.0)); 
+				unsigned pos = x + y*w;
+				dst[0] = (unsigned short) floor(fmin(fmax(image[pos].r*256.0,0.0),65535.0)); 
+				dst[1] = (unsigned short) floor(fmin(fmax(image[pos].g*256.0,0.0),65535.0));
+				dst[2] = (unsigned short) floor(fmin(fmax(image[pos].b*256.0,0.0),65535.0)); 
 				dst += 3;
 			}
 		}
 	}
 
-	if (bits == 8) {
+	if (bits == BPP_8) {
 		char * dst = (char *) imagedata;
 		for (unsigned y=0; y<h; y++) {
-			pix * src = (pix *) (img + w*y);
 			for (unsigned x=0; x<w; x++) {
-				dst[0] = (unsigned char) floor(fmin(fmax(src[x].r,0.0),255.0)); 
-				dst[1] = (unsigned char) floor(fmin(fmax(src[x].g,0.0),255.0));
-				dst[2] = (unsigned char) floor(fmin(fmax(src[x].b,0.0),255.0)); 
+				unsigned pos = x + y*w;
+				dst[0] = (unsigned char) floor(fmin(fmax(image[pos].r,0.0),255.0)); 
+				dst[1] = (unsigned char) floor(fmin(fmax(image[pos].g,0.0),255.0));
+				dst[2] = (unsigned char) floor(fmin(fmax(image[pos].b,0.0),255.0)); 
 				dst += 3;
 			}
 		}
@@ -155,9 +120,9 @@ char * gImage::getImageData(unsigned bits)
 	return imagedata;
 }
 
-pix * gImage::getImageData()
+std::vector<pix>& gImage::getImageData()
 {
-	return img;
+	return image;
 }
 
 unsigned gImage::getWidth()
@@ -251,28 +216,29 @@ void gImage::setInfo(std::string name, std::string value)
 //start to introduce the halos and ringing that most find offensive.
 //
 
-gImage * gImage::ConvolutionKernel(double kernel[3][3], int threadcount)
+
+gImage gImage::ConvolutionKernel(double kernel[3][3], int threadcount)
 {
-	gImage *S = Copy();
-	pix * cpy = S->getImageData();
+	gImage S = *this;
+	std::vector<pix>& dst = S.getImageData();
 
 	#pragma omp parallel for num_threads(threadcount)
 	for(unsigned y = 1; y < h-1; y++) {
 		for(unsigned x = 1; x < w-1; x++) {
-			pix * dst = (pix *) (cpy + w*y + x);
+			unsigned pos = x + y*w;
 			double R=0.0; double G=0.0; double B=0.0;
 			for (unsigned kx=0; kx<3; kx++) {
 				for (int ky=0; ky<3; ky++) {
-					pix * src = (pix *) (img + w*(y-1+ky) + (x-1+kx));
-					R += src->r * kernel[kx][ky];
-					G += src->g * kernel[kx][ky];
-					B += src->b * kernel[kx][ky];
+					unsigned kpos = w*(y-1+ky) + (x-1+kx);
+					R += image[kpos].r * kernel[kx][ky];
+					G += image[kpos].g * kernel[kx][ky];
+					B += image[kpos].b * kernel[kx][ky];
 				}
 			}
 
-			dst->r = R;
-			dst->g = G;
-			dst->b = B;
+			dst[pos].r = R;
+			dst[pos].g = G;
+			dst[pos].b = B;
 		}
 	} 
 	#pragma omp barrier
@@ -282,7 +248,7 @@ gImage * gImage::ConvolutionKernel(double kernel[3][3], int threadcount)
 
 
 
-gImage * gImage::Sharpen(int strength, int threadcount)
+gImage gImage::Sharpen(int strength, int threadcount)
 {
 	double kernel[3][3] =
 	{
@@ -379,24 +345,22 @@ gImage * gImage::Rotate(double angle, int threadcount)
 }
 */
 
-gImage * gImage::Rotate(double angle, int threadcount)
+
+gImage gImage::Rotate(double angle, int threadcount)
 {
-	gImage *I, *J, *K, *L;
+	gImage I, J, K, L;
 	unsigned x1, x2, y1, y2;
 	double rangle = angle * M_PI / 180.0;
 
 	I = XShear(rangle,threadcount);
-	J = I->YShear(rangle,threadcount);
-	delete I;
-	K = J->XShear(rangle,threadcount);
-	delete J;
-	K->ImageBounds(&x1, &x2, &y1, &y2);
-	L = K->Crop(x1, y1, x2, y2,threadcount);
-	delete K;
+	J = I.YShear(rangle,threadcount);
+	K = J.XShear(rangle,threadcount);
+	K.ImageBounds(&x1, &x2, &y1, &y2);
+	L = K.Crop(x1, y1, x2, y2,threadcount);
 	return L;
 }
 
-gImage *gImage::XShear(double rangle, int threadcount)
+gImage gImage::XShear(double rangle, int threadcount)
 {
 	double sine = sin(rangle);
 	double tangent = tan(rangle/2.0);
@@ -404,9 +368,9 @@ gImage *gImage::XShear(double rangle, int threadcount)
 	unsigned nw = w+abs(dw);
 
 
-	gImage *S = new gImage(nw, h, c, imginfo);
-	pix * src = getImageData();
-	pix * dst = S->getImageData();
+	gImage S(nw, h, c, imginfo);
+	std::vector<pix>& src = getImageData();
+	std::vector<pix>& dst = S.getImageData();
 
 	if (dw < 0) dw = 0;
 
@@ -429,7 +393,7 @@ gImage *gImage::XShear(double rangle, int threadcount)
 	return S;
 }
 
-gImage *gImage::YShear(double rangle, int threadcount)
+gImage gImage::YShear(double rangle, int threadcount)
 {
 	double sine = sin(rangle);
 	double tangent = tan(rangle/2.0);
@@ -439,9 +403,9 @@ gImage *gImage::YShear(double rangle, int threadcount)
 
 	if (dh < 0) dh = -dh; else dh = 0;
 
-	gImage *S = new gImage(w, nh, c, imginfo);
-	pix * src = getImageData();
-	pix * dst = S->getImageData();
+	gImage S(w, nh, c, imginfo);
+	std::vector<pix>& src = getImageData();
+	std::vector<pix>& dst = S.getImageData();
 
 	#pragma omp parallel for num_threads(threadcount)
 	for (unsigned x=0; x<w; x++) {
@@ -465,7 +429,7 @@ gImage *gImage::YShear(double rangle, int threadcount)
 void gImage::ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2)
 {
 	*x1 = 0; *x2 = w; *y1 = 0; *y2 = h;
-	pix * src = getImageData();
+	std::vector<pix>& src = getImageData();
 	for (int x=0; x<w; x++) {
 		for (int y=0; y<h; y++) {
 			unsigned pos = x + y*w;
@@ -518,18 +482,21 @@ void gImage::ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2)
 //extricate the portion of the image of interest.
 //
 
-gImage *gImage::Crop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int threadcount)
-{
-	if (x1>w | y1>h | x2>w | y2>h) return NULL;
-	if (x1>=x2 | y1>=y2) return NULL;
 
-	pix * src = getImageData();
-	gImage *S = new gImage(x2-x1, y2-y1, c, imginfo);
-	pix * dst = S->getImageData();
-	unsigned dw = S->getWidth();
+gImage gImage::Crop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int threadcount)
+{
+	if (x1>w | y1>h | x2>w | y2>h) return *this;
+	if (x1>=x2 | y1>=y2) return *this;
+
+	
+	gImage S(x2-x1, y2-y1, c, imginfo);
+	std::vector<pix>& dst = S.getImageData();
+	std::vector<pix>& src = getImageData();
+
+	unsigned dw = S.getWidth();
 	#pragma omp parallel for num_threads(threadcount)
-	for (unsigned x=0; x<S->getWidth(); x++) {
-		for (unsigned y=0; y<S->getHeight(); y++) {
+	for (unsigned x=0; x<S.getWidth(); x++) {
+		for (unsigned y=0; y<S.getHeight(); y++) {
 			unsigned dpos = x + y*dw;
 			unsigned spos = x1+x + ((y+y1) * w);
 			dst[dpos].r = src[spos].r;
@@ -541,6 +508,7 @@ gImage *gImage::Crop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int thr
 
 	return S;
 }
+
 
 //Curve
 //
@@ -572,11 +540,11 @@ gImage *gImage::Crop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int thr
 //
 
 
-gImage *gImage::ApplyCurve(std::vector<cp> ctpts, int threadcount)
+gImage gImage::ApplyCurve(std::vector<cp> ctpts, int threadcount)
 {
-	gImage *S = new gImage(w, h, c, imginfo);
-	pix * src = getImageData();
-	pix * dst = S->getImageData();
+	gImage S(w, h, c, imginfo);
+	std::vector<pix>& src = getImageData();
+	std::vector<pix>& dst = S.getImageData();
 	Curve c;
 	c.setControlPoints(ctpts);
 
@@ -594,11 +562,11 @@ gImage *gImage::ApplyCurve(std::vector<cp> ctpts, int threadcount)
 	return S;
 }
 
-gImage *gImage::ApplyLine(double low, double high, int threadcount)
+gImage gImage::ApplyLine(double low, double high, int threadcount)
 {
-	gImage *S = new gImage(w, h, c, imginfo);
-	pix * src = getImageData();
-	pix * dst = S->getImageData();
+	gImage S(w, h, c, imginfo);
+	std::vector<pix>& src = getImageData();
+	std::vector<pix>& dst = S.getImageData();
 
 	double slope = 255.0 / (high-low);
 
@@ -625,16 +593,15 @@ gImage *gImage::ApplyLine(double low, double high, int threadcount)
 //Maybe later...
 //
 
-
 #define  Pr  .299
 #define  Pg  .587
 #define  Pb  .114
 
-gImage *gImage::Saturate(double saturate, int threadcount)
+gImage gImage::Saturate(double saturate, int threadcount)
 {
-	gImage *S = new gImage(w, h, c, imginfo);
-	pix * src = getImageData();
-	pix * dst = S->getImageData();
+	gImage S(w, h, c, imginfo);
+	std::vector<pix>& src = getImageData();
+	std::vector<pix>& dst = S.getImageData();
 
 	#pragma omp parallel for num_threads(threadcount)
 	for (unsigned x=0; x<w; x++) {
@@ -668,11 +635,12 @@ gImage *gImage::Saturate(double saturate, int threadcount)
 //channel.  My use case is to introduce tint to grayscale images.
 //
 
-gImage *gImage::Tint(double red,double green,double blue, int threadcount)
+
+gImage gImage::Tint(double red,double green,double blue, int threadcount)
 {
-	gImage *S = new gImage(w, h, c, imginfo);
-	pix * src = getImageData();
-	pix * dst = S->getImageData();
+	gImage S(w, h, c, imginfo);
+	std::vector<pix>& src = getImageData();
+	std::vector<pix>& dst = S.getImageData();
 
 	#pragma omp parallel for num_threads(threadcount)
 	for (unsigned x=0; x<w; x++) {
@@ -689,6 +657,7 @@ gImage *gImage::Tint(double red,double green,double blue, int threadcount)
 	return S;
 }
 
+
 //Grayscaling
 //
 //Credit: Various
@@ -704,11 +673,12 @@ gImage *gImage::Tint(double red,double green,double blue, int threadcount)
 //Retaining the three-channel image allows subsequent manipulation of the channels to introduce
 //tint.
 
-gImage *gImage::Gray(double redpct, double greenpct, double bluepct, int threadcount)
+
+gImage gImage::Gray(double redpct, double greenpct, double bluepct, int threadcount)
 {
-	gImage *S = new gImage(w, h, c, imginfo);
-	pix * src = getImageData();
-	pix * dst = S->getImageData();
+	gImage S(w, h, c, imginfo);
+	std::vector<pix>& src = getImageData();
+	std::vector<pix>& dst = S.getImageData();
 
 	#pragma omp parallel for num_threads(threadcount)
 	for (unsigned x=0; x<w; x++) {
@@ -725,6 +695,7 @@ gImage *gImage::Gray(double redpct, double greenpct, double bluepct, int threadc
 
 	return S;
 }
+
 
 //NLMeans Denoise
 //
@@ -744,12 +715,12 @@ gImage *gImage::Gray(double redpct, double greenpct, double bluepct, int threadc
 //
 
 
-gImage *gImage::NLMeans(double sigma, int local, int patch, int threadcount)
+gImage gImage::NLMeans(double sigma, int local, int patch, int threadcount)
 {
 
-	gImage *S = new gImage(w, h, c, imginfo);
-	pix * srcbits = getImageData();
-	pix * dstbits = S->getImageData();
+	gImage S(w, h, c, imginfo);
+	std::vector<pix>& src = getImageData();
+	std::vector<pix>& dst = S.getImageData();
 
 	unsigned spitch = w;
 	unsigned dpitch = w;
@@ -773,7 +744,8 @@ gImage *gImage::NLMeans(double sigma, int local, int patch, int threadcount)
 			unsigned px = x;
 			if (px<xplb) px = xplb;
 			if (px>xpub) px = xpub;
-			pix * wdstpix = dstbits + dpitch*y + x;
+			//pix * wdstpix = dstbits + dpitch*y + x;
+			unsigned wdstpix = dpitch*y + x;
 			double valueR = 0.0;
 			double valueG = 0.0;
 			double valueB = 0.0;
@@ -787,37 +759,39 @@ gImage *gImage::NLMeans(double sigma, int local, int patch, int threadcount)
 					double diffB = 0.0;
 					for (int s = -patch; s<=patch; ++s) {
 						for (int r = -patch; r<=patch; ++r) {
-							pix * ppix = srcbits + spitch*(py+q+s) + (px+p+r);
-							pix * lpix = srcbits + spitch*(py+s) + (px+r);
-							diffR += pow((ppix->r - lpix->r),2);
-							diffG += pow((ppix->g - lpix->g),2);
-							diffB += pow((ppix->b - lpix->b),2);
+							//pix * ppix = srcbits + spitch*(py+q+s) + (px+p+r);
+							unsigned ppix = spitch*(py+q+s) + (px+p+r);
+							//pix * lpix = srcbits + spitch*(py+s) + (px+r);
+							unsigned lpix = spitch*(py+s) + (px+r);
+							diffR += pow((src[ppix].r - src[lpix].r),2);
+							diffG += pow((src[ppix].g - src[lpix].g),2);
+							diffB += pow((src[ppix].b - src[lpix].b),2);
 							//gmic: diff += pow(i[x+p+r,y+q+s] - i[x+r,y+s],2);
 						}
 					}
 					double weightR = exp(-diffR/sigma2);
 					double weightG = exp(-diffG/sigma2);
 					double weightB = exp(-diffB/sigma2);
-					pix * localpix = srcbits + spitch*(y+q) + (x+p);
-					valueR += weightR*localpix->r;
-					valueG += weightG*localpix->g;
-					valueB += weightB*localpix->b;
+					//pix * localpix = srcbits + spitch*(y+q) + (x+p);
+					unsigned localpix = spitch*(y+q) + (x+p);
+					valueR += weightR*src[localpix].r;
+					valueG += weightG*src[localpix].g;
+					valueB += weightB*src[localpix].b;
 					//gmic: value += weight*i(x+p,y+q);
 					sum_weightsR += weightR;
 					sum_weightsG += weightG;
 					sum_weightsB += weightB;
-
 				}
 			}
-			wdstpix->r   = (valueR/(1e-5 + sum_weightsR));
-			wdstpix->g = (valueG/(1e-5 + sum_weightsG));
-			wdstpix->b  = (valueB/(1e-5 + sum_weightsB));
+			dst[wdstpix].r   = (valueR/(1e-5 + sum_weightsR));
+			dst[wdstpix].g = (valueG/(1e-5 + sum_weightsG));
+			dst[wdstpix].b  = (valueB/(1e-5 + sum_weightsB));
 		}
 	}
 
 	return S;
-
 }
+
 
 
 //Resizing
@@ -851,6 +825,7 @@ gImage *gImage::NLMeans(double sigma, int local, int patch, int threadcount)
 //commits.
 //
 
+
 double sinc(double x)
 {
 	x *= M_PI;
@@ -866,7 +841,7 @@ double Lanczos3_filter(double t)
 }
 
 
-gImage * gImage::Resize(unsigned width, unsigned height, RESIZE_FILTER filter, int threadcount)
+gImage gImage::Resize(unsigned width, unsigned height, RESIZE_FILTER filter, int threadcount)
 {
 	typedef struct {
 		int	pixel;
@@ -874,28 +849,28 @@ gImage * gImage::Resize(unsigned width, unsigned height, RESIZE_FILTER filter, i
 	} CONTRIB;
 
 	typedef struct {
-		int	n;		/* number of contributors */
-		CONTRIB	*p;		/* pointer to list of contributions */
+		int	n;		// number of contributors 
+		CONTRIB	*p;		// pointer to list of contributions 
 	} CLIST;
 
 
-	CLIST	*contrib;		/* array of contribution lists */
+	CLIST	*contrib;		// array of contribution lists 
 
-	double xscale, yscale;		/* zoom scale factors */
-	int i, j, k;			/* loop variables */
-	int n;				/* pixel number */
-	double center, left, right;	/* filter calculation variables */
-	double wi, fscale, weight;	/* filter calculation variables */
+	double xscale, yscale;		// zoom scale factors 
+	int i, j, k;			// loop variables
+	int n;				// pixel number 
+	double center, left, right;	// filter calculation variables 
+	double wi, fscale, weight;	// filter calculation variables 
 
 	//hardcoded lanczos3
 	double fwidth = 3.0; //for lanczos3
 	double (*filterf)(double) = Lanczos3_filter;
 
-	gImage *S = new gImage(width, height, c, imginfo);
-	pix * dst = S->getImageData();
-	gImage * T = new gImage(width, h, c, imginfo);
-	pix * tmp = T->getImageData();
-	pix * src = getImageData();
+	gImage S(width, height, c, imginfo);
+	std::vector<pix>& dst = S.getImageData();
+	gImage T(width, h, c, imginfo);
+	std::vector<pix>& tmp = T.getImageData();
+	std::vector<pix>& src = getImageData();
 
 	xscale = (double) width / (double) w;
 	yscale = (double) height / (double) h;
@@ -954,34 +929,31 @@ gImage * gImage::Resize(unsigned width, unsigned height, RESIZE_FILTER filter, i
 
 	// Apply row contributions:
 	#pragma omp parallel for num_threads(threadcount)
-	for(unsigned y = 0; y < T->getHeight(); ++y) {
-		pix * raster = (pix *) (src + w*y);
-		pix * tmpimg = (pix *) (tmp + width*y);
-
-		for(unsigned x = 0; x < T->getWidth(); ++x) {
+	for(unsigned y = 0; y < T.getHeight(); ++y) {
+		unsigned raster = w*y;
+		for(unsigned x = 0; x < T.getWidth(); ++x) {
+			unsigned pos = x + width*y;
 			double weightr = 0.0;
 			double weightg = 0.0;
 			double weightb = 0.0;
 			for(unsigned j = 0; j < contrib[x].n; ++j) {
-				weightr += raster[contrib[x].p[j].pixel].r
-					* contrib[x].p[j].weight;
-				weightg += raster[contrib[x].p[j].pixel].g
-					* contrib[x].p[j].weight;
-				weightb += raster[contrib[x].p[j].pixel].b
-					* contrib[x].p[j].weight;
+				unsigned rpos = raster+contrib[x].p[j].pixel;
+				weightr += image[rpos].r * contrib[x].p[j].weight;
+				weightg += image[rpos].g * contrib[x].p[j].weight;
+				weightb += image[rpos].b * contrib[x].p[j].weight;
 			}
-			tmpimg[x].r = weightr;
-			tmpimg[x].g = weightg;
-			tmpimg[x].b = weightb;
+			tmp[pos].r = weightr;
+			tmp[pos].g = weightg;
+			tmp[pos].b = weightb;
 		}
 	}
 	#pragma omp barrier
 
 	//delete the memory allocated for horizontal filter weights:
-	for(i = 0; i < T->getWidth(); ++i) {
+	for(i = 0; i < T.getWidth(); ++i) {
 		delete contrib[i].p;
 	}
-	delete contrib;
+	delete[] contrib;
 
 
 	// Compute column contributions:
@@ -1038,20 +1010,19 @@ gImage * gImage::Resize(unsigned width, unsigned height, RESIZE_FILTER filter, i
 	#pragma omp parallel for num_threads(threadcount)
 	for(unsigned x = 0; x < width; ++x) {
 		for(unsigned y = 0; y < height; ++y) {
+			unsigned pos = x + y*width;
 			double weightr = 0.0;
 			double weightg = 0.0;
 			double weightb = 0.0;
 			for(unsigned j = 0; j < contrib[y].n; ++j) {
-				weightr += tmp[x+(width*contrib[y].p[j].pixel)].r
-					* contrib[y].p[j].weight;
-				weightg += tmp[x+(width*contrib[y].p[j].pixel)].g
-					* contrib[y].p[j].weight;
-				weightb += tmp[x+(width*contrib[y].p[j].pixel)].b
-					* contrib[y].p[j].weight;
+				unsigned cpos = x+(width*contrib[y].p[j].pixel);
+				weightr += tmp[cpos].r * contrib[y].p[j].weight;
+				weightg += tmp[cpos].g * contrib[y].p[j].weight;
+				weightb += tmp[cpos].b * contrib[y].p[j].weight;
 			}
-			dst[x+y*width].r = weightr;
-			dst[x+y*width].g = weightg;
-			dst[x+y*width].b = weightb;
+			dst[pos].r = weightr;
+			dst[pos].g = weightg;
+			dst[pos].b = weightb;
 
 		}
 	}
@@ -1061,12 +1032,11 @@ gImage * gImage::Resize(unsigned width, unsigned height, RESIZE_FILTER filter, i
 	for(i = 0; i < height; ++i) {
 		delete contrib[i].p;
 	}
-	delete contrib;
+	delete[] contrib;
 
-	delete T;
 	return S;
-
 }
+
 
 
 //Image Information:
@@ -1074,18 +1044,18 @@ gImage * gImage::Resize(unsigned width, unsigned height, RESIZE_FILTER filter, i
 void gImage::Stats()
 {
 	double rmin, rmax, gmin, gmax, bmin, bmax;
-	rmin = img->r; rmax = img->r; gmin=img->g; gmax = img->g; bmin = img->b; bmax = img->b;
+	rmin = image[0].r; rmax = image[0].r; gmin=image[0].g; gmax = image[0].g; bmin = image[0].b; bmax = image[0].b;
 	int iter = 0;
 
 	for(unsigned y = 1; y < h; y++) {
 		for(unsigned x = 1; x < w; x++) {
-			pix * p = (pix *) img + y + x;
-			if (p->r > rmax) rmax = p->r;
-			if (p->g > gmax) gmax = p->g;
-			if (p->b > bmax) bmax = p->b;
-			if (p->r < rmin) rmin = p->r;
-			if (p->g < gmin) gmin = p->g;
-			if (p->b < bmin) bmin = p->b;
+			unsigned pos = x + y*w;
+			if (image[pos].r > rmax) rmax = image[pos].r;
+			if (image[pos].g > gmax) gmax = image[pos].g;
+			if (image[pos].b > bmax) bmax = image[pos].b;
+			if (image[pos].r < rmin) rmin = image[pos].r;
+			if (image[pos].g < gmin) gmin = image[pos].g;
+			if (image[pos].b < bmin) bmin = image[pos].b;
 			iter++;
 		}
 	}
@@ -1099,7 +1069,7 @@ std::vector<long> gImage::Histogram()
 	for(unsigned y = 0; y < h; y++) {
 		for(unsigned x = 0; x < w; x++) {
 			unsigned pos = x + y*w;
-			double t = (img[pos].r + img[pos].g + img[pos].b) / 3.0;
+			double t = (image[pos].r + image[pos].g + image[pos].b) / 3.0;
 			if (t < 0.0) t = 0.0;
 			if (t > 255.0) t = 255.0;
 			histogram[floor(t+0.5)]++;
@@ -1113,46 +1083,66 @@ std::vector<long> gImage::Histogram()
 
 //Loaders:
 
-gImage * gImage::loadImageFile(const char * filename, std::string params)
+gImage gImage::loadImageFile(const char * filename, std::string params)
 {
 	char ext[5];
 	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
 	if (strcmp(ext,"tif") == 0) return gImage::loadTIFF(filename, params);
 	if (strcmp(ext,"NEF") == 0) return gImage::loadRAW(filename, params);
 	if (strcmp(ext,"jpg") == 0) return gImage::loadJPEG(filename, params);
-	return NULL;
 }
 
-gImage * gImage::loadRAW(const char * filename, std::string params)
+gImage gImage::loadRAW(const char * filename, std::string params)
 {
-	unsigned width, height, colors, bpp, icclength;
+	unsigned width, height, bpp, colors, icclength;
+	BPP bits;
 	char * iccprofile;
 	std::map<std::string,std::string> imgdata;
-	//std::string params = "autobright=1";
 	char * image = _loadRAW_m(filename, &width, &height, &colors, &bpp, imgdata, params, iccprofile, &icclength);
-	gImage * I = new gImage(image, width, height, colors, bpp, imgdata);
+	switch (bpp) {
+		case 8: 
+			bits = BPP_8;
+			break;
+		case 16:
+			bits = BPP_16;
+			break;
+		//default:
+		//	throw bad_typeid;
+	}
+	gImage I(image, width, height, colors, bits, imgdata);
 	delete image;
 	return I;
 
 }
 
-gImage * gImage::loadJPEG(const char * filename, std::string params)
+gImage gImage::loadJPEG(const char * filename, std::string params)
 {
 	unsigned width, height, colors, bpp;
 	std::map<std::string,std::string> imgdata;
 	char * image = _loadJPEG(filename, &width, &height, &colors, imgdata);
-	gImage * I = new gImage(image, width, height, colors, 8, imgdata);
+	gImage I(image, width, height, colors, BPP_8, imgdata);
 	delete image;
 	return I;
 }
 
 
-gImage * gImage::loadTIFF(const char * filename, std::string params)
+gImage gImage::loadTIFF(const char * filename, std::string params)
 {
 	unsigned width, height, colors, bpp;
+	BPP bits;
 	std::map<std::string,std::string> imgdata;
 	char * image = _loadTIFF(filename, &width, &height, &colors, &bpp, imgdata);
-	gImage * I = new gImage(image, width, height, colors, bpp, imgdata);
+	switch (bpp) {
+		case 8: 
+			bits = BPP_8;
+			break;
+		case 16:
+			bits = BPP_16;
+			break;
+		//default:
+		//	throw bad_typeid;
+	}
+	gImage I(image, width, height, colors, bits, imgdata);
 	delete image;
 	return I;
 }
@@ -1165,7 +1155,7 @@ bool gImage::saveImageFile(const char * filename, std::string params)
 	char ext[5];
 	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
 	if (strcmp(ext,"tif") == 0) {
-		saveTIFF(filename, 16);
+		saveTIFF(filename, BPP_16);
 		return true;
 	}
 	if (strcmp(ext,"jpg") == 0) {
@@ -1178,10 +1168,10 @@ bool gImage::saveImageFile(const char * filename, std::string params)
 
 void gImage::saveJPEG(const char * filename, std::string params)
 {
-	_writeJPEG(filename, getImageData(8),  w, h, c, imginfo, params);
+	_writeJPEG(filename, getImageData(BPP_8),  w, h, c, imginfo, params);
 }
 
-void gImage::saveTIFF(const char * filename, unsigned bits)
+void gImage::saveTIFF(const char * filename, BPP bits)
 {
 	_writeTIFF(filename, getImageData(bits),  w, h, c, bits, imginfo);
 }

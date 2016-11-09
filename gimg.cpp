@@ -111,7 +111,7 @@ int main (int argc, char **argv)
 	std::vector<fnames> files;
 	int c;
 	int flags;
-	gImage *dib =  NULL;
+	gImage dib;
 
 	if (argc < 2) {
 		//printf("Error: No input file specified.\n");
@@ -198,21 +198,13 @@ for (int f=0; f<files.size(); f++)
 	printf("Loading file %s... ",fname);
 	_mark();
 	dib = gImage::loadImageFile(fname, infile[1]);
-	if (dib) {
-		printf("done. (%fsec)\nImage size: %dx%d\n",_duration(), dib->getWidth(),dib->getHeight());
-	}
-	else {
-		printf("failed.  Exiting...\n");
-		exit(1);
-	}
-
-
+	printf("done. (%fsec)\nImage size: %dx%d\n",_duration(), dib.getWidth(),dib.getHeight());
 	
 	for (int i=0; i<commands.size(); i++) {
 		char c[256];
 		strncpy(c, commands[i].c_str(), 255);
 		char* cmd = strtok(c,":");
-        
+
 		if (strcmp(cmd,"bright") == 0) {  //#bright:[-100 - 100, default=0]
 			double bright=0.0;
 			char *b = strtok(NULL," ");
@@ -229,14 +221,8 @@ for (int f=0; f<files.size(); f++)
 			printf("bright: %0.2f (%d threads)... ",bright,threadcount);
 
 			_mark();
-			gImage * dst = dib->ApplyCurve(ctrlpts.getControlPoints(), threadcount);
-			if (dst) {
-				delete dib;
-				dib = dst;
-				double d = _duration();
-				printf("done (%fsec).\n",d);
-			}
-			else printf("failed, continuing.\n");
+			dib = dib.ApplyCurve(ctrlpts.getControlPoints(), threadcount);
+			printf("done (%fsec).\n",_duration());
 		}
 
 
@@ -245,9 +231,9 @@ for (int f=0; f<files.size(); f++)
 			char *b = strtok(NULL,",");
 			char *w = strtok(NULL,", ");
 			wht = 255; blk = 0;
-			if (!b) {
+			if (!b) { 	//calculate black and white points from image histogram
 				int i;
-				std::vector<long> hdata = dib->Histogram();
+				std::vector<long> hdata = dib.Histogram();
 				long hmax=0;
 				for (i=0; i<256; i++) if (hdata[i] > hmax) hmax = hdata[i];
 				for (i=1; i<128; i++) if ((double)hdata[i]/(double)hmax > 0.05) break;
@@ -268,18 +254,10 @@ for (int f=0; f<files.size(); f++)
 			printf("blackwhitepoint: %0.2f,%0.2f (%d threads)... ",blk,wht,threadcount);
 
 			_mark();
-			gImage * dst = dib->ApplyCurve(ctrlpts.getControlPoints(), threadcount);
-			//gImage * dst = dib->ApplyLine(blk, wht, threadcount);
-			if (dst) {
-				delete dib;
-				dib = dst;
-				double d = _duration();
-				printf("done (%fsec).\n",d);
-			}
-			else printf("failed, continuing.\n");
+			dib = dib.ApplyCurve(ctrlpts.getControlPoints(), threadcount);
+			//dib = dib.ApplyLine(blk, wht, threadcount);
+			printf("done (%fsec).\n",_duration());
 		}
-
-
 
 		else if (strcmp(cmd,"contrast") == 0) {  //#contrast:[-100 - 100, default=0]
 			double contrast=0.0;
@@ -300,18 +278,11 @@ for (int f=0; f<files.size(); f++)
 			printf("contrast: %0.2f (%d threads)... ",contrast,threadcount);
 
 			_mark();
-			gImage * dst = dib->ApplyCurve(ctrlpts.getControlPoints(), threadcount);
-			if (dst) {
-				delete dib;
-				dib = dst;
-				double d = _duration();
-				printf("done (%fsec).\n",d);
-			}
-			else printf("failed, continuing.\n");
+			dib = dib.ApplyCurve(ctrlpts.getControlPoints(), threadcount);
+			printf("done (%fsec).\n",_duration());
 		}
 
-
-/*
+/* //leave commented...
 		else if (strcmp(cmd,"gamma") == 0) {  //#gamma:[0.0 - 5.0, default=1.0]
 			double d;
 			double gamma=1.0;
@@ -352,7 +323,7 @@ for (int f=0; f<files.size(); f++)
 		}
 */
 
-/*
+/* leave commented
 		else if (strcmp(cmd,"resize") == 0) {  //#resize:[width],[height],[box|bilinear|bspline|bicubic|catmullrom|lanczos3 (default)]
 			char *w = strtok(NULL,",");
 			char *h = strtok(NULL,", ");
@@ -398,15 +369,11 @@ for (int f=0; f<files.size(); f++)
 			printf("sharp: %0.2f (%d threads)... ",sharp, threadcount);
 
 			_mark();
-			gImage * dst = dib->Sharpen(sharp, threadcount);
-			if (dst) {
-				delete dib;
-				dib = dst;
-				double d = _duration();
-				printf("done (%fsec).\n",d);
-			}
-			else printf("failed, continuing.\n");
+			dib = dib.Sharpen(sharp, threadcount);
+			printf("done (%fsec).\n",_duration());
 		}
+
+
 
 		else if (strcmp(cmd,"resize") == 0) {  //#resize:x,y      
 			//double sharp=0.0;
@@ -415,8 +382,8 @@ for (int f=0; f<files.size(); f++)
 			char *hstr = strtok(NULL," ");
 			if (wstr) w = atoi(wstr);
 			if (hstr) h = atoi(hstr);
-			unsigned dw = dib->getWidth();
-			unsigned dh = dib->getHeight();
+			unsigned dw = dib.getWidth();
+			unsigned dh = dib.getHeight();
 
 			if (h ==  0) h = dh * ((float)w/(float)dw);
 			if (w == 0)  w = dw * ((float)h/(float)dh); 
@@ -424,15 +391,11 @@ for (int f=0; f<files.size(); f++)
 			printf("resize: %dx%d (%d threads)... ",w,h,threadcount);
 
 			_mark();
-			gImage * dst = dib->Resize(w,h, FILTER_LANCZOS3, threadcount);
-			if (dst) {
-				delete dib;
-				dib = dst;
-				double d = _duration();
-				printf("done (%fsec).\n",d);
-			}
-			else printf("failed, continuing.\n");
+			dib = dib.Resize(w,h, FILTER_LANCZOS3, threadcount);
+			printf("done (%fsec).\n", _duration());
 		}
+
+
 
 		else if (strcmp(cmd,"rotate") == 0) {  //#rotate:[0 - 45, default=0] 
 			double angle=0.0;
@@ -442,14 +405,8 @@ for (int f=0; f<files.size(); f++)
 			printf("rotate: %0.2f (%d threads)... ",angle,threadcount);
 
 			_mark();
-			gImage * dst = dib->Rotate(angle, threadcount);
-			if (dst) {
-				delete dib;
-				dib = dst;
-				double d = _duration();
-				printf("done (%fsec).\n",d);
-			}
-			else printf("failed, continuing.\n");
+			dib = dib.Rotate(angle, threadcount);
+			printf("done (%fsec).\n",_duration());
 		}
 
 		else if (strcmp(cmd,"crop") == 0) {  //#crop:x,y,w,h      
@@ -468,17 +425,9 @@ for (int f=0; f<files.size(); f++)
 			printf("crop: %d,%d %dx%d (%d threads)... ",x,y,width,height,threadcount);
 
 			_mark();
-			gImage * dst = dib->Crop(x,y,width,height,threadcount);
-			if (dst) {
-				delete dib;
-				dib = dst;
-				double d = _duration();
-				printf("done (%fsec).\n",d);
-			}
-			else printf("failed, continuing.\n");
+			dib = dib.Crop(x,y,width,height,threadcount);
+			printf("done (%fsec).\n",_duration());
 		}
-
-
 
 		else if (strcmp(cmd,"saturation") == 0) {  //#saturation:[0 - 5.0, default=1.0, no change]
 			double saturation=0.0;
@@ -489,16 +438,10 @@ for (int f=0; f<files.size(); f++)
 			printf("saturate: %0.2f (%d threads)... ",saturation,threadcount);
 
 			_mark();
-			gImage * dst = dib->Saturate(saturation, threadcount);
-			if (dst) {
-				delete dib;
-				dib = dst;
-				double d = _duration();
-				printf("done (%fsec).\n",d);
-			}
-			else printf("failed, continuing.\n");
-
+			dib = dib.Saturate(saturation, threadcount);
+			printf("done (%fsec).\n",_duration());
 		}
+
 
 		else if (strcmp(cmd,"denoise") == 0) {  //#saturation:[0 - 5.0, default=1.0, no change]
 			double sigma=0.0;
@@ -509,15 +452,8 @@ for (int f=0; f<files.size(); f++)
 			printf("denoise: %0.2f (%d threads)... ",sigma,threadcount);
 
 			_mark();
-			gImage * dst = dib->NLMeans(sigma, 3, 1, threadcount);
-			if (dst) {
-				delete dib;
-				dib = dst;
-				double d = _duration();
-				printf("done (%fsec).\n",d);
-			}
-			else printf("failed, continuing.\n");
-
+			dib = dib.NLMeans(sigma, 3, 1, threadcount);
+			printf("done (%fsec).\n",_duration());
 		}
 
 
@@ -534,17 +470,9 @@ for (int f=0; f<files.size(); f++)
 			printf("tint: %0.2f,%0.2f,%0.2f (%d threads)... ",red,green,blue,threadcount);
 
 			_mark();
-			gImage * dst = dib->Tint(red,green,blue, threadcount);
-			if (dst) {
-				delete dib;
-				dib = dst;
-				double d = _duration();
-				printf("done (%fsec).\n",d);
-			}
-			else printf("failed, continuing.\n");
-
+			dib = dib.Tint(red,green,blue, threadcount);
+			printf("done (%fsec).\n",_duration());
 		}
-
 
 
 		else if (strcmp(cmd,"gray") == 0) {  //#gray:[r],[g],[b] 
@@ -560,16 +488,11 @@ for (int f=0; f<files.size(); f++)
 			printf("gray: %0.2f,%0.2f,%0.2f (%d threads)... ",red,green,blue,threadcount);
 
 			_mark();
-			gImage * dst = dib->Gray(red,green,blue, threadcount);
-			if (dst) {
-				delete dib;
-				dib = dst;
-				double d = _duration();
-				printf("done (%fsec).\n",d);
-			}
-			else printf("failed, continuing.\n");
+			dib = dib.Gray(red,green,blue, threadcount);
+			printf("done (%fsec).\n",_duration());
 
 		}
+
 
 
 		else printf("Unrecognized command: %s.  Continuing...\n",cmd);
@@ -584,11 +507,10 @@ for (int f=0; f<files.size(); f++)
 
 
 	if (strcmp(outfilename, "info") == 0) {
-		std::map<std::string,std::string> imginfo = dib->getInfo();
+		std::map<std::string,std::string> imginfo = dib.getInfo();
 		for (std::map<std::string,std::string>::iterator it=imginfo.begin(); it!=imginfo.end(); ++it)
 			printf("%s: %s\n",it->first.c_str(), it->second.c_str());
 		printf("\n");
-		delete dib;
 		exit(0);
 	}
 			
@@ -599,13 +521,11 @@ for (int f=0; f<files.size(); f++)
 
 	_mark();
 	printf("Saving file %s %s... ",outfile[0].c_str(), outfile[1].c_str());
-	dib->setInfo("Software","gimg 0.1");
-	if (dib->saveImageFile(outfile[0].c_str(), outfile[1].c_str())) 
+	dib.setInfo("Software","gimg 0.1");
+	if (dib.saveImageFile(outfile[0].c_str(), outfile[1].c_str())) 
 		printf("done. (%fsec)\n\n",_duration());
 	else
 		printf("Error: bad output file specification: %s\n\n",outfile[0].c_str());
-
-	delete dib;
 
 }
 
