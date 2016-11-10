@@ -22,7 +22,7 @@ $(OBJDIR)/gimg: $(OBJDIR)/libgimage.a
 	$(CXX) $(LFLAGS) -o$@  $(LIBDIRS) $(LIBS)
 
 $(OBJDIR)/libgimage.a: $(OBJECTS)
-	ar -cvq $@ $(OBJECTS)
+	ar rcs $@ $(OBJECTS)
 	ranlib $@
 
 $(OBJDIR)/gimg.o: gimg.cpp
