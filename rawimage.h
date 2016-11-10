@@ -4,6 +4,13 @@
 #include <string>
 #include <map>
 
+bool _loadRAWInfo_m(const char *filename, 
+			unsigned *width, 
+			unsigned *height, 
+			unsigned *numcolors, 
+			unsigned *numbits, 
+			std::map<std::string,std::string> &info);
+
 char * _loadRAW_m(const char *filename, 
 			unsigned *width, 
 			unsigned *height, 

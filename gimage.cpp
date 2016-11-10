@@ -145,6 +145,18 @@ std::map<std::string,std::string> gImage::getInfo()
 	return imginfo;
 }
 
+std::map<std::string,std::string> gImage::getInfo(const char * filename)
+{
+	unsigned width, height, colors, bpp;
+	char ext[5];
+	std::map<std::string, std::string> imgdata;
+	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
+	if (strcmp(ext,"tif") == 0) _loadTIFFInfo(filename, &width, &height, &colors, &bpp, imgdata);
+	//if (strcmp(ext,"NEF") == 0) return gImage::loadRAW(filename, params);
+	if ((strcmp(ext,"jpg") == 0) | (strcmp(ext,"JPG") == 0)) _loadJPEGInfo(filename, &width, &height, &colors, imgdata);
+	return imgdata;
+}
+
 int gImage::ThreadCount()
 {
 #if defined(_OPENMP)

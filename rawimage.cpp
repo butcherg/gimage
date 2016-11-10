@@ -9,6 +9,50 @@
 #include "LibRaw-0.17.2/libraw/libraw.h"
 
 
+bool _loadRAWInfo_m(const char *filename, 
+			unsigned *width, 
+			unsigned *height, 
+			unsigned *numcolors, 
+			unsigned *numbits, 
+			std::map<std::string,std::string> &info)
+{
+	int w, h, c, b;
+	LibRaw RawProcessor;
+
+#define P1 RawProcessor.imgdata.idata
+#define S RawProcessor.imgdata.sizes
+#define C RawProcessor.imgdata.color
+#define T RawProcessor.imgdata.thumbnail
+#define P2 RawProcessor.imgdata.other
+//#define OUT RawProcessor.imgdata.params
+
+	if (RawProcessor.open_file(filename) == LIBRAW_SUCCESS) {
+		RawProcessor.unpack();
+
+		info["ISOSpeedRatings"] = tostr(P2.iso_speed);  
+		info["ExposureTime"] = tostr(P2.shutter);  
+		info["FNumber"] = tostr(P2.aperture);  
+		info["FocalLength"] = tostr(P2.focal_len);  
+		info["ImageDescription"] = P2.desc;  
+		info["Artist"] = P2.artist; 
+		info["Make"] = P1.make;  
+		info["Model"] = P1.model;  
+
+		time_t rawtime = P2.timestamp;
+		struct tm * timeinfo;
+		char buffer [80];
+		timeinfo = localtime (&rawtime);
+		strftime (buffer,80,"%Y:%m:%d %H:%M:%S",timeinfo);
+		info["DateTime"] = buffer;  
+		RawProcessor.recycle();
+		return true;
+	}
+	else {
+		RawProcessor.recycle();
+		return false;
+	}
+}
+
 char * _loadRAW_m(const char *filename, 
 			unsigned *width, 
 			unsigned *height, 
@@ -31,7 +75,6 @@ char * _loadRAW_m(const char *filename,
 	//	std::cout << it->first << ": " << it->second << std::endl;
 	//printf("\n");
 	
-
 #define P1 RawProcessor.imgdata.idata
 #define S RawProcessor.imgdata.sizes
 #define C RawProcessor.imgdata.color
