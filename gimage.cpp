@@ -1174,7 +1174,10 @@ void gImage::saveJPEG(const char * filename, std::string params)
 
 void gImage::saveTIFF(const char * filename, BPP bits)
 {
-	_writeTIFF(filename, getImageData(bits),  w, h, c, bits, imginfo);
+	unsigned b = 16;
+	if (bits == BPP_16) b = 16;
+	if (bits == BPP_8)  b = 8;
+	_writeTIFF(filename, getImageData(bits),  w, h, c, b, imginfo);
 }
 
 
