@@ -1089,7 +1089,8 @@ gImage gImage::loadImageFile(const char * filename, std::string params)
 	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
 	if (strcmp(ext,"tif") == 0) return gImage::loadTIFF(filename, params);
 	if (strcmp(ext,"NEF") == 0) return gImage::loadRAW(filename, params);
-	if (strcmp(ext,"jpg") == 0) return gImage::loadJPEG(filename, params);
+	if ((strcmp(ext,"jpg") == 0) | (strcmp(ext,"JPG") == 0)) return gImage::loadJPEG(filename, params);
+	return gImage();
 }
 
 gImage gImage::loadRAW(const char * filename, std::string params)

@@ -29,7 +29,7 @@ enum RESIZE_FILTER {
 class gImage 
 {
 	public:
-		gImage() { }
+		gImage() {w=0; h=0;}
 		gImage(std::string filename);
 		gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, BPP bits, std::map<std::string,std::string> imageinfo);
 		gImage(unsigned width, unsigned height,  unsigned colors, std::map<std::string,std::string> imageinfo);
