@@ -16,9 +16,7 @@ LFLAGS=-fopenmp
 OBJECTS := $(addprefix $(OBJDIR)/,gimg.o gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o elapsedtime.o strutil.o Curve.o)
 
 
-#$(OBJDIR)/gimg: $(OBJECTS)
 $(OBJDIR)/gimg: $(OBJDIR)/libgimage.a
-#$(CXX) $(LFLAGS) -o$@  $(OBJECTS) $(LIBDIRS) $(LIBS)
 	$(CXX) $(LFLAGS) -o$@  $(LIBDIRS) $(LIBS)
 
 $(OBJDIR)/libgimage.a: $(OBJECTS)
