@@ -8,6 +8,45 @@
 
 #include "strutil.h"
 
+bool _loadTIFFInfo(const char *filename, unsigned *width, unsigned *height, unsigned *numcolors, unsigned *numbits, std::map<std::string,std::string> &info)
+{
+	char *img, *buf;
+	FILE * infile;
+	uint16 w, h, c, b;
+
+	TIFF* tif = TIFFOpen(filename, "r");
+	if (tif) {
+
+		size_t npixels;
+		uint32* raster;
+
+		uint32 imagelength, imagewidth;
+		uint16 config, nsamples;
+        
+		TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
+		TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
+		TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &c);
+		TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &b);
+		TIFFGetField(tif, TIFFTAG_PLANARCONFIG, &config);
+
+		char *infobuf;
+		if (TIFFGetField(tif, TIFFTAG_ARTIST, &infobuf)) info["Artist"]=infobuf; 
+		if (TIFFGetField(tif, TIFFTAG_MAKE, &infobuf))  info["Make"]=infobuf;
+		if (TIFFGetField(tif, TIFFTAG_MODEL, &infobuf))  info["Model"]=infobuf;
+		if (TIFFGetField(tif, TIFFTAG_SOFTWARE, &infobuf))  info["Software"]=infobuf; 
+		if (TIFFGetField(tif, TIFFTAG_COPYRIGHT, &infobuf))  info["Copyright"]=infobuf; 
+		if (TIFFGetField(tif, TIFFTAG_LENSINFO, &infobuf))  info["LensInfo"]=infobuf; 
+		if (TIFFGetField(tif, TIFFTAG_IMAGEDESCRIPTION, &infobuf))  info["ImageDescription"]=infobuf; 
+		if (TIFFGetField(tif, TIFFTAG_DATETIME, &infobuf)) info["DateTime"]=infobuf;
+		
+		*width = w;
+		*height = h;
+		*numcolors = c;
+		*numbits = b;
+		return true;
+	}
+	else return false;
+}
 
 char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsigned *numcolors, unsigned *numbits, std::map<std::string,std::string> &info)
 {

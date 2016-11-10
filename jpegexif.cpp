@@ -712,7 +712,7 @@ unsigned char * construct_APP1marker(std::map<std::string,std::string> imageinfo
 
     {
         DirIndex = DataWriteIndex;
-        NumEntries = 9;
+        NumEntries = 10;
         DataWriteIndex += 2 + NumEntries*12 + 4;
 
         Put16u(Buffer+DirIndex, NumEntries); // Number of entries
@@ -793,6 +793,15 @@ unsigned char * construct_APP1marker(std::map<std::string,std::string> imageinfo
 		DirIndex += 12;
 		strcpy((char *) Buffer+DataWriteIndex, imageinfo["Software"].c_str());
 		DataWriteIndex += imageinfo["Software"].length()+1;
+
+		// Image Description:
+		Put16u(Buffer+DirIndex, TAG_IMAGE_DESCRIPTION);         // Tag
+		Put16u(Buffer+DirIndex + 2, FMT_STRING);       // Format
+		Put32u(Buffer+DirIndex + 4, imageinfo["ImageDescription"].length()+1);               // Components
+		Put32u(Buffer+DirIndex + 8, DataWriteIndex-8); // Pointer or value.
+		DirIndex += 12;
+		strcpy((char *) Buffer+DataWriteIndex, imageinfo["ImageDescription"].c_str());
+		DataWriteIndex += imageinfo["ImageDescription"].length()+1;
 
 
 

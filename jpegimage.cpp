@@ -18,6 +18,51 @@ extern "C" {
 #include "strutil.h"
 #include "jpegexif.h"
 
+bool _loadJPEGInfo(const char *filename, 
+			unsigned *width, 
+			unsigned *height, 
+			unsigned *numcolors, 
+			std::map<std::string,std::string> &info,
+			std::string params="",
+			char * icc_m=NULL, 
+			unsigned  *icclength=0)
+{
+	struct jpeg_decompress_struct cinfo;
+	struct jpeg_error_mgr jerr;
+
+	cinfo.err = jpeg_std_error(&jerr);
+	jpeg_create_decompress(&cinfo);
+
+	char *img;
+	JSAMPROW dst;
+	unsigned row_stride;
+	FILE * infile;
+
+	if ((infile = fopen(filename, "rb")) == NULL) return false;
+
+	jpeg_stdio_src(&cinfo, infile);
+
+	jpeg_save_markers(&cinfo, JPEG_APP0+1, 0xFFFF);
+
+	jpeg_read_header(&cinfo, TRUE);
+
+	jpeg_marker_struct * marker = cinfo.marker_list;
+	std::map<std::string,std::string> imageinfo;
+
+	while (marker != NULL) {
+		parse_APP1marker(marker->data-2, marker->data_length, info);
+		marker = marker->next;
+	}
+
+	*width = cinfo.image_width;
+	*height = cinfo.image_height;
+	*numcolors = cinfo.output_components;
+
+	jpeg_destroy_decompress(&cinfo);
+
+	return true;
+}
+
 char * _loadJPEG(const char *filename, 
 			unsigned *width, 
 			unsigned *height, 
@@ -74,6 +119,8 @@ char * _loadJPEG(const char *filename,
 	*width = cinfo.image_width;
 	*height = cinfo.image_height;
 	*numcolors = cinfo.output_components;
+
+	jpeg_destroy_decompress(&cinfo);
 	
 	return img;
 
@@ -143,6 +190,8 @@ void _writeJPEG(const char *filename,
 	}
 
 	jpeg_finish_compress(&cinfo);
+
+	jpeg_destroy_compress(&cinfo);
 
 }
 
