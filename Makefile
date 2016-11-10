@@ -5,8 +5,8 @@ CC=gcc
 CXX=g++
 
 #+= these in $(OBJDIR) for site-specific things
-LIBDIRS=
-LIBS=-lraw -ltiff -ljpeg 
+LIBDIRS=-Lbuild/
+LIBS=-lgimage -lraw -ltiff -ljpeg 
 INCLUDEDIRS=
 CFLAGS=-fopenmp -O4 
 LFLAGS=-fopenmp
@@ -16,8 +16,14 @@ LFLAGS=-fopenmp
 OBJECTS := $(addprefix $(OBJDIR)/,gimg.o gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o elapsedtime.o strutil.o Curve.o)
 
 
-$(OBJDIR)/gimg: $(OBJECTS)
-	$(CXX) $(LFLAGS) -o$@  $(OBJECTS) $(LIBDIRS) $(LIBS)
+#$(OBJDIR)/gimg: $(OBJECTS)
+$(OBJDIR)/gimg: $(OBJDIR)/libgimage.a
+#$(CXX) $(LFLAGS) -o$@  $(OBJECTS) $(LIBDIRS) $(LIBS)
+	$(CXX) $(LFLAGS) -o$@  $(LIBDIRS) $(LIBS)
+
+$(OBJDIR)/libgimage.a: $(OBJECTS)
+	ar -cvq $@ $(OBJECTS)
+	ranlib $@
 
 $(OBJDIR)/gimg.o: gimg.cpp
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c -w gimg.cpp -o$@
@@ -52,4 +58,9 @@ ifeq ($(SYS), mingw32)
 else
 	rm -f $(OBJDIR)/gimg $(OBJDIR)/*.o
 endif
+
+cleanlib:
+	rm -f $(OBJDIR)/libgimage.a
+
+
 
