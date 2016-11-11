@@ -43,6 +43,7 @@ bool _loadTIFFInfo(const char *filename, unsigned *width, unsigned *height, unsi
 		*height = h;
 		*numcolors = c;
 		*numbits = b;
+		TIFFClose(tif);
 		return true;
 	}
 	else return false;
