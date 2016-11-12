@@ -12,8 +12,13 @@
 #include "tiffimage.h"
 
 
-//Constructor/Destructor:
+//Constructors/Destructor:
 
+gImage::gImage() 
+{
+	w=0; 
+	h=0;
+}
 
 gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, BPP bits, std::map<std::string,std::string> imageinfo)
 {
@@ -156,6 +161,20 @@ std::map<std::string,std::string> gImage::getInfo(const char * filename)
 	if ((strcmp(ext,"jpg") == 0) | (strcmp(ext,"JPG") == 0)) _loadJPEGInfo(filename, &width, &height, &colors, imgdata);
 	return imgdata;
 }
+
+GIMAGE_FILETYPE gImage::getFileType(const char * filename)
+{
+	unsigned width, height, colors, bpp;
+	char ext[5];
+	std::map<std::string, std::string> imgdata;
+	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
+	if (strcmp(ext,"tif") == 0) return FILETYPE_TIFF;
+	if (strcmp(ext,"NEF") == 0) return FILETYPE_RAW;
+	if ((strcmp(ext,"jpg") == 0) | (strcmp(ext,"JPG") == 0)) return FILETYPE_JPEG;
+	return FILETYPE_UNKNOWN;
+}
+
+
 
 int gImage::ThreadCount()
 {

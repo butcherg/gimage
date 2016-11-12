@@ -16,6 +16,13 @@ enum BPP {
 	BPP_16
 };
 
+enum GIMAGE_FILETYPE {
+	FILETYPE_RAW,
+	FILETYPE_JPEG,
+	FILETYPE_TIFF,
+	FILETYPE_UNKNOWN
+};
+
 enum RESIZE_FILTER {
 	FILTER_BOX,
 	FILTER_BILINEAR,
@@ -29,7 +36,7 @@ enum RESIZE_FILTER {
 class gImage 
 {
 	public:
-		gImage() {w=0; h=0;}
+		gImage();
 		gImage(std::string filename);
 		gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, BPP bits, std::map<std::string,std::string> imageinfo);
 		gImage(unsigned width, unsigned height,  unsigned colors, std::map<std::string,std::string> imageinfo);
@@ -43,6 +50,7 @@ class gImage
 		unsigned getColors();
 		std::map<std::string,std::string> getInfo();
 		static std::map<std::string,std::string> getInfo(const char * filename);
+		static GIMAGE_FILETYPE getFileType(const char * filename);
 		static int ThreadCount();
 
 		void setInfo(std::string name, std::string value);
