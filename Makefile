@@ -5,22 +5,24 @@ CC=gcc
 CXX=g++
 
 #+= these in $(OBJDIR) for site-specific things
-LIBDIRS=-Lbuild/
+LIBDIRS=-Lbuild/lib
 LIBS=-lgimage -lraw -ltiff -ljpeg 
 INCLUDEDIRS=
-CFLAGS=-fopenmp -O4 
+CFLAGS=-fopenmp -O4
 LFLAGS=-fopenmp
 
 -include $(OBJDIR)/localmake.txt
 
 OBJECTS := $(addprefix $(OBJDIR)/,gimg.o gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o elapsedtime.o strutil.o Curve.o)
 
+LIBOBJECTS := $(addprefix $(OBJDIR)/,gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o)
 
-$(OBJDIR)/gimg: $(OBJDIR)/libgimage.a
+
+$(OBJDIR)/gimg: $(OBJDIR)/lib/libgimage.a
 	$(CXX) $(LFLAGS) -o$@  $(LIBDIRS) $(LIBS)
 
-$(OBJDIR)/libgimage.a: $(OBJECTS)
-	ar rcs $@ $(OBJECTS)
+$(OBJDIR)/lib/libgimage.a: $(LIBOBJECTS)
+	ar rcs $@ $(LIBOBJECTS)
 	ranlib $@
 
 $(OBJDIR)/gimg.o: gimg.cpp

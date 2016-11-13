@@ -250,17 +250,17 @@ void gImage::setInfo(std::string name, std::string value)
 
 gImage gImage::ConvolutionKernel(double kernel[3][3], int threadcount)
 {
-	gImage S = *this;
+	gImage S(w, h, c, imginfo);
 	std::vector<pix>& dst = S.getImageData();
 
 	#pragma omp parallel for num_threads(threadcount)
-	for(unsigned y = 1; y < h-1; y++) {
-		for(unsigned x = 1; x < w-1; x++) {
-			unsigned pos = x + y*w;
+	for(int y = 1; y < h-1; y++) {
+		for(int x = 1; x < w-1; x++) {
+			int pos = x + y*w;
 			double R=0.0; double G=0.0; double B=0.0;
-			for (unsigned kx=0; kx<3; kx++) {
+			for (int kx=0; kx<3; kx++) {
 				for (int ky=0; ky<3; ky++) {
-					unsigned kpos = w*(y-1+ky) + (x-1+kx);
+					int kpos = w*(y-1+ky) + (x-1+kx);
 					R += image[kpos].r * kernel[kx][ky];
 					G += image[kpos].g * kernel[kx][ky];
 					B += image[kpos].b * kernel[kx][ky];
@@ -272,7 +272,6 @@ gImage gImage::ConvolutionKernel(double kernel[3][3], int threadcount)
 			dst[pos].b = B;
 		}
 	} 
-	#pragma omp barrier
 
 	return S;
 }
@@ -574,21 +573,20 @@ gImage gImage::Crop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int thre
 gImage gImage::ApplyCurve(std::vector<cp> ctpts, int threadcount)
 {
 	gImage S(w, h, c, imginfo);
-	std::vector<pix>& src = getImageData();
 	std::vector<pix>& dst = S.getImageData();
+
 	Curve c;
 	c.setControlPoints(ctpts);
 
 	#pragma omp parallel for num_threads(threadcount)
 	for (int x=0; x<w; x++) {
 		for (int y=0; y<h; y++) {
-			int pos = x + y*w;
-			dst[pos].r = c.getpoint(src[pos].r);
-			dst[pos].g = c.getpoint(src[pos].g);
-			dst[pos].b = c.getpoint(src[pos].b);
+			int pos = x + y*w;;
+			dst[pos].r = c.getpoint(image[pos].r);
+			dst[pos].g = c.getpoint(image[pos].g);
+			dst[pos].b = c.getpoint(image[pos].b);
 		}
 	}
-	#pragma omp barrier
 
 	return S;
 }
