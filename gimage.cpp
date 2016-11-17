@@ -87,6 +87,11 @@ gImage::~gImage()
 
 //Getters:
 
+
+//structs for making raw images
+struct cpix { char r, g, b; };
+struct uspix { unsigned short r, g, b; };
+
 char * gImage::getImageData(BPP bits)
 {
 	char * imagedata;
@@ -98,27 +103,27 @@ char * gImage::getImageData(BPP bits)
 		return NULL;
 
 	if (bits == BPP_16) {
-		unsigned short * dst = (unsigned short *) imagedata;
+		uspix * dst = (uspix *) imagedata;
+		#pragma omp parallel for
 		for (unsigned y=0; y<h; y++) {
 			for (unsigned x=0; x<w; x++) {
 				unsigned pos = x + y*w;
-				dst[0] = (unsigned short) floor(fmin(fmax(image[pos].r*256.0,0.0),65535.0)); 
-				dst[1] = (unsigned short) floor(fmin(fmax(image[pos].g*256.0,0.0),65535.0));
-				dst[2] = (unsigned short) floor(fmin(fmax(image[pos].b*256.0,0.0),65535.0)); 
-				dst += 3;
+				dst[pos].r = (unsigned short) lrint(fmin(fmax(image[pos].r*256.0,0.0),65535.0)); 
+				dst[pos].g = (unsigned short) lrint(fmin(fmax(image[pos].g*256.0,0.0),65535.0));
+				dst[pos].b = (unsigned short) lrint(fmin(fmax(image[pos].b*256.0,0.0),65535.0)); 
 			}
 		}
 	}
 
 	if (bits == BPP_8) {
-		char * dst = (char *) imagedata;
+		cpix * dst = (cpix *) imagedata;
+		#pragma omp parallel for
 		for (unsigned y=0; y<h; y++) {
 			for (unsigned x=0; x<w; x++) {
 				unsigned pos = x + y*w;
-				dst[0] = (unsigned char) floor(fmin(fmax(image[pos].r,0.0),255.0)); 
-				dst[1] = (unsigned char) floor(fmin(fmax(image[pos].g,0.0),255.0));
-				dst[2] = (unsigned char) floor(fmin(fmax(image[pos].b,0.0),255.0)); 
-				dst += 3;
+				dst[pos].r = (unsigned char) lrint(fmin(fmax(image[pos].r,0.0),255.0)); 
+				dst[pos].g = (unsigned char) lrint(fmin(fmax(image[pos].g,0.0),255.0));
+				dst[pos].b = (unsigned char) lrint(fmin(fmax(image[pos].b,0.0),255.0)); 
 			}
 		}
 	}
