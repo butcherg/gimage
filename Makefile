@@ -18,8 +18,8 @@ OBJECTS := $(addprefix $(OBJDIR)/,gimg.o gimage.o jpegimage.o jpegexif.o rawimag
 LIBOBJECTS := $(addprefix $(OBJDIR)/,gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o)
 
 
-$(OBJDIR)/gimg: $(OBJDIR)/lib/libgimage.a
-	$(CXX) $(LFLAGS) -o$@  $(LIBDIRS) $(LIBS)
+$(OBJDIR)/gimg: $(OBJDIR)/gimg.o  $(OBJDIR)/lib/libgimage.a
+	$(CXX) $(LFLAGS) -o$@  $(LIBDIRS) $(OBJDIR)/gimg.o $(LIBS) 
 
 $(OBJDIR)/lib/libgimage.a: $(LIBOBJECTS)
 	ar rcs $@ $(LIBOBJECTS)
