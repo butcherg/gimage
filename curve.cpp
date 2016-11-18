@@ -5,7 +5,7 @@
 #include <string>
 #include <cmath>
 
-#include "Curve.h"
+#include "curve.h"
 
 
 Curve::Curve() {

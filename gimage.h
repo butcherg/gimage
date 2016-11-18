@@ -5,7 +5,7 @@
 #include <vector>
 #include <map>
 
-#include "Curve.h"
+#include "curve.h"
 
 struct pix {
 	float r, g, b;
