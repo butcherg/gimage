@@ -8,8 +8,8 @@ CXX=g++
 LIBDIRS=-Lbuild/lib
 LIBS=-lgimage -lraw -ltiff -ljpeg 
 INCLUDEDIRS=
-CFLAGS=-fopenmp -O4
-LFLAGS=-fopenmp
+CFLAGS=
+LFLAGS=
 
 -include $(OBJDIR)/localmake.txt
 
