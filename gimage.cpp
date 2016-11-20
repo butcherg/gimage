@@ -255,7 +255,8 @@ void gImage::setInfo(std::string name, std::string value)
 
 gImage gImage::ConvolutionKernel(double kernel[3][3], int threadcount)
 {
-	gImage S(w, h, c, imginfo);
+	//gImage S(w, h, c, imginfo);
+	gImage S = *this;
 	std::vector<pix>& dst = S.getImageData();
 
 	#pragma omp parallel for num_threads(threadcount)
