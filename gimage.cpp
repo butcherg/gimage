@@ -255,7 +255,6 @@ void gImage::setInfo(std::string name, std::string value)
 
 gImage gImage::ConvolutionKernel(double kernel[3][3], int threadcount)
 {
-	//gImage S(w, h, c, imginfo);
 	gImage S = *this;
 	std::vector<pix>& dst = S.getImageData();
 
@@ -752,8 +751,7 @@ gImage gImage::Gray(double redpct, double greenpct, double bluepct, int threadco
 
 gImage gImage::NLMeans(double sigma, int local, int patch, int threadcount)
 {
-
-	gImage S(w, h, c, imginfo);
+	gImage S = *this;
 	std::vector<pix>& src = getImageData();
 	std::vector<pix>& dst = S.getImageData();
 
