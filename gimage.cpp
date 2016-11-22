@@ -22,8 +22,7 @@ gImage::gImage()
 
 gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, BPP bits, std::map<std::string,std::string> imageinfo)
 {
-	pix zpix = {};
-	image.assign(width*height,zpix);
+	image.resize(width*height);
 	w=width;
 	h=height;
 	c=colors;
@@ -60,8 +59,7 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 
 gImage::gImage(unsigned width, unsigned height, unsigned colors, std::map<std::string,std::string> imageinfo)
 {
-	pix zpix; zpix.r = 0.0; zpix.g = 0.0; zpix.b = 0.0;
-	image.assign(width*height,zpix);
+	image.resize(width*height);
 	w=width;
 	h=height;
 	c=colors;
