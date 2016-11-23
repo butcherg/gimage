@@ -68,9 +68,23 @@ class gImage
 		gImage Saturate(double saturate, int threadcount);
 		gImage Tint(double red,double green,double blue, int threadcount);
 		gImage Gray(double redpct, double greenpct, double bluepct, int threadcount);
-		gImage ApplyCurve(std::vector<cp> ctpts, int threadcount);
-		gImage ApplyLine(double low, double high, int threadcount);
+		gImage ToneCurve(std::vector<cp> ctpts, int threadcount);
+		gImage ToneLine(double low, double high, int threadcount);
 		gImage NLMeans(double sigma, int local, int patch, int threadcount);
+
+		//In-place versions of image operations:
+		void ApplyConvolutionKernel(double kernel[3][3], int threadcount);
+		void ApplySharpen(int strength, int threadcount);
+		void ApplyResize(unsigned width, unsigned height, RESIZE_FILTER filter, int threadcount);
+		void ApplyRotate(double angle, int threadcount);
+		void ApplyCrop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int threadcount);
+		void ApplySaturate(double saturate, int threadcount);
+		void ApplyTint(double red,double green,double blue, int threadcount);
+		void ApplyGray(double redpct, double greenpct, double bluepct, int threadcount);
+		void ApplyToneCurve(std::vector<cp> ctpts, int threadcount);
+		void ApplyToneLine(double low, double high, int threadcount);
+		void ApplyNLMeans(double sigma, int local, int patch, int threadcount);
+		
 
 		//Image loaders.  Return a new gImage
 		static gImage loadRAW(const char * filename, std::string params);
@@ -87,6 +101,9 @@ class gImage
 		gImage XShear(double rangle, int threadcount);
 		gImage YShear(double rangle, int threadcount);
 		void ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2);
+
+		void ApplyXShear(double rangle, int threadcount);
+		void ApplyYShear(double rangle, int threadcount);
 
 
 	private:

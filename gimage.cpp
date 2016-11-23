@@ -301,6 +301,51 @@ gImage gImage::Sharpen(int strength, int threadcount)
 
 }
 
+void gImage::ApplyConvolutionKernel(double kernel[3][3], int threadcount)
+{
+	std::vector<pix>& dst = getImageData();
+	std::vector<pix> src  = image;
+
+	#pragma omp parallel for num_threads(threadcount)
+	for(int y = 1; y < h-1; y++) {
+		for(int x = 1; x < w-1; x++) {
+			int pos = x + y*w;
+			double R=0.0; double G=0.0; double B=0.0;
+			for (int kx=0; kx<3; kx++) {
+				for (int ky=0; ky<3; ky++) {
+					int kpos = w*(y-1+ky) + (x-1+kx);
+					R += src[kpos].r * kernel[kx][ky];
+					G += src[kpos].g * kernel[kx][ky];
+					B += src[kpos].b * kernel[kx][ky];
+				}
+			}
+
+			dst[pos].r = R;
+			dst[pos].g = G;
+			dst[pos].b = B;
+		}
+	} 
+}
+
+void gImage::ApplySharpen(int strength, int threadcount)
+{
+	double kernel[3][3] =
+	{
+		0.0, 0.0, 0.0,
+		0.0, 0.0, 0.0,
+		0.0, 0.0, 0.0
+	};
+
+	double x = -((strength)/4.0);
+	kernel[0][1] = x;
+	kernel[1][0] = x;
+	kernel[1][2] = x;
+	kernel[2][1] = x;
+	kernel[1][1] = strength+1;
+
+	ApplyConvolutionKernel(kernel, threadcount);
+}
+
 
 //Rotate
 //
@@ -459,6 +504,95 @@ gImage gImage::YShear(double rangle, int threadcount)
 	return S;
 }
 
+void gImage::ApplyRotate(double angle, int threadcount)
+{
+	//gImage I, J, K, L;
+	unsigned x1, x2, y1, y2;
+	double rangle = angle * M_PI / 180.0;
+
+	ApplyXShear(rangle,threadcount);
+	ApplyYShear(rangle,threadcount);
+	ApplyXShear(rangle,threadcount);
+	ImageBounds(&x1, &x2, &y1, &y2);
+	ApplyCrop(x1, y1, x2, y2,threadcount);
+}
+
+void gImage::ApplyXShear(double rangle, int threadcount)
+{
+	double sine = sin(rangle);
+	double tangent = tan(rangle/2.0);
+	int dw = tangent * (double) h;
+	unsigned nw = w+abs(dw);
+
+	std::vector<pix> src;
+	src = image;
+	image.resize(nw*h);
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned i = 0; i<image.size(); i++) {
+		image[i].r = 0.0;
+		image[i].g = 0.0;
+		image[i].b = 0.0;
+	}
+
+	if (dw < 0) dw = 0;
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned y=0; y<h; y++) {
+		for (unsigned x=0; x<w; x++) {
+			unsigned u = (x - tangent * y) + dw;
+			unsigned v = y;
+			if (u >= nw) continue;
+			if (v >= h) continue;
+			unsigned dpos =u + v*nw;
+			unsigned spos = x + y*w;
+			image[dpos].r = src[spos].r;
+			image[dpos].g = src[spos].g;
+			image[dpos].b = src[spos].b;
+		}
+	}
+
+	w = nw;
+}
+
+void gImage::ApplyYShear(double rangle, int threadcount)
+{
+	double sine = sin(rangle);
+	double tangent = tan(rangle/2.0);
+	int dh = sine * (double) w;
+	unsigned nh = h+abs(dh);
+	unsigned dw = w;
+
+	std::vector<pix> src = image;
+	std::vector<pix>& dst = getImageData();
+	dst.resize(w*nh);
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned i = 0; i<image.size(); i++) {
+		image[i].r = 0.0;
+		image[i].g = 0.0;
+		image[i].b = 0.0;
+	}
+
+	if (dh < 0) dh = -dh; else dh = 0;
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned x=0; x<w; x++) {
+		for (unsigned y=0; y<h; y++) {
+			unsigned u = x;
+			unsigned v = (y + sine * x) + dh;
+			if (u >= w) continue;
+			if (v >= nh) continue;
+			unsigned dpos = u + v*dw;
+			unsigned spos = x + y*w;
+			dst[dpos].r = src[spos].r;
+			dst[dpos].g = src[spos].g;
+			dst[dpos].b = src[spos].b;
+		}
+	}
+	h = nh;
+}
+
 void gImage::ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2)
 {
 	*x1 = 0; *x2 = w; *y1 = 0; *y2 = h;
@@ -542,6 +676,38 @@ gImage gImage::Crop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int thre
 	return S;
 }
 
+void gImage::ApplyCrop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int threadcount)
+{
+	if (x1>w | y1>h | x2>w | y2>h) return;
+	if (x1>=x2 | y1>=y2) return;
+
+	std::vector<pix> src = image;
+	image.resize((x2-x1) * (y2-y1));
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned i = 0; i<image.size(); i++) {
+		image[i].r = 0.0;
+		image[i].g = 0.0;
+		image[i].b = 0.0;
+	}
+
+	unsigned dw = x2-x1;
+	unsigned dh = y2-y1;
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned x=0; x<dw; x++) {
+		for (unsigned y=0; y<dh; y++) {
+			unsigned dpos = x + y*dw;
+			unsigned spos = x1+x + ((y+y1) * w);
+			image[dpos].r = src[spos].r;
+			image[dpos].g = src[spos].g;
+			image[dpos].b = src[spos].b;
+		}
+	}
+	w=dw;
+	h=dh;
+}
+
 
 //Curve
 //
@@ -573,7 +739,7 @@ gImage gImage::Crop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int thre
 //
 
 
-gImage gImage::ApplyCurve(std::vector<cp> ctpts, int threadcount)
+gImage gImage::ToneCurve(std::vector<cp> ctpts, int threadcount)
 {
 	gImage S(w, h, c, imginfo);
 	std::vector<pix>& dst = S.getImageData();
@@ -594,7 +760,7 @@ gImage gImage::ApplyCurve(std::vector<cp> ctpts, int threadcount)
 	return S;
 }
 
-gImage gImage::ApplyLine(double low, double high, int threadcount)
+gImage gImage::ToneLine(double low, double high, int threadcount)
 {
 	gImage S(w, h, c, imginfo);
 	std::vector<pix>& src = getImageData();
@@ -611,8 +777,31 @@ gImage gImage::ApplyLine(double low, double high, int threadcount)
 			dst[pos].b = src[pos].b * slope;
 		}
 	}
-	#pragma omp barrier
 	return S;
+}
+
+void gImage::ApplyToneCurve(std::vector<cp> ctpts, int threadcount)
+{
+	std::vector<pix>& dst = getImageData();
+	std::vector<pix> src = image;
+
+	Curve c;
+	c.setControlPoints(ctpts);
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (int x=0; x<w; x++) {
+		for (int y=0; y<h; y++) {
+			int pos = x + y*w;;
+			dst[pos].r = c.getpoint(src[pos].r);
+			dst[pos].g = c.getpoint(src[pos].g);
+			dst[pos].b = c.getpoint(src[pos].b);
+		}
+	}
+}
+
+void gImage::ApplyToneLine(double low, double high, int threadcount)
+{
+
 }
 
 
@@ -659,6 +848,33 @@ gImage gImage::Saturate(double saturate, int threadcount)
 	return S;
 }
 
+void gImage::ApplySaturate(double saturate, int threadcount)
+{
+	//gImage S(w, h, c, imginfo);
+	//std::vector<pix>& src = getImageData();
+	//std::vector<pix>& dst = S.getImageData();
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned x=0; x<w; x++) {
+		for (unsigned y=0; y<h; y++) {
+			unsigned pos = x + y*w;
+			double R = image[pos].r;
+			double G = image[pos].g;
+			double B = image[pos].b;
+
+			double  P=sqrt(
+			R*R*Pr+
+			G*G*Pg+
+			B*B*Pb ) ;
+
+			image[pos].r=P+(R-P)*saturate;
+			image[pos].g=P+(G-P)*saturate;
+			image[pos].b=P+(B-P)*saturate;
+
+		}
+	}
+}
+
 //Tint
 //
 //Credit:
@@ -687,6 +903,20 @@ gImage gImage::Tint(double red,double green,double blue, int threadcount)
 	#pragma omp barrier
 
 	return S;
+}
+
+void gImage::ApplyTint(double red,double green,double blue, int threadcount)
+{
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned x=0; x<w; x++) {
+		for (unsigned y=0; y<h; y++) {
+			unsigned pos = x + y*w;
+			image[pos].r += red;
+			image[pos].g += green;
+			image[pos].b += blue;
+
+		}
+	}
 }
 
 
@@ -726,6 +956,21 @@ gImage gImage::Gray(double redpct, double greenpct, double bluepct, int threadco
 	#pragma omp barrier
 
 	return S;
+}
+
+void gImage::ApplyGray(double redpct, double greenpct, double bluepct, int threadcount)
+{
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned x=0; x<w; x++) {
+		for (unsigned y=0; y<h; y++) {
+			unsigned pos = x + y*w;
+			double G = floor(image[pos].r*redpct + image[pos].g*greenpct + image[pos].b*bluepct)+0.5;
+			image[pos].r=G;
+			image[pos].g=G;
+			image[pos].b=G;
+
+		}
+	}
 }
 
 
@@ -821,6 +1066,80 @@ gImage gImage::NLMeans(double sigma, int local, int patch, int threadcount)
 	}
 
 	return S;
+}
+
+void gImage::ApplyNLMeans(double sigma, int local, int patch, int threadcount)
+{
+	//gImage S = *this;
+	std::vector<pix> src = image;
+	std::vector<pix>& dst = getImageData();
+
+	unsigned spitch = w;
+	unsigned dpitch = w;
+
+	unsigned iw = w;
+	unsigned ih = h;
+	double sigma2 = pow(2*sigma,2);
+
+	//y|x upper|lower bound computations, used to offset patch to avoid out-of-image references 
+	unsigned yplb = patch+local+1;
+	unsigned ypub = ih-yplb;
+	unsigned xplb = yplb;
+	unsigned xpub = iw-xplb;
+
+	#pragma omp parallel for num_threads(threadcount)
+	for(unsigned y = local; y < ih-local; y++) {
+		unsigned py = y;
+		if (py<yplb) py = yplb;
+		if (py>ypub) py = ypub;
+		for(unsigned x = local; x < iw-local; x++) {
+			unsigned px = x;
+			if (px<xplb) px = xplb;
+			if (px>xpub) px = xpub;
+			//pix * wdstpix = dstbits + dpitch*y + x;
+			unsigned wdstpix = dpitch*y + x;
+			double valueR = 0.0;
+			double valueG = 0.0;
+			double valueB = 0.0;
+			double sum_weightsR = 0.0;
+			double sum_weightsG = 0.0;
+			double sum_weightsB = 0.0;
+			for (int q = -local; q<=local; ++q) {
+				for (int p = -local; p<=local; ++p) {
+					double diffR = 0.0;
+					double diffG = 0.0;
+					double diffB = 0.0;
+					for (int s = -patch; s<=patch; ++s) {
+						for (int r = -patch; r<=patch; ++r) {
+							//pix * ppix = srcbits + spitch*(py+q+s) + (px+p+r);
+							unsigned ppix = spitch*(py+q+s) + (px+p+r);
+							//pix * lpix = srcbits + spitch*(py+s) + (px+r);
+							unsigned lpix = spitch*(py+s) + (px+r);
+							diffR += pow((src[ppix].r - src[lpix].r),2);
+							diffG += pow((src[ppix].g - src[lpix].g),2);
+							diffB += pow((src[ppix].b - src[lpix].b),2);
+							//gmic: diff += pow(i[x+p+r,y+q+s] - i[x+r,y+s],2);
+						}
+					}
+					double weightR = exp(-diffR/sigma2);
+					double weightG = exp(-diffG/sigma2);
+					double weightB = exp(-diffB/sigma2);
+					//pix * localpix = srcbits + spitch*(y+q) + (x+p);
+					unsigned localpix = spitch*(y+q) + (x+p);
+					valueR += weightR*src[localpix].r;
+					valueG += weightG*src[localpix].g;
+					valueB += weightB*src[localpix].b;
+					//gmic: value += weight*i(x+p,y+q);
+					sum_weightsR += weightR;
+					sum_weightsG += weightG;
+					sum_weightsB += weightB;
+				}
+			}
+			dst[wdstpix].r   = (valueR/(1e-5 + sum_weightsR));
+			dst[wdstpix].g = (valueG/(1e-5 + sum_weightsG));
+			dst[wdstpix].b  = (valueB/(1e-5 + sum_weightsB));
+		}
+	}
 }
 
 
@@ -1067,6 +1386,209 @@ gImage gImage::Resize(unsigned width, unsigned height, RESIZE_FILTER filter, int
 
 	return S;
 }
+
+void gImage::ApplyResize(unsigned width, unsigned height, RESIZE_FILTER filter, int threadcount)
+{
+	typedef struct {
+		int	pixel;
+		double	weight;
+	} CONTRIB;
+
+	typedef struct {
+		int	n;		// number of contributors 
+		CONTRIB	*p;		// pointer to list of contributions 
+	} CLIST;
+
+
+	CLIST	*contrib;		// array of contribution lists 
+
+	double xscale, yscale;		// zoom scale factors 
+	int i, j, k;			// loop variables
+	int n;				// pixel number 
+	double center, left, right;	// filter calculation variables 
+	double wi, fscale, weight;	// filter calculation variables 
+
+	//hardcoded lanczos3
+	double fwidth = 3.0; //for lanczos3
+	double (*filterf)(double) = Lanczos3_filter;
+
+	//gImage S(width, height, c, imginfo);
+	//std::vector<pix>& dst = getImageData();
+	//gImage T(width, h, c, imginfo);
+	//std::vector<pix>& tmp = T.getImageData();
+	//std::vector<pix> src = image;
+
+	xscale = (double) width / (double) w;
+	yscale = (double) height / (double) h;
+
+	std::vector<pix>& src = getImageData();
+	std::vector<pix> tmp;
+	tmp.resize(width*h);
+	std::vector<pix>&dst = getImageData();
+
+
+	// Compute row contributions:
+	contrib = new CLIST[width];
+	if(xscale < 1.0) {
+		wi = fwidth / xscale;
+		fscale = 1.0 / xscale;
+		for(i = 0; i < width; ++i) {
+			contrib[i].n = 0;
+			contrib[i].p = new CONTRIB[(int) (wi * 2 + 1)];
+			center = (double) i / xscale;
+			left = ceil(center - wi);
+			right = floor(center + wi);
+			for(j = (int)left; j <= (int)right; ++j) {
+				weight = center - (double) j;
+				weight = (*filterf)(weight / fscale) / fscale;
+				if(j < 0) {
+					n = -j;
+				} else if(j >= w) {
+					n = (w - j) + w - 1;
+				} else {
+					n = j;
+				}
+				k = contrib[i].n++;
+				contrib[i].p[k].pixel = n;
+				contrib[i].p[k].weight = weight;
+			}
+		}
+	} else {
+		for(i = 0; i < width; ++i) {
+			contrib[i].n = 0;
+			contrib[i].p = new CONTRIB[(int) (fwidth * 2 + 1)];
+			center = (double) i / xscale;
+			left = ceil(center - fwidth);
+			right = floor(center + fwidth);
+			for(j = (int)left; j <= (int)right; ++j) {
+				weight = center - (double) j;
+				weight = (*filterf)(weight);
+				if(j < 0) {
+					n = -j;
+				} else if(j >= w) {
+					n = (w - j) + w - 1;
+				} else {
+					n = j;
+				}
+				k = contrib[i].n++;
+				contrib[i].p[k].pixel = n;
+				contrib[i].p[k].weight = weight;
+			}
+		}
+	}
+	//dumpContrib(contrib,width);
+
+	// Apply row contributions:
+	#pragma omp parallel for num_threads(threadcount)
+	for(unsigned y = 0; y < h; ++y) {
+		unsigned raster = w*y;
+		for(unsigned x = 0; x < width; ++x) {
+			unsigned pos = x + width*y;
+			double weightr = 0.0;
+			double weightg = 0.0;
+			double weightb = 0.0;
+			for(unsigned j = 0; j < contrib[x].n; ++j) {
+				unsigned rpos = raster+contrib[x].p[j].pixel;
+				weightr += image[rpos].r * contrib[x].p[j].weight;
+				weightg += image[rpos].g * contrib[x].p[j].weight;
+				weightb += image[rpos].b * contrib[x].p[j].weight;
+			}
+			tmp[pos].r = weightr;
+			tmp[pos].g = weightg;
+			tmp[pos].b = weightb;
+		}
+	}
+
+
+	//delete the memory allocated for horizontal filter weights:
+	for(i = 0; i < width; ++i) {
+		delete contrib[i].p;
+	}
+	delete[] contrib;
+
+
+	// Compute column contributions:
+	contrib = new CLIST[height];
+	if(yscale < 1.0) {
+		wi = fwidth / yscale;
+		fscale = 1.0 / yscale;
+		for(i = 0; i < height; ++i) {
+			contrib[i].n = 0;
+			contrib[i].p = new CONTRIB[(int) (wi * 2 + 1)];
+			center = (double) i / yscale;
+			left = ceil(center - wi);
+			right = floor(center + wi);
+			for(j = (int)left; j <= (int)right; ++j) {
+				weight = center - (double) j;
+				weight = (*filterf)(weight / fscale) / fscale;
+				if(j < 0) {
+					n = -j;
+				} else if(j >= h) {
+					n = (h - j) + h - 1;
+				} else {
+					n = j;
+				}
+				k = contrib[i].n++;
+				contrib[i].p[k].pixel = n;
+				contrib[i].p[k].weight = weight;
+			}
+		}
+	} else {
+		for(i = 0; i < height; ++i) {
+			contrib[i].n = 0;
+			contrib[i].p = new CONTRIB[(int) (fwidth * 2 + 1)];
+			center = (double) i / yscale;
+			left = ceil(center - fwidth);
+			right = floor(center + fwidth);
+			for(j = (int)left; j <= (int)right; ++j) {
+				weight = center - (double) j;
+				weight = (*filterf)(weight);
+				if(j < 0) {
+					n = -j;
+				} else if(j >= h) {
+					n = (h - j) + h - 1;
+				} else {
+					n = j;
+				}
+				k = contrib[i].n++;
+				contrib[i].p[k].pixel = n;
+				contrib[i].p[k].weight = weight;
+			}
+		}
+	}
+
+	dst.resize(width*height);
+	w = width;
+	h = height;
+
+	// Apply column contributions:
+	#pragma omp parallel for num_threads(threadcount)
+	for(unsigned x = 0; x < width; ++x) {
+		for(unsigned y = 0; y < height; ++y) {
+			unsigned pos = x + y*width;
+			double weightr = 0.0;
+			double weightg = 0.0;
+			double weightb = 0.0;
+			for(unsigned j = 0; j < contrib[y].n; ++j) {
+				unsigned cpos = x+(width*contrib[y].p[j].pixel);
+				weightr += tmp[cpos].r * contrib[y].p[j].weight;
+				weightg += tmp[cpos].g * contrib[y].p[j].weight;
+				weightb += tmp[cpos].b * contrib[y].p[j].weight;
+			}
+			dst[pos].r = weightr;
+			dst[pos].g = weightg;
+			dst[pos].b = weightb;
+
+		}
+	}
+
+	//delete the memory allocated for vertical filter weights:
+	for(i = 0; i < height; ++i) {
+		delete contrib[i].p;
+	}
+	delete[] contrib;
+}
+
 
 
 
