@@ -29,16 +29,16 @@ $(OBJDIR)/lib/libgimage.a: $(LIBOBJECTS)
 	ranlib $@
 
 $(OBJDIR)/gimg.o: gimg.cpp
-	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c -w gimg.cpp -o$@
+	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c gimg.cpp -o$@
 
 $(OBJDIR)/gimage.o: gimage.cpp
-	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c -w gimage.cpp -o$@
+	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c gimage.cpp -o$@
 
 $(OBJDIR)/tiffimage.o: tiffimage.cpp tiffimage.h
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c tiffimage.cpp -o$@
 
 $(OBJDIR)/rawimage.o: rawimage.cpp rawimage.h
-	$(CXX) $(CFLAGS) $(INCLUDEDIRS)   -c rawimage.cpp -o$@
+	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c rawimage.cpp -o$@
 
 $(OBJDIR)/jpegimage.o: jpegimage.cpp jpegimage.h
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c jpegimage.cpp -o$@
