@@ -38,6 +38,7 @@ class gImage
 {
 	public:
 		gImage();
+		gImage(const gImage &o);
 		gImage(std::string filename);
 		gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, BPP bits, std::map<std::string,std::string> imageinfo);
 		gImage(unsigned width, unsigned height,  unsigned colors, std::map<std::string,std::string> imageinfo);

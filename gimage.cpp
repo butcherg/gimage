@@ -20,6 +20,15 @@ gImage::gImage()
 	h=0;
 }
 
+gImage::gImage(const gImage &o)
+{
+	w = o.w;
+	h = o.h;
+	c = o.c;
+	imginfo = o.imginfo;
+	image = o.image;
+}
+
 gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, BPP bits, std::map<std::string,std::string> imageinfo)
 {
 	image.resize(width*height);
