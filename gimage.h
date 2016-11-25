@@ -4,8 +4,9 @@
 #include <string>
 #include <vector>
 #include <map>
-
 #include "curve.h"
+
+#define VERSION "0.1"
 
 struct pix {
 	float r, g, b;
@@ -45,20 +46,24 @@ class gImage
 
 		~gImage();
 
+		//Getters
 		char *getImageData(BPP bits);
 		std::vector<pix>& getImageData();
 		unsigned getWidth();
 		unsigned getHeight();
 		unsigned getColors();
 		std::map<std::string,std::string> getInfo();
+		void Stats();
+		std::vector<long> Histogram();
+
+		//Setters
+		void setInfo(std::string name, std::string value);
+
+		//Static methods
 		static std::map<std::string,std::string> getInfo(const char * filename);
 		static GIMAGE_FILETYPE getFileType(const char * filename);
 		static int ThreadCount();
-
-		void setInfo(std::string name, std::string value);
-
-		void Stats();
-		std::vector<long> Histogram();
+		static std::string Version();
 
 		//Image operations
 		gImage ConvolutionKernel(double kernel[3][3], int threadcount);

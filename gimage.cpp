@@ -186,6 +186,11 @@ GIMAGE_FILETYPE gImage::getFileType(const char * filename)
 	return FILETYPE_UNKNOWN;
 }
 
+std::string gImage::Version()
+{
+	return VERSION;
+}
+
 
 
 int gImage::ThreadCount()
