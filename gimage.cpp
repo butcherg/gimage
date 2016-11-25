@@ -1197,10 +1197,87 @@ double sinc(double x)
 	return(1.0);
 }
 
+#define Lanczos3_support (3.0)
+
 double Lanczos3_filter(double t)
 {
 	if(t < 0) t = -t;
 	if(t < 3.0) return(sinc(t) * sinc(t/3.0));
+	return(0.0);
+}
+
+
+#define CatmullRom_support (2.0)
+
+double CatmullRom_filter(double t) { 
+	if(t < -2) return 0;
+	if(t < -1) return (0.5*(4 + t*(8 + t*(5 + t))));
+	if(t < 0)  return (0.5*(2 + t*t*(-5 - 3*t)));
+	if(t < 1)  return (0.5*(2 + t*t*(-5 + 3*t)));
+	if(t < 2)  return (0.5*(4 + t*(-8 + t*(5 - t))));
+	return 0;
+}
+
+
+#define	Bspline_support	(2.0)
+
+double Bspline_filter(double t)
+{
+	double tt;
+
+	if(t < 0) t = -t;
+	if(t < 1) {
+		tt = t * t;
+		return((.5 * tt * t) - tt + (2.0 / 3.0));
+	} else if(t < 2) {
+		t = 2 - t;
+		return((1.0 / 6.0) * (t * t * t));
+	}
+	return(0.0);
+}
+
+
+#define	Bicubic_support	(2.0)
+
+#define	B	(1.0 / 3.0)
+#define	C	(1.0 / 3.0)
+
+double Bicubic_filter(double t)
+{
+	double tt;
+
+	tt = t * t;
+	if(t < 0) t = -t;
+	if(t < 1.0) {
+		t = (((12.0 - 9.0 * B - 6.0 * C) * (t * tt))
+		   + ((-18.0 + 12.0 * B + 6.0 * C) * tt)
+		   + (6.0 - 2 * B));
+		return(t / 6.0);
+	} else if(t < 2.0) {
+		t = (((-1.0 * B - 6.0 * C) * (t * tt))
+		   + ((6.0 * B + 30.0 * C) * tt)
+		   + ((-12.0 * B - 48.0 * C) * t)
+		   + (8.0 * B + 24 * C));
+		return(t / 6.0);
+	}
+	return(0.0);
+}
+
+#define	bilinear_support	(1.0)
+
+double bilinear_filter(double t)
+{
+	if(t < 0.0) t = -t;
+	if(t < 1.0) return(1.0 - t);
+	return(0.0);
+}
+
+
+#define	box_support		(0.5)
+
+double box_filter(double t)
+{
+	if((t > -0.5) & (t <= 0.5)) return(1.0);
 	return(0.0);
 }
 
@@ -1226,9 +1303,35 @@ gImage gImage::Resize(unsigned width, unsigned height, RESIZE_FILTER filter, int
 	double center, left, right;	// filter calculation variables 
 	double wi, fscale, weight;	// filter calculation variables 
 
-	//hardcoded lanczos3
-	double fwidth = 3.0; //for lanczos3
-	double (*filterf)(double) = Lanczos3_filter;
+	double fwidth;
+	double (*filterf)(double);
+
+	switch (filter) {
+		case FILTER_BOX:
+			fwidth = box_support;
+			filterf = box_filter;
+			break;
+		case FILTER_BILINEAR:
+			fwidth = bilinear_support;
+			filterf = bilinear_filter;
+			break;
+		case FILTER_BSPLINE:
+			fwidth = Bspline_support;
+			filterf = Bspline_filter;
+			break;
+		case FILTER_BICUBIC:
+			fwidth = Bicubic_support;
+			filterf = Bicubic_filter;
+			break;
+		case FILTER_CATMULLROM:
+			fwidth = CatmullRom_support;
+			filterf = CatmullRom_filter;
+			break;
+		case FILTER_LANCZOS3:
+			fwidth = Lanczos3_support;
+			filterf = Lanczos3_filter;
+			break;
+	}
 
 	gImage S(width, height, c, imginfo);
 	std::vector<pix>& dst = S.getImageData();
@@ -1422,15 +1525,36 @@ void gImage::ApplyResize(unsigned width, unsigned height, RESIZE_FILTER filter, 
 	double center, left, right;	// filter calculation variables 
 	double wi, fscale, weight;	// filter calculation variables 
 
-	//hardcoded lanczos3
-	double fwidth = 3.0; //for lanczos3
-	double (*filterf)(double) = Lanczos3_filter;
+	double fwidth;
+	double (*filterf)(double);
 
-	//gImage S(width, height, c, imginfo);
-	//std::vector<pix>& dst = getImageData();
-	//gImage T(width, h, c, imginfo);
-	//std::vector<pix>& tmp = T.getImageData();
-	//std::vector<pix> src = image;
+	switch (filter) {
+		case FILTER_BOX:
+			fwidth = box_support;
+			filterf = box_filter;
+			break;
+		case FILTER_BILINEAR:
+			fwidth = bilinear_support;
+			filterf = bilinear_filter;
+			break;
+		case FILTER_BSPLINE:
+			fwidth = Bspline_support;
+			filterf = Bspline_filter;
+			break;
+		case FILTER_BICUBIC:
+			fwidth = Bicubic_support;
+			filterf = Bicubic_filter;
+			break;
+		case FILTER_CATMULLROM:
+			fwidth = CatmullRom_support;
+			filterf = CatmullRom_filter;
+			break;
+		case FILTER_LANCZOS3:
+			fwidth = Lanczos3_support;
+			filterf = Lanczos3_filter;
+			break;
+	}
+
 
 	xscale = (double) width / (double) w;
 	yscale = (double) height / (double) h;
