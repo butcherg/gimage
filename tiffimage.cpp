@@ -82,7 +82,7 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 		
 
 		if (b != 16) return NULL;
-		if (c != 3) return NULL;
+		//if (c != 3) return NULL;
 
 		img = new char[w*h*c*(b/8)];
 		unsigned short * dst = (unsigned short *) img;
@@ -96,7 +96,11 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 				src = (unsigned short *) buf;
 				for(unsigned x=0; x < w; x++) {
 					if (c == 1) {
-						uint16 gray =	(uint16) buf[x*c+0];
+						dst[0] = (unsigned short) src[0];
+						//dst[1] = (unsigned short) src[0];
+						//dst[2] = (unsigned short) src[0];
+						dst+=1;
+						src+=1;
 					}
 					else if(c == 3 ){
 						dst[0] = (unsigned short) src[0];

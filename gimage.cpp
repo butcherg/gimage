@@ -38,27 +38,65 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 
 	if (bits ==BPP_16) {
 		unsigned short * src = (unsigned short *) imagedata;
-		for (unsigned y=0; y<h; y++) {
-			for (unsigned x=0; x<w; x++) {
-				unsigned pos = x + y*w;
-				image[pos].r = (unsigned short) src[0]/256.0;
-				image[pos].g = (unsigned short) src[1]/256.0;
-				image[pos].b = (unsigned short) src[2]/256.0;
-				src += 3;
+		if (colors == 1) {  //turn into a three-color grayscale
+			for (unsigned y=0; y<h; y++) {
+				for (unsigned x=0; x<w; x++) {
+					unsigned pos = x + y*w;
+					image[pos].r = (unsigned short) src[0]/256.0;
+					image[pos].g = (unsigned short) src[0]/256.0;
+					image[pos].b = (unsigned short) src[0]/256.0;
+					src += 1;
+				}
 			}
+			c = 3;
+		}
+		else if (colors == 3) {
+			for (unsigned y=0; y<h; y++) {
+				for (unsigned x=0; x<w; x++) {
+					unsigned pos = x + y*w;
+					image[pos].r = (unsigned short) src[0]/256.0;
+					image[pos].g = (unsigned short) src[1]/256.0;
+					image[pos].b = (unsigned short) src[2]/256.0;
+					src += 3;
+				}
+			}
+		}
+		else {
+			w = 0;
+			h = 0;
+			return;
 		}
 	}					
 
 	if (bits == BPP_8) {
 		char * src = (char *) imagedata;
-		for (unsigned y=0; y<height; y++) {
-			for (unsigned x=0; x<width; x++) {
-				unsigned pos = x + y*w;
-				image[pos].r = round((unsigned char) src[0]);
-				image[pos].g = round((unsigned char) src[1]);
-				image[pos].b = round((unsigned char) src[2]);
-				src += 3;
+		if (colors == 1) {  //turn into a three-color grayscale
+			for (unsigned y=0; y<h; y++) {
+				for (unsigned x=0; x<w; x++) {
+					unsigned pos = x + y*w;
+					image[pos].r = round((unsigned char) src[0]);
+					image[pos].g = round((unsigned char) src[0]);
+					image[pos].b = round((unsigned char) src[0]);
+					src += 1;
+				}
 			}
+			c = 3;
+		}
+		else if (colors == 3) {
+			for (unsigned y=0; y<height; y++) {
+				for (unsigned x=0; x<width; x++) {
+					unsigned pos = x + y*w;
+					image[pos].r = round((unsigned char) src[0]);
+					image[pos].g = round((unsigned char) src[1]);
+					image[pos].b = round((unsigned char) src[2]);
+					src += 3;
+				}
+			}
+		}
+		else {
+			w = 0;
+			h = 0;
+			return;
 		}
 	}
 
