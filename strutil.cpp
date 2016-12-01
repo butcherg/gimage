@@ -40,7 +40,7 @@ std::vector<std::string> split(std::string s, std::string delim)
 std::map<std::string, std::string> parseparams(std::string params)
 {
 	std::map<std::string, std::string> p;
-	std::vector<std::string> l = split(params,",");
+	std::vector<std::string> l = split(params,";");
 	for (std::vector<std::string>::iterator it=l.begin(); it!=l.end(); ++it) {
 		std::string name, val;
 		std::vector<std::string> nameval = split(*it,"=");
