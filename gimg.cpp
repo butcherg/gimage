@@ -121,16 +121,16 @@ int main (int argc, char **argv)
 		printf("open all the .NEFs in the current directory, apply gamma and auto black/white \n");
 		printf("point correction to each,and save each as the corresponding filename.tif.\n\n");
 		printf("Available commands:\n");
-		//printf("\tbright:[-100 - 100, default=0]\n");
-                //printf("\tblackwhitepoint[:0-127,128-255 default=auto]\n");
-                //printf("\tcontrast:[-100 - 100, default=0]\n");
-                //printf("\tgamma:[0.0 - 5.0, default=1.0]\n");
+		printf("\tbright:[-100 - 100, default=0]\n");
+                printf("\tblackwhitepoint[:0-127,128-255 default=auto]\n");
+                printf("\tcontrast:[-100 - 100, default=0]\n");
+                printf("\tgamma:[0.0 - 5.0, default=1.0]\n");
                 printf("\tresize:[width],[height],[box|bilinear|bspline|bicubic|catmullrom|\n");
-		//printf("\t\tlanczos3 (default)]\n");
+		printf("\t\tlanczos3 (default)]\n");
 		printf("\trotate:[0 - 45, default=0]\n");
                 printf("\tsharpen:[0 - 10, default=0]\n");
-                //printf("\tsaturation:[0 - 5.0, default=1.0, no change]\n");
-                //printf("\tgray (no parameters ,uses the saturate algorithm to desaturate, 0.0)\n\n");
+       		printf("\tsaturation:[0 - 5.0, default=1.0, no change]\n");
+                printf("\tgray (no parameters ,uses the saturate algorithm to desaturate, 0.0)\n\n");
 		exit(1);
 	}
 
