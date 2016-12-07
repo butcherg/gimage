@@ -10,6 +10,17 @@
 #include "rawimage.h"
 #include "jpegimage.h"
 #include "tiffimage.h"
+#include "strutil.h"
+
+//Range 0.0-255.0 constants
+//#define SCALE_16BIT 256.0
+//#define SCALE_8BIT 1.0
+//#define SCALE_CURVE 1.0
+
+//Range 0.0-255.0 constants
+#define SCALE_16BIT 65536.0
+#define SCALE_8BIT 256.0
+#define SCALE_CURVE 256.0
 
 
 //Constructors/Destructor:
@@ -44,9 +55,9 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 			for (unsigned y=0; y<h; y++) {
 				for (unsigned x=0; x<w; x++) {
 					unsigned pos = x + y*w;
-					image[pos].r = (unsigned short) src[0]/256.0;
-					image[pos].g = (unsigned short) src[0]/256.0;
-					image[pos].b = (unsigned short) src[0]/256.0;
+					image[pos].r = (unsigned short) src[0]/SCALE_16BIT;
+					image[pos].g = (unsigned short) src[0]/SCALE_16BIT;
+					image[pos].b = (unsigned short) src[0]/SCALE_16BIT;
 					src += 1;
 				}
 			}
@@ -56,9 +67,9 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 			for (unsigned y=0; y<h; y++) {
 				for (unsigned x=0; x<w; x++) {
 					unsigned pos = x + y*w;
-					image[pos].r = (unsigned short) src[0]/256.0;
-					image[pos].g = (unsigned short) src[1]/256.0;
-					image[pos].b = (unsigned short) src[2]/256.0;
+					image[pos].r = (unsigned short) src[0]/SCALE_16BIT;
+					image[pos].g = (unsigned short) src[1]/SCALE_16BIT;
+					image[pos].b = (unsigned short) src[2]/SCALE_16BIT;
 					src += 3;
 				}
 			}
@@ -76,9 +87,9 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 			for (unsigned y=0; y<h; y++) {
 				for (unsigned x=0; x<w; x++) {
 					unsigned pos = x + y*w;
-					image[pos].r = round((unsigned char) src[0]);
-					image[pos].g = round((unsigned char) src[0]);
-					image[pos].b = round((unsigned char) src[0]);
+					image[pos].r = (unsigned char) src[0]/SCALE_8BIT;
+					image[pos].g = (unsigned char) src[0]/SCALE_8BIT;
+					image[pos].b = (unsigned char) src[0]/SCALE_8BIT;
 					src += 1;
 				}
 			}
@@ -88,9 +99,9 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 			for (unsigned y=0; y<height; y++) {
 				for (unsigned x=0; x<width; x++) {
 					unsigned pos = x + y*w;
-					image[pos].r = round((unsigned char) src[0]);
-					image[pos].g = round((unsigned char) src[1]);
-					image[pos].b = round((unsigned char) src[2]);
+					image[pos].r = (unsigned char) src[0]/SCALE_8BIT;
+					image[pos].g = (unsigned char) src[1]/SCALE_8BIT;
+					image[pos].b = (unsigned char) src[2]/SCALE_8BIT;
 					src += 3;
 				}
 			}
@@ -146,6 +157,11 @@ gImage::~gImage()
 
 //Getters:
 
+pix gImage::getPixel(unsigned x,  unsigned y)
+{
+	return image[x + y*w];
+}
+
 
 //structs for making raw images
 struct cpix { char r, g, b; };
@@ -167,9 +183,9 @@ char * gImage::getImageData(BPP bits)
 		for (unsigned y=0; y<h; y++) {
 			for (unsigned x=0; x<w; x++) {
 				unsigned pos = x + y*w;
-				dst[pos].r = (unsigned short) lrint(fmin(fmax(image[pos].r*256.0,0.0),65535.0)); 
-				dst[pos].g = (unsigned short) lrint(fmin(fmax(image[pos].g*256.0,0.0),65535.0));
-				dst[pos].b = (unsigned short) lrint(fmin(fmax(image[pos].b*256.0,0.0),65535.0)); 
+				dst[pos].r = (unsigned short) lrint(fmin(fmax(image[pos].r*SCALE_16BIT,0.0),65535.0)); 
+				dst[pos].g = (unsigned short) lrint(fmin(fmax(image[pos].g*SCALE_16BIT,0.0),65535.0));
+				dst[pos].b = (unsigned short) lrint(fmin(fmax(image[pos].b*SCALE_16BIT,0.0),65535.0)); 
 			}
 		}
 	}
@@ -180,9 +196,9 @@ char * gImage::getImageData(BPP bits)
 		for (unsigned y=0; y<h; y++) {
 			for (unsigned x=0; x<w; x++) {
 				unsigned pos = x + y*w;
-				dst[pos].r = (unsigned char) lrint(fmin(fmax(image[pos].r,0.0),255.0)); 
-				dst[pos].g = (unsigned char) lrint(fmin(fmax(image[pos].g,0.0),255.0));
-				dst[pos].b = (unsigned char) lrint(fmin(fmax(image[pos].b,0.0),255.0)); 
+				dst[pos].r = (unsigned char) lrint(fmin(fmax(image[pos].r*SCALE_8BIT,0.0),255.0)); 
+				dst[pos].g = (unsigned char) lrint(fmin(fmax(image[pos].g*SCALE_8BIT,0.0),255.0));
+				dst[pos].b = (unsigned char) lrint(fmin(fmax(image[pos].b*SCALE_8BIT,0.0),255.0)); 
 			}
 		}
 	}
@@ -822,6 +838,7 @@ gImage gImage::ToneCurve(std::vector<cp> ctpts, int threadcount)
 
 	Curve c;
 	c.setControlPoints(ctpts);
+	c.scalepoints(1.0/SCALE_CURVE);
 
 	#pragma omp parallel for num_threads(threadcount)
 	for (int x=0; x<w; x++) {
@@ -863,6 +880,7 @@ void gImage::ApplyToneCurve(std::vector<cp> ctpts, int threadcount)
 
 	Curve c;
 	c.setControlPoints(ctpts);
+	c.scalepoints(1.0/SCALE_CURVE);
 
 	#pragma omp parallel for num_threads(threadcount)
 	for (int x=0; x<w; x++) {
@@ -1794,10 +1812,11 @@ void gImage::ApplyResize(unsigned width, unsigned height, RESIZE_FILTER filter, 
 
 //Image Information:
 
-void gImage::Stats()
+std::string gImage::Stats()
 {
-	double rmin, rmax, gmin, gmax, bmin, bmax;
+	double rmin, rmax, gmin, gmax, bmin, bmax, tmin, tmax;
 	rmin = image[0].r; rmax = image[0].r; gmin=image[0].g; gmax = image[0].g; bmin = image[0].b; bmax = image[0].b;
+	tmin = SCALE_CURVE; tmax = 0.0;
 	int iter = 0;
 
 	for(unsigned y = 1; y < h; y++) {
@@ -1809,11 +1828,13 @@ void gImage::Stats()
 			if (image[pos].r < rmin) rmin = image[pos].r;
 			if (image[pos].g < gmin) gmin = image[pos].g;
 			if (image[pos].b < bmin) bmin = image[pos].b;
+			double tone = (image[pos].r + image[pos].g + image[pos].b) / 3.0; 
+			if (tone > tmax) tmax = tone; if (tone < tmin) tmin = tone;
 			iter++;
 		}
 	}
-	printf("rmin: %f\trmax: %f\ngmin: %f\tgmax: %f\nbmin: %f\tbmax: %f\n", rmin, rmax, gmin, gmax, bmin, bmax);
-	printf("iterations: %d\n\n", iter);
+	return string_format("rmin: %f\trmax: %f\ngmin: %f\tgmax: %f\nbmin: %f\tbmax: %f\n\ntonemin: %f\ttonemax: %f\n", rmin, rmax, gmin, gmax, bmin, bmax, tmin, tmax);
+	//printf("iterations: %d\n\n", iter);
 }
 
 std::vector<long> gImage::Histogram()
@@ -1822,7 +1843,7 @@ std::vector<long> gImage::Histogram()
 	for(unsigned y = 0; y < h; y++) {
 		for(unsigned x = 0; x < w; x++) {
 			unsigned pos = x + y*w;
-			double t = (image[pos].r + image[pos].g + image[pos].b) / 3.0;
+			double t = ((image[pos].r + image[pos].g + image[pos].b) / 3.0) * SCALE_CURVE;
 			if (t < 0.0) t = 0.0;
 			if (t > 255.0) t = 255.0;
 			histogram[floor(t+0.5)]++;

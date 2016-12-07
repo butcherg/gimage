@@ -46,6 +46,7 @@ class gImage
 		~gImage();
 
 		//Getters
+		pix getPixel(unsigned x,  unsigned y);
 		char *getImageData(BPP bits);
 		std::vector<pix>& getImageData();
 		unsigned getWidth();
@@ -54,7 +55,7 @@ class gImage
 		std::map<std::string,std::string> getInfo();
 		char * getProfile();
 		unsigned getProfileLength();
-		void Stats();
+		std::string Stats();
 		std::vector<long> Histogram();
 
 		//Setters
