@@ -40,7 +40,7 @@ class gImage
 		gImage();
 		gImage(const gImage &o);
 		gImage(std::string filename);
-		gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, BPP bits, std::map<std::string,std::string> imageinfo);
+		gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, BPP bits, std::map<std::string,std::string> imageinfo, void * icc_profile=NULL, unsigned icc_profile_length=0);
 		gImage(unsigned width, unsigned height,  unsigned colors, std::map<std::string,std::string> imageinfo);
 
 		~gImage();
@@ -52,6 +52,8 @@ class gImage
 		unsigned getHeight();
 		unsigned getColors();
 		std::map<std::string,std::string> getInfo();
+		char * getProfile();
+		unsigned getProfileLength();
 		void Stats();
 		std::vector<long> Histogram();
 
@@ -115,6 +117,10 @@ class gImage
 		std::vector<pix> image;
 		unsigned w, h, c;
 		std::map<std::string,std::string> imginfo;
+
+		char *profile;
+		unsigned profile_length;
+		
 
 		//Add:		
 		//	icc

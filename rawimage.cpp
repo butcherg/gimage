@@ -92,7 +92,6 @@ char * _loadRAW_m(const char *filename,
 	RawProcessor.imgdata.params.gamm[0] = 1/1.0;   //1/2.222;
 	RawProcessor.imgdata.params.gamm[1] = 1.0;     //4.5;
 
-
 	//#
 	//# output_color=0|1|2|3|4|5 - Output color space, default=1
 	//# colorspace=raw|srgb|adobe|wide|prophoto|xyz - Alias of output_color space, default=srgb
@@ -114,7 +113,7 @@ char * _loadRAW_m(const char *filename,
 		RawProcessor.imgdata.params.output_color = atoi(p["output_color"].c_str());
 
 	//#
-	//# user_qual=0|1|2|3|4 - Demosaic algorithm, default=4 (ahd)
+	//# user_qual=0|1|2|3|4 - Demosaic algorithm, default=3 (ahd)
 	//# demosaic=linear|vng|ppg|ahd|dcb - Alias of user_qual, with mnemonic values
 	if (p.find("demosaic") != p.end()) {
 		if (p["demosaic"].compare("linear") == 0) 
@@ -128,7 +127,7 @@ char * _loadRAW_m(const char *filename,
 		if (p["demosaic"].compare("dcb") == 0) 
 			RawProcessor.imgdata.params.user_qual = 4;
 	}
-	if (p.find("user_qual") != p.end()) atoi(p["user_qual"].c_str());
+	if (p.find("user_qual") != p.end()) RawProcessor.imgdata.params.user_qual = atoi(p["user_qual"].c_str());
 
 	//#
 	//# output_bps=8|16 - bits per sample, default=16
@@ -443,6 +442,11 @@ char * _loadRAW_m(const char *filename,
 	timeinfo = localtime (&rawtime);
 	strftime (buffer,80,"%Y:%m:%d %H:%M:%S",timeinfo);
 	info["DateTime"] = buffer;  
+
+	if (C.profile) {
+		icc_m = (char *) C.profile;
+		*icclength = C.profile_length;
+	}
 
 
 	RawProcessor.recycle();

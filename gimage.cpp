@@ -27,9 +27,11 @@ gImage::gImage(const gImage &o)
 	c = o.c;
 	imginfo = o.imginfo;
 	image = o.image;
+	profile = NULL;
+	profile_length = 0;
 }
 
-gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, BPP bits, std::map<std::string,std::string> imageinfo)
+gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, BPP bits, std::map<std::string,std::string> imageinfo, void * icc_profile, unsigned icc_profile_length)
 {
 	image.resize(width*height);
 	w=width;
@@ -102,6 +104,16 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 
 	imginfo = imageinfo;
 
+	if (icc_profile) {
+		profile = new char[icc_profile_length];
+		memcpy(profile, icc_profile, icc_profile_length);
+		profile_length = icc_profile_length;
+	}
+	else {
+		profile = NULL;
+		profile_length = 0;
+	}
+
 }
 
 gImage::gImage(unsigned width, unsigned height, unsigned colors, std::map<std::string,std::string> imageinfo)
@@ -121,12 +133,14 @@ gImage::gImage(unsigned width, unsigned height, unsigned colors, std::map<std::s
 	}
 
 	imginfo = imageinfo;
+	profile =  NULL;
+	profile_length = 0;
 }
 
 
 gImage::~gImage()
 {
-
+	if (profile) delete profile;
 }
 
 
@@ -198,6 +212,16 @@ unsigned gImage::getColors()
 std::map<std::string,std::string> gImage::getInfo()
 {
 	return imginfo;
+}
+
+char * gImage::getProfile()
+{
+	return profile;
+}
+
+unsigned gImage::getProfileLength()
+{
+	return profile_length;
 }
 
 std::map<std::string,std::string> gImage::getInfo(const char * filename)
@@ -1839,7 +1863,7 @@ gImage gImage::loadRAW(const char * filename, std::string params)
 		//default:
 		//	throw bad_typeid;
 	}
-	gImage I(image, width, height, colors, bits, imgdata);
+	gImage I(image, width, height, colors, bits, imgdata, iccprofile, icclength);
 	delete image;
 	return I;
 
