@@ -159,7 +159,11 @@ gImage::~gImage()
 
 pix gImage::getPixel(unsigned x,  unsigned y)
 {
-	return image[x + y*w];
+	pix nullpix = {0.0, 0.0, 0.0};
+	if ((x<w) & (y<h))
+		return image[x + y*w];
+	else
+		return nullpix;
 }
 
 
@@ -1097,7 +1101,7 @@ gImage gImage::NLMeans(double sigma, int local, int patch, int threadcount)
 
 	unsigned iw = w;
 	unsigned ih = h;
-	double sigma2 = pow(2*sigma,2);
+	double sigma2 = pow(2*(sigma/SCALE_CURVE),2);
 
 	//y|x upper|lower bound computations, used to offset patch to avoid out-of-image references 
 	unsigned yplb = patch+local+1;
@@ -1173,7 +1177,7 @@ void gImage::ApplyNLMeans(double sigma, int local, int patch, int threadcount)
 
 	unsigned iw = w;
 	unsigned ih = h;
-	double sigma2 = pow(2*sigma,2);
+	double sigma2 = pow(2*(sigma/SCALE_CURVE),2);  //UI sigmas are relevant to 0-255
 
 	//y|x upper|lower bound computations, used to offset patch to avoid out-of-image references 
 	unsigned yplb = patch+local+1;
