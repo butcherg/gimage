@@ -17,7 +17,7 @@ OBJECTS := $(addprefix $(OBJDIR)/,gimg.o elapsedtime.o )
 LIBOBJECTS := $(addprefix $(OBJDIR)/,gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o strutil.o curve.o)
 
 $(OBJDIR)/gimg: $(OBJECTS)  $(OBJDIR)/lib/libgimage.a
-	$(CXX) $(LFLAGS) -o$@  $(LIBDIRS) $(OBJECTS) $(LIBS) 
+	$(CXX) $(LFLAGS) -o$@$(EXT)  $(LIBDIRS) $(OBJECTS) $(LIBS) 
 
 $(OBJDIR)/lib/libgimage.a: $(LIBOBJECTS)
 	mkdir -p $(OBJDIR)/lib
