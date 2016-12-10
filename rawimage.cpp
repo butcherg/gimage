@@ -6,7 +6,7 @@
 #include <map>
 #include <vector>
 #include "strutil.h"
-#include "LibRaw-0.17.2/libraw/libraw.h"
+#include <libraw.h>
 
 
 bool _loadRAWInfo_m(const char *filename, 

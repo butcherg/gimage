@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#include "jpeg-6b/jpeglib.h"
+#include <jpeglib.h>
 
 #ifdef __cplusplus
 }
