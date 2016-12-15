@@ -880,7 +880,6 @@ gImage gImage::ToneLine(double low, double high, int threadcount)
 void gImage::ApplyToneCurve(std::vector<cp> ctpts, int threadcount)
 {
 	std::vector<pix>& dst = getImageData();
-	std::vector<pix> src = image;
 
 	Curve c;
 	c.setControlPoints(ctpts);
@@ -890,9 +889,9 @@ void gImage::ApplyToneCurve(std::vector<cp> ctpts, int threadcount)
 	for (int x=0; x<w; x++) {
 		for (int y=0; y<h; y++) {
 			int pos = x + y*w;;
-			dst[pos].r = c.getpoint(src[pos].r);
-			dst[pos].g = c.getpoint(src[pos].g);
-			dst[pos].b = c.getpoint(src[pos].b);
+			dst[pos].r = c.getpoint(dst[pos].r);
+			dst[pos].g = c.getpoint(dst[pos].g);
+			dst[pos].b = c.getpoint(dst[pos].b);
 		}
 	}
 }
