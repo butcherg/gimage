@@ -1102,7 +1102,9 @@ void gImage::ApplyResize(unsigned width, unsigned height, RESIZE_FILTER filter, 
 	yscale = (double) height / (double) h;
 
 	std::vector<pix>& src = getImageData();
-	std::vector<pix> tmp;
+	std::vector<pix> *t = new std::vector<pix>(image);
+	std::vector<pix> &tmp = *t;
+
 	tmp.resize(width*h);
 	std::vector<pix>&dst = getImageData();
 
@@ -1267,6 +1269,7 @@ void gImage::ApplyResize(unsigned width, unsigned height, RESIZE_FILTER filter, 
 		delete contrib[i].p;
 	}
 	delete[] contrib;
+	delete t;
 }
 
 
