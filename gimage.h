@@ -67,6 +67,7 @@ class gImage
 		static int ThreadCount();
 		static std::string Version();
 
+/*
 		//Image operations
 		gImage ConvolutionKernel(double kernel[3][3], int threadcount);
 		gImage Sharpen(int strength, int threadcount);
@@ -79,6 +80,7 @@ class gImage
 		gImage ToneCurve(std::vector<cp> ctpts, int threadcount);
 		gImage ToneLine(double low, double high, int threadcount);
 		gImage NLMeans(double sigma, int local, int patch, int threadcount);
+*/
 
 		//In-place versions of image operations:
 		void ApplyConvolutionKernel(double kernel[3][3], int threadcount);
