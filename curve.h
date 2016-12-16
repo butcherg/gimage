@@ -49,8 +49,6 @@ class Curve
 
 	private:
 
-
-		bool loaded;
 		std::vector<cp> controlpts;
 		std::vector<double> X, Y;
 		//tk::

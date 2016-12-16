@@ -9,7 +9,6 @@
 
 
 Curve::Curve() {
-	loaded=false;
 	controlpts.reserve(7);
 	mn=-1.0;
 	mx=-1.0;
@@ -25,13 +24,11 @@ void Curve::setControlPoints(std::vector<cp> pts)
 	controlpts.clear();
 	controlpts = pts;
 	setpoints();
-	loaded=true;
 }
 
 void Curve::clearpoints()
 {
 	controlpts.clear();
-	loaded=false;
 }
 
 void Curve::insertpoint(double x, double y)
@@ -42,7 +39,7 @@ void Curve::insertpoint(double x, double y)
 	//if (mn>-1.0) if (p.x < mn) p.x = mn;
 	//if (mx>-1.0) if (p.y > mx) p.y = mx;
 	controlpts.push_back(p);
-	loaded=false;
+	setpoints();
 }
 
 bool Curve::deletepoint(double x, double y)
@@ -50,12 +47,10 @@ bool Curve::deletepoint(double x, double y)
 	for (unsigned int i=0; i<controlpts.size(); i++) {
 		if (controlpts[i].x == x && controlpts[i].y == y) {
 			controlpts.erase(controlpts.begin()+i);
-			loaded=false;
+			setpoints();
 			return true;
 		}
 	}
-	loaded=false;
-	return false;
 }
 
 void Curve::clampto(double min, double max)
@@ -70,12 +65,11 @@ void Curve::scalepoints(double s)
 		controlpts[i].x *= s;
 		controlpts[i].y *= s;
 	}
-	loaded=false;
+	setpoints();
 }
 
 double Curve::getpoint(double x)
 {
-	if (!loaded) setpoints();
 	double y = s(x);
 	if (mn > -1.0) if (y<mn) y=mn;
 	if (mx > -1.0) if (y>mx) y=mx;
@@ -95,7 +89,7 @@ cp Curve::getctrlpoint(int i)
 void Curve::setctrlpoint(int i, cp p)
 {
 	controlpts[i] = p;
-	loaded=false;
+	setpoints();
 }
 
 
@@ -151,7 +145,6 @@ void Curve::setpoints ()
 		Y.push_back(controlpts[i].y);
 	}
 	s.set_points(X,Y); 
-	loaded = true;
 }
 
 
