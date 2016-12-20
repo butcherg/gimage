@@ -25,6 +25,7 @@ $(OBJDIR)/lib/libgimage.a: $(LIBOBJECTS)
 	cp gimage.h $(OBJDIR)/include
 	cp curve.h $(OBJDIR)/include
 	cp strutil.h $(OBJDIR)/include
+	rm -f $(OBJDIR)/lib/libgimage.a
 	ar rcs $@ $(LIBOBJECTS)
 	ranlib $@
 
@@ -56,14 +57,8 @@ $(OBJDIR)/curve.o: curve.cpp curve.h
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c -w curve.cpp -o$@
 
 clean:
-ifeq ($(SYS), mingw32)
-	rm -f $(OBJDIR)/gimg.exe $(OBJDIR)/*.o
-else
-	rm -f $(OBJDIR)/gimg $(OBJDIR)/*.o
-endif
+	rm -f $(OBJDIR)/gimg$(EXT) $(OBJDIR)/*.o $(OBJDIR)/lib/libgimage.a
 
-cleanlib:
-	rm -f $(OBJDIR)/lib/libgimage.a
 
 
 
