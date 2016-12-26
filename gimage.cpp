@@ -817,7 +817,8 @@ void gImage::ApplyGray(double redpct, double greenpct, double bluepct, int threa
 	for (unsigned x=0; x<w; x++) {
 		for (unsigned y=0; y<h; y++) {
 			unsigned pos = x + y*w;
-			double G = floor(image[pos].r*redpct + image[pos].g*greenpct + image[pos].b*bluepct)+0.5;
+			//double G = floor(image[pos].r*redpct + image[pos].g*greenpct + image[pos].b*bluepct)+0.5;
+			double G = image[pos].r*redpct + image[pos].g*greenpct + image[pos].b*bluepct;
 			image[pos].r=G;
 			image[pos].g=G;
 			image[pos].b=G;
