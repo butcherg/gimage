@@ -48,7 +48,7 @@ class gImage
 		//Getters
 		pix getPixel(unsigned x,  unsigned y);
 		char *getImageData(BPP bits);
-		std::vector<pix>& getImageData();
+		pix* getImageData();
 		unsigned getWidth();
 		unsigned getHeight();
 		unsigned getColors();
@@ -117,7 +117,8 @@ class gImage
 
 
 	private:
-		std::vector<pix> image;
+		//std::vector<pix> image;
+		pix* image;
 		unsigned w, h, c;
 		std::map<std::string,std::string> imginfo;
 

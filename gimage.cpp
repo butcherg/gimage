@@ -29,6 +29,7 @@ gImage::gImage()
 {
 	w=0; 
 	h=0;
+	image = NULL;
 }
 
 gImage::gImage(const gImage &o)
@@ -37,14 +38,17 @@ gImage::gImage(const gImage &o)
 	h = o.h;
 	c = o.c;
 	imginfo = o.imginfo;
-	image = o.image;
+
+	image = new pix[sizeof(o.image)];
+	memcpy(image, o.image, sizeof(o.image));
+
 	profile = NULL;
 	profile_length = 0;
 }
 
 gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, BPP bits, std::map<std::string,std::string> imageinfo, void * icc_profile, unsigned icc_profile_length)
 {
-	image.resize(width*height);
+	image = new pix[width*height];
 	w=width;
 	h=height;
 	c=colors;
@@ -129,7 +133,7 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 
 gImage::gImage(unsigned width, unsigned height, unsigned colors, std::map<std::string,std::string> imageinfo)
 {
-	image.resize(width*height);
+	image = new pix[width*height];
 	w=width;
 	h=height;
 	c=colors;
@@ -152,6 +156,7 @@ gImage::gImage(unsigned width, unsigned height, unsigned colors, std::map<std::s
 gImage::~gImage()
 {
 	if (profile) delete profile;
+	if (image) delete image;
 }
 
 
@@ -161,7 +166,7 @@ pix gImage::getPixel(unsigned x,  unsigned y)
 {
 	pix nullpix = {0.0, 0.0, 0.0};
 	int i = x + y*w;
-	if (image.size() < i)
+	if (sizeof(image) < i)
 		return image[i];
 	else
 		return nullpix;
@@ -210,7 +215,7 @@ char * gImage::getImageData(BPP bits)
 	return imagedata;
 }
 
-std::vector<pix>& gImage::getImageData()
+pix* gImage::getImageData()
 {
 	return image;
 }
