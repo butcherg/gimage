@@ -44,8 +44,8 @@ gImage::gImage(const gImage &o)
 	c = o.c;
 	imginfo = o.imginfo;
 
-	image = new pix[sizeof(o.image)];
-	memcpy(image, o.image, sizeof(o.image));
+	image = new pix[w*h];
+	memcpy(image, o.image, w*h*sizeof(pix));
 
 	profile = NULL;
 	profile_length = 0;
