@@ -47,7 +47,7 @@ class gImage
 
 		//Getters
 		pix getPixel(unsigned x,  unsigned y);
-		char *getImageData(BPP bits);
+		char* getImageData(BPP bits);
 		pix* getImageData();
 		unsigned getWidth();
 		unsigned getHeight();

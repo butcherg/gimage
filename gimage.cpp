@@ -6,6 +6,7 @@
 #include <math.h>
 #include <exception>
 #include <omp.h>
+#include <new>
 
 #include "rawimage.h"
 #include "jpegimage.h"
@@ -21,6 +22,10 @@
 #define SCALE_16BIT 65536.0
 #define SCALE_8BIT 256.0
 #define SCALE_CURVE 256.0
+
+//structs for making raw images
+struct cpix { char r, g, b; };
+struct uspix { unsigned short r, g, b; };
 
 
 //Constructors/Destructor:
@@ -53,7 +58,7 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 	h=height;
 	c=colors;
 
-	if (bits ==BPP_16) {
+	if (bits == BPP_16) {
 		unsigned short * src = (unsigned short *) imagedata;
 		if (colors == 1) {  //turn into a three-color grayscale
 			for (unsigned y=0; y<h; y++) {
@@ -68,6 +73,7 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 			c = 3;
 		}
 		else if (colors == 3) {
+printf("16bit 3color, %dx%d\n",width,height);
 			for (unsigned y=0; y<h; y++) {
 				for (unsigned x=0; x<w; x++) {
 					unsigned pos = x + y*w;
@@ -156,7 +162,7 @@ gImage::gImage(unsigned width, unsigned height, unsigned colors, std::map<std::s
 gImage::~gImage()
 {
 	if (profile) delete profile;
-	if (image) delete image;
+	if (image) delete [] image;
 }
 
 
@@ -173,9 +179,7 @@ pix gImage::getPixel(unsigned x,  unsigned y)
 }
 
 
-//structs for making raw images
-struct cpix { char r, g, b; };
-struct uspix { unsigned short r, g, b; };
+
 
 char * gImage::getImageData(BPP bits)
 {
@@ -355,9 +359,10 @@ void gImage::setInfo(std::string name, std::string value)
 
 void gImage::ApplyConvolutionKernel(double kernel[3][3], int threadcount)
 {
-	std::vector<pix>& dst = getImageData();
-	std::vector<pix> *s = new std::vector<pix>(image);
-	std::vector<pix> &src = *s;
+	//std::vector<pix>& dst = getImageData();
+	//std::vector<pix> *s = new std::vector<pix>(image);
+	//std::vector<pix> &src = *s;
+	pix *dst = new pix[w*h];
 
 	#pragma omp parallel for num_threads(threadcount)
 	for(int y = 1; y < h-1; y++) {
@@ -367,9 +372,9 @@ void gImage::ApplyConvolutionKernel(double kernel[3][3], int threadcount)
 			for (int kx=0; kx<3; kx++) {
 				for (int ky=0; ky<3; ky++) {
 					int kpos = w*(y-1+ky) + (x-1+kx);
-					R += src[kpos].r * kernel[kx][ky];
-					G += src[kpos].g * kernel[kx][ky];
-					B += src[kpos].b * kernel[kx][ky];
+					R += image[kpos].r * kernel[kx][ky];
+					G += image[kpos].g * kernel[kx][ky];
+					B += image[kpos].b * kernel[kx][ky];
 				}
 			}
 
@@ -378,7 +383,9 @@ void gImage::ApplyConvolutionKernel(double kernel[3][3], int threadcount)
 			dst[pos].b = B;
 		}
 	} 
-	delete s;
+	//delete s;
+	delete [] image;
+	image = dst;
 }
 
 void gImage::ApplySharpen(int strength, int threadcount)
@@ -498,15 +505,17 @@ void gImage::ApplyXShear(double rangle, int threadcount)
 	int dw = tangent * (double) h;
 	unsigned nw = w+abs(dw);
 
-	std::vector<pix> *s = new std::vector<pix>(image);
-	std::vector<pix> &src = *s;
-	image.resize(nw*h);
+	//std::vector<pix> *s = new std::vector<pix>(image);
+	//std::vector<pix> &src = *s;
+	//image.resize(nw*h);
+	int newsize = nw*h;
+	pix *dst = new pix[newsize];
 
 	#pragma omp parallel for num_threads(threadcount)
-	for (unsigned i = 0; i<image.size(); i++) {
-		image[i].r = 0.0;
-		image[i].g = 0.0;
-		image[i].b = 0.0;
+	for (unsigned i = 0; i<newsize; i++) {
+		dst[i].r = 0.0;
+		dst[i].g = 0.0;
+		dst[i].b = 0.0;
 	}
 
 	if (dw < 0) dw = 0;
@@ -520,14 +529,16 @@ void gImage::ApplyXShear(double rangle, int threadcount)
 			if (v >= h) continue;
 			unsigned dpos =u + v*nw;
 			unsigned spos = x + y*w;
-			image[dpos].r = src[spos].r;
-			image[dpos].g = src[spos].g;
-			image[dpos].b = src[spos].b;
+			dst[dpos].r = image[spos].r;
+			dst[dpos].g = image[spos].g;
+			dst[dpos].b = image[spos].b;
 		}
 	}
 
 	w = nw;
-	delete s;
+	//delete s;
+	delete [] image;
+	image = dst;
 }
 
 void gImage::ApplyYShear(double rangle, int threadcount)
@@ -538,16 +549,18 @@ void gImage::ApplyYShear(double rangle, int threadcount)
 	unsigned nh = h+abs(dh);
 	unsigned dw = w;
 
-	std::vector<pix> *s = new std::vector<pix>(image);
-	std::vector<pix> &src = *s;
-	std::vector<pix>& dst = getImageData();
-	dst.resize(w*nh);
+	//std::vector<pix> *s = new std::vector<pix>(image);
+	//std::vector<pix> &src = *s;
+	//std::vector<pix>& dst = getImageData();
+	//dst.resize(w*nh);
+	int newsize = w*nh;
+	pix *dst = new pix[newsize];
 
 	#pragma omp parallel for num_threads(threadcount)
-	for (unsigned i = 0; i<image.size(); i++) {
-		image[i].r = 0.0;
-		image[i].g = 0.0;
-		image[i].b = 0.0;
+	for (unsigned i = 0; i<newsize; i++) {
+		dst[i].r = 0.0;
+		dst[i].g = 0.0;
+		dst[i].b = 0.0;
 	}
 
 	if (dh < 0) dh = -dh; else dh = 0;
@@ -561,23 +574,26 @@ void gImage::ApplyYShear(double rangle, int threadcount)
 			if (v >= nh) continue;
 			unsigned dpos = u + v*dw;
 			unsigned spos = x + y*w;
-			dst[dpos].r = src[spos].r;
-			dst[dpos].g = src[spos].g;
-			dst[dpos].b = src[spos].b;
+			dst[dpos].r = image[spos].r;
+			dst[dpos].g = image[spos].g;
+			dst[dpos].b = image[spos].b;
 		}
 	}
 	h = nh;
-	delete s;
+	//delete s;
+	delete [] image;
+	image = dst;
 }
 
 void gImage::ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2)
 {
 	*x1 = 0; *x2 = w; *y1 = 0; *y2 = h;
-	std::vector<pix>& src = getImageData();
+	//std::vector<pix>& src = getImageData();
+
 	for (int x=0; x<w; x++) {
 		for (int y=0; y<h; y++) {
 			unsigned pos = x + y*w;
-			if (src[pos].r + src[pos].g + src[pos].b > 0.0) {
+			if (image[pos].r + image[pos].g + image[pos].b > 0.0) {
 				*x1 = x;
 				goto endx1;
 			}
@@ -587,7 +603,7 @@ void gImage::ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2)
 	for (int x=w-1; x>0; x--) {
 		for (int y=0; y<h; y++) {
 			unsigned pos = x + y*w;
-			if (src[pos].r + src[pos].g + src[pos].b > 0.0) {
+			if (image[pos].r + image[pos].g + image[pos].b > 0.0) {
 				*x2 = x;
 				goto endx2;
 			}
@@ -597,7 +613,7 @@ void gImage::ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2)
 	for (int y=0; y<h; y++) {
 		for (int x=0; x<w; x++) {
 			unsigned pos = x + y*w;
-			if (src[pos].r + src[pos].g + src[pos].b > 0.0) {
+			if (image[pos].r + image[pos].g + image[pos].b > 0.0) {
 				*y1 = y;
 				goto endy1;
 			}
@@ -607,7 +623,7 @@ void gImage::ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2)
 	for (int y=h-1; y>0; y--) {
 		for (int x=0; x<w; x++) {
 			unsigned pos = x + y*w;
-			if (src[pos].r + src[pos].g + src[pos].b > 0.0) {
+			if (image[pos].r + image[pos].g + image[pos].b > 0.0) {
 				*y2 = y;
 				goto endy2;
 			}
@@ -631,15 +647,16 @@ void gImage::ApplyCrop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int t
 	if (x1>w | y1>h | x2>w | y2>h) return;
 	if (x1>=x2 | y1>=y2) return;
 
-	std::vector<pix> *s = new std::vector<pix>(image);
-	std::vector<pix> &src = *s;
-	image.resize((x2-x1) * (y2-y1));
+	//std::vector<pix> *s = new std::vector<pix>(image);
+	//std::vector<pix> &src = *s;
+	int newsize((x2-x1) * (y2-y1));
+	pix *dst = new pix[newsize];
 
 	#pragma omp parallel for num_threads(threadcount)
-	for (unsigned i = 0; i<image.size(); i++) {
-		image[i].r = 0.0;
-		image[i].g = 0.0;
-		image[i].b = 0.0;
+	for (unsigned i = 0; i<newsize; i++) {
+		dst[i].r = 0.0;
+		dst[i].g = 0.0;
+		dst[i].b = 0.0;
 	}
 
 	unsigned dw = x2-x1;
@@ -650,14 +667,16 @@ void gImage::ApplyCrop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int t
 		for (unsigned y=0; y<dh; y++) {
 			unsigned dpos = x + y*dw;
 			unsigned spos = x1+x + ((y+y1) * w);
-			image[dpos].r = src[spos].r;
-			image[dpos].g = src[spos].g;
-			image[dpos].b = src[spos].b;
+			dst[dpos].r = image[spos].r;
+			dst[dpos].g = image[spos].g;
+			dst[dpos].b = image[spos].b;
 		}
 	}
 	w=dw;
 	h=dh;
-	delete s;
+	//delete s;
+	delete [] image;
+	image = dst;
 }
 
 
@@ -694,9 +713,10 @@ void gImage::ApplyCrop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int t
 /*
 gImage gImage::ToneLine(double low, double high, int threadcount)
 {
-	gImage S(w, h, c, imginfo);
-	std::vector<pix>& src = getImageData();
-	std::vector<pix>& dst = S.getImageData();
+	//gImage S(w, h, c, imginfo);
+	//std::vector<pix>& src = getImageData();
+	//std::vector<pix>& dst = S.getImageData();
+	pix *dst = new pix[w*h];
 
 	double slope = 255.0 / (high-low);
 
@@ -715,8 +735,6 @@ gImage gImage::ToneLine(double low, double high, int threadcount)
 
 void gImage::ApplyToneCurve(std::vector<cp> ctpts, int threadcount)
 {
-	std::vector<pix>& dst = getImageData();
-
 	Curve c;
 	c.setControlPoints(ctpts);
 	c.scalepoints(1.0/SCALE_CURVE);
@@ -725,15 +743,26 @@ void gImage::ApplyToneCurve(std::vector<cp> ctpts, int threadcount)
 	for (int x=0; x<w; x++) {
 		for (int y=0; y<h; y++) {
 			int pos = x + y*w;;
-			dst[pos].r = c.getpoint(dst[pos].r);
-			dst[pos].g = c.getpoint(dst[pos].g);
-			dst[pos].b = c.getpoint(dst[pos].b);
+			image[pos].r = c.getpoint(image[pos].r);
+			image[pos].g = c.getpoint(image[pos].g);
+			image[pos].b = c.getpoint(image[pos].b);
 		}
 	}
 }
 
 void gImage::ApplyToneLine(double low, double high, int threadcount)
 {
+	double slope = 255.0 / (high-low);
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned x=0; x<w; x++) {
+		for (unsigned y=0; y<h; y++) {
+			unsigned pos = x + y*w;
+			image[pos].r *= slope;
+			image[pos].g *= slope;
+			image[pos].b *= slope;
+		}
+	}
 
 }
 
@@ -853,9 +882,11 @@ void gImage::ApplyGray(double redpct, double greenpct, double bluepct, int threa
 
 void gImage::ApplyNLMeans(double sigma, int local, int patch, int threadcount)
 {
-	std::vector<pix> *s = new std::vector<pix>(image);
-	std::vector<pix> &src = *s;
-	std::vector<pix>& dst = getImageData();
+	//std::vector<pix> *s = new std::vector<pix>(image);
+	//std::vector<pix> &src = *s;
+	//std::vector<pix>& dst = getImageData();
+	pix *dst = new pix[w*h];
+	pix *src = image;
 
 	unsigned spitch = w;
 	unsigned dpitch = w;
@@ -923,7 +954,9 @@ void gImage::ApplyNLMeans(double sigma, int local, int patch, int threadcount)
 			dst[wdstpix].b  = (valueB/(1e-5 + sum_weightsB));
 		}
 	}
-	delete s;
+	//delete s;
+	delete [] image;
+	image = dst;
 }
 
 
@@ -1108,12 +1141,15 @@ void gImage::ApplyResize(unsigned width, unsigned height, RESIZE_FILTER filter, 
 	xscale = (double) width / (double) w;
 	yscale = (double) height / (double) h;
 
-	std::vector<pix>& src = getImageData();
-	std::vector<pix> *t = new std::vector<pix>(image);
-	std::vector<pix> &tmp = *t;
+	//std::vector<pix>& src = getImageData();
+	//std::vector<pix> *t = new std::vector<pix>(image);
+	//std::vector<pix> &tmp = *t;
 
-	tmp.resize(width*h);
-	std::vector<pix>&dst = getImageData();
+	//tmp.resize(width*h);
+	//std::vector<pix>&dst = getImageData();
+	pix* src = image;
+	pix* tmp = new pix[width*h];
+	pix* dst = new pix[width*height];
 
 
 	// Compute row contributions:
@@ -1246,7 +1282,7 @@ void gImage::ApplyResize(unsigned width, unsigned height, RESIZE_FILTER filter, 
 		}
 	}
 
-	dst.resize(width*height);
+	//dst.resize(width*height);
 	w = width;
 	h = height;
 
@@ -1276,7 +1312,9 @@ void gImage::ApplyResize(unsigned width, unsigned height, RESIZE_FILTER filter, 
 		delete contrib[i].p;
 	}
 	delete[] contrib;
-	delete t;
+	delete [] tmp;
+	delete [] image;
+	image = dst;
 }
 
 
