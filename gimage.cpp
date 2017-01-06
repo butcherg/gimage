@@ -1352,7 +1352,7 @@ gImage gImage::loadRAW(const char * filename, std::string params)
 		//	throw bad_typeid;
 	}
 	gImage I(image, width, height, colors, bits, imgdata, iccprofile, icclength);
-	delete image;
+	delete [] image;
 	return I;
 
 }
@@ -1363,7 +1363,7 @@ gImage gImage::loadJPEG(const char * filename, std::string params)
 	std::map<std::string,std::string> imgdata;
 	char * image = _loadJPEG(filename, &width, &height, &colors, imgdata);
 	gImage I(image, width, height, colors, BPP_8, imgdata);
-	delete image;
+	delete [] image;
 	return I;
 }
 
@@ -1385,7 +1385,7 @@ gImage gImage::loadTIFF(const char * filename, std::string params)
 		//	throw bad_typeid;
 	}
 	gImage I(image, width, height, colors, bits, imgdata);
-	delete image;
+	delete [] image;
 	return I;
 }
 
