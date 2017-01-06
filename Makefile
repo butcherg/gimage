@@ -28,6 +28,10 @@ $(OBJDIR)/lib/libgimage.a: $(LIBOBJECTS)
 	rm -f $(OBJDIR)/lib/libgimage.a
 	ar rcs $@ $(LIBOBJECTS)
 	ranlib $@
+	echo "gimage:" > $(OBJDIR)/build.txt
+	git status |grep "On branch" >> $(OBJDIR)/build.txt
+	echo "CFLAGS=$(CFLAGS)" >> $(OBJDIR)/build.txt
+	echo "LFLAGS=$(LFLAGS)" >> $(OBJDIR)/build.txt
 
 $(OBJDIR)/gimg.o: gimg.cpp
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c gimg.cpp -o$@
