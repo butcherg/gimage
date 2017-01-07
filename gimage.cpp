@@ -161,7 +161,7 @@ pix gImage::getPixel(unsigned x,  unsigned y)
 {
 	pix nullpix = {0.0, 0.0, 0.0};
 	int i = x + y*w;
-	if (image.size() < i)
+	if ((x < w) && (y < h))
 		return image[i];
 	else
 		return nullpix;
