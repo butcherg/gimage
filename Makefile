@@ -25,6 +25,7 @@ $(OBJDIR)/lib/libgimage.a: $(LIBOBJECTS)
 	cp gimage.h $(OBJDIR)/include
 	cp curve.h $(OBJDIR)/include
 	cp strutil.h $(OBJDIR)/include
+	cp half.hpp $(OBJDIR)/include
 	rm -f $(OBJDIR)/lib/libgimage.a
 	ar rcs $@ $(LIBOBJECTS)
 	ranlib $@

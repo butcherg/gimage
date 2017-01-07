@@ -5,11 +5,18 @@
 #include <vector>
 #include <map>
 #include "curve.h"
+#include "half.hpp"
 
 #define VERSION "0.1"
 
+#ifndef PIXTYPE
+#define PIXTYPE float
+#endif
+
+using half_float::half;
+
 struct pix {
-	float r, g, b;
+	PIXTYPE r, g, b;
 };
 
 enum BPP {
@@ -47,6 +54,7 @@ class gImage
 
 		//Getters
 		pix getPixel(unsigned x,  unsigned y);
+		std::vector<float> getPixelArray(unsigned x,  unsigned y);
 		char *getImageData(BPP bits);
 		std::vector<pix>& getImageData();
 		unsigned getWidth();
@@ -62,6 +70,7 @@ class gImage
 		void setInfo(std::string name, std::string value);
 
 		//Static methods
+		static std::string getRGBCharacteristics();
 		static std::map<std::string,std::string> getInfo(const char * filename);
 		static GIMAGE_FILETYPE getFileType(const char * filename);
 		static int ThreadCount();

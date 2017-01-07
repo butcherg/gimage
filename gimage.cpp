@@ -12,12 +12,13 @@
 #include "tiffimage.h"
 #include "strutil.h"
 
+
 //Range 0.0-255.0 constants
 //#define SCALE_16BIT 256.0
 //#define SCALE_8BIT 1.0
 //#define SCALE_CURVE 1.0
 
-//Range 0.0-255.0 constants
+//Range 0.0-1.0 constants
 #define SCALE_16BIT 65536.0
 #define SCALE_8BIT 256.0
 #define SCALE_CURVE 256.0
@@ -157,14 +158,44 @@ gImage::~gImage()
 
 //Getters:
 
+std::string gImage::getRGBCharacteristics()
+{
+	std::string charac;
+	if (sizeof(PIXTYPE) == 2) charac.append("half, ");
+	if (sizeof(PIXTYPE) == 4) charac.append("float, ");
+	if (sizeof(PIXTYPE) == 8) charac.append("double, ");
+	if (SCALE_CURVE == 1.0)   charac.append("0.0 - 255.0");
+	if (SCALE_CURVE == 256.0) charac.append("0.0 - 1.0");
+	return charac;
+}
+
+
 pix gImage::getPixel(unsigned x,  unsigned y)
 {
-	pix nullpix = {0.0, 0.0, 0.0};
+	pix nullpix = {(PIXTYPE) 0.0, (PIXTYPE) 0.0, (PIXTYPE) 0.0};
 	int i = x + y*w;
 	if ((x < w) && (y < h))
 		return image[i];
 	else
 		return nullpix;
+}
+
+std::vector<float> gImage::getPixelArray(unsigned x,  unsigned y)
+{
+	int i = x + y*w;
+	std::vector<float> pixel;
+	pixel.resize(3);
+	if ((x < w) && (y < h)) {
+		pixel[0] = (float) image[i].r;
+		pixel[1] = (float) image[i].g;
+		pixel[2] = (float) image[i].b;
+	}
+	else {
+		pixel[0] = 0.0;
+		pixel[1] = 0.0;
+		pixel[2] = 0.0;
+	}
+	return pixel;
 }
 
 
