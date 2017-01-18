@@ -47,7 +47,7 @@ class gImage
 		gImage();
 		gImage(const gImage &o);
 		gImage(std::string filename);
-		gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, BPP bits, std::map<std::string,std::string> imageinfo, void * icc_profile=NULL, unsigned icc_profile_length=0);
+		gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, BPP bits, std::map<std::string,std::string> imageinfo, char * icc_profile=NULL, unsigned icc_profile_length=0);
 		gImage(unsigned width, unsigned height,  unsigned colors, std::map<std::string,std::string> imageinfo);
 
 		~gImage();
@@ -57,6 +57,7 @@ class gImage
 		std::vector<float> getPixelArray(unsigned x,  unsigned y);
 		char *getImageData(BPP bits);
 		std::vector<pix>& getImageData();
+		pix* getImageDataRaw();
 		unsigned getWidth();
 		unsigned getHeight();
 		unsigned getColors();

@@ -49,7 +49,7 @@ bool _loadTIFFInfo(const char *filename, unsigned *width, unsigned *height, unsi
 	else return false;
 }
 
-char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsigned *numcolors, unsigned *numbits, std::map<std::string,std::string> &info)
+char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsigned *numcolors, unsigned *numbits, std::map<std::string,std::string> &info, std::string params="", char ** icc_m=NULL, unsigned  *icclength=0)
 {
 	char *img, *buf;
 	FILE * infile;
@@ -63,6 +63,9 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 
 		uint32 imagelength, imagewidth;
 		uint16 config, nsamples;
+
+		unsigned len;
+		char * buffer;
         
 		TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
 		TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
@@ -79,6 +82,12 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 		if (TIFFGetField(tif, TIFFTAG_LENSINFO, &infobuf))  info["LensInfo"]=infobuf; 
 		if (TIFFGetField(tif, TIFFTAG_IMAGEDESCRIPTION, &infobuf))  info["ImageDescription"]=infobuf; 
 		if (TIFFGetField(tif, TIFFTAG_DATETIME, &infobuf)) info["DateTime"]=infobuf;
+
+		if (TIFFGetField(tif, TIFFTAG_ICCPROFILE, &len, &buffer)) {
+			*icc_m = new char[len];
+			memcpy(*icc_m, buffer, len);
+			*icclength = len;
+		}
 		
 
 		if (b != 16) return NULL;

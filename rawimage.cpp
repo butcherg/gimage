@@ -7,6 +7,61 @@
 #include <vector>
 #include "strutil.h"
 #include <libraw.h>
+#include "dcraw_icc.h"
+#include <lcms2.h>
+
+
+//ICC Profiles:
+cmsCIExyY d50_romm_spec= {0.3457, 0.3585, 1.0};
+cmsCIEXYZ d50_romm_spec_media_whitepoint = {0.964295676, 1.0, 0.825104603};
+cmsCIExyY d65_srgb_adobe_specs = {0.3127, 0.3290, 1.0};
+cmsCIEXYZ d65_media_whitepoint = {0.95045471, 1.0, 1.08905029};
+
+cmsCIExyYTRIPLE aces_primaries_prequantized = 
+{
+{0.734704192222, 0.265298276252,  1.0},
+{-0.000004945077, 0.999992850272,  1.0},
+{0.000099889199, -0.077007518685,  1.0}
+};
+
+cmsCIExyYTRIPLE romm_primaries = {
+{0.7347, 0.2653, 1.0},
+{0.1596, 0.8404, 1.0},
+{0.0366, 0.0001, 1.0}
+};
+
+cmsCIExyYTRIPLE widegamut_pascale_primaries = {
+{0.7347, 0.2653, 1.0},
+{0.1152, 0.8264, 1.0},
+{0.1566, 0.0177, 1.0}
+};
+
+cmsCIExyYTRIPLE adobe_primaries_prequantized = {
+{0.639996511, 0.329996864, 1.0},
+{0.210005295, 0.710004866, 1.0},
+{0.149997606, 0.060003644, 1.0}
+};
+
+cmsCIExyYTRIPLE srgb_primaries_pre_quantized = {
+{0.639998686, 0.330010138, 1.0},
+{0.300003784, 0.600003357, 1.0},
+{0.150002046, 0.059997204, 1.0}
+};
+
+cmsHPROFILE makeProfile(const std::string name, float gamma)
+{
+	//cmsHPROFILE p;
+	cmsCIExyYTRIPLE c;
+	if (name == "srgb") c =  srgb_primaries_pre_quantized;
+	else if (name == "wide") c =  widegamut_pascale_primaries;
+	else if (name == "adobe") c =  adobe_primaries_prequantized;
+	else if (name == "prophoto") c =  romm_primaries;
+	else return NULL;
+	cmsToneCurve *curve[3], *tonecurve;
+	tonecurve = cmsBuildGamma (NULL, gamma);
+	curve[0] = curve[1] = curve[2] = tonecurve;
+	return cmsCreateRGBProfile ( &d65_srgb_adobe_specs, &c, curve);
+}
 
 
 bool _loadRAWInfo_m(const char *filename, 
@@ -60,7 +115,7 @@ char * _loadRAW_m(const char *filename,
 			unsigned *numbits, 
 			std::map<std::string,std::string> &info, 
 			std::string params="",
-			char * icc_m=NULL, 
+			char ** icc_m=NULL, 
 			unsigned  *icclength=0)
 {
 
@@ -424,7 +479,7 @@ char * _loadRAW_m(const char *filename,
 	memcpy(img, image->data, image->data_size);
 	LibRaw::dcraw_clear_mem(image);
 
-	icc_m = NULL;
+	//icc_m = NULL;
 	*icclength = 0;
 
 	info["ISOSpeedRatings"] = tostr(P2.iso_speed);  
@@ -444,8 +499,49 @@ char * _loadRAW_m(const char *filename,
 	info["DateTime"] = buffer;  
 
 	if (C.profile) {
-		icc_m = (char *) C.profile;
+		*icc_m = new char[C.profile_length];
+		memcpy(*icc_m, C.profile, C.profile_length);
 		*icclength = C.profile_length;
+	}
+	else {  //because apparently libraw doesn't pass along the dcraw-generated profiles
+		cmsHPROFILE profile;
+		cmsUInt32Number size;
+		float gamma = 1.0/RawProcessor.imgdata.params.gamm[0];
+		if (RawProcessor.imgdata.params.output_color == 1) {
+			profile = makeProfile("srgb", gamma);
+			cmsSaveProfileToMem(profile, NULL, &size);
+			*icclength = size;
+			*icc_m = new char[size];
+			cmsSaveProfileToMem(profile, *icc_m, &size);
+		}
+		if (RawProcessor.imgdata.params.output_color == 2) {
+			profile = makeProfile("adobe", gamma);
+			cmsSaveProfileToMem(profile, NULL, &size);
+			*icclength = size;
+			*icc_m = new char[size];
+			cmsSaveProfileToMem(profile, *icc_m, &size);
+		}
+		if (RawProcessor.imgdata.params.output_color == 3) {
+			profile = makeProfile("wide", gamma);
+			cmsSaveProfileToMem(profile, NULL, &size);
+			*icclength = size;
+			*icc_m = new char[size];
+			cmsSaveProfileToMem(profile, *icc_m, &size);
+		}
+		if (RawProcessor.imgdata.params.output_color == 4) {
+			profile = makeProfile("prophoto", gamma);
+			cmsSaveProfileToMem(profile, NULL, &size);
+			*icclength = size;
+			*icc_m = new char[size];
+			cmsSaveProfileToMem(profile, *icc_m, &size);
+		}
+		if (RawProcessor.imgdata.params.output_color == 5) {
+			profile = cmsCreateXYZProfile();
+			cmsSaveProfileToMem(profile, NULL, &size);
+			*icclength = size;
+			*icc_m = new char[size];
+			cmsSaveProfileToMem(profile, *icc_m, &size);
+		}
 	}
 
 

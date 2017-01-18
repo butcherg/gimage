@@ -39,11 +39,13 @@ gImage::gImage(const gImage &o)
 	c = o.c;
 	imginfo = o.imginfo;
 	image = o.image;
-	profile = NULL;
-	profile_length = 0;
+
+	profile = new char[o.profile_length];
+	memcpy(profile, o.profile, o.profile_length);
+	profile_length = o.profile_length;
 }
 
-gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, BPP bits, std::map<std::string,std::string> imageinfo, void * icc_profile, unsigned icc_profile_length)
+gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, BPP bits, std::map<std::string,std::string> imageinfo, char * icc_profile, unsigned icc_profile_length)
 {
 	image.resize(width*height);
 	w=width;
@@ -119,6 +121,7 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 	if (icc_profile) {
 		profile = new char[icc_profile_length];
 		memcpy(profile, icc_profile, icc_profile_length);
+		//delete [] icc_profile;
 		profile_length = icc_profile_length;
 	}
 	else {
@@ -152,7 +155,7 @@ gImage::gImage(unsigned width, unsigned height, unsigned colors, std::map<std::s
 
 gImage::~gImage()
 {
-	if (profile) delete profile;
+	if (profile) delete [] profile;
 }
 
 
@@ -246,6 +249,11 @@ std::vector<pix>& gImage::getImageData()
 	return image;
 }
 
+pix* gImage::getImageDataRaw()
+{
+	return image.data();
+}
+
 unsigned gImage::getWidth()
 {
 	return w;
@@ -295,6 +303,7 @@ GIMAGE_FILETYPE gImage::getFileType(const char * filename)
 	std::map<std::string, std::string> imgdata;
 	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
 	if (strcmp(ext,"tif") == 0) return FILETYPE_TIFF;
+	if (strcmp(ext,"tiff") == 0) return FILETYPE_TIFF;
 	if (strcmp(ext,"NEF") == 0) return FILETYPE_RAW;
 	if ((strcmp(ext,"jpg") == 0) | (strcmp(ext,"JPG") == 0)) return FILETYPE_JPEG;
 	return FILETYPE_UNKNOWN;
@@ -1371,7 +1380,7 @@ gImage gImage::loadRAW(const char * filename, std::string params)
 	BPP bits;
 	char * iccprofile;
 	std::map<std::string,std::string> imgdata;
-	char * image = _loadRAW_m(filename, &width, &height, &colors, &bpp, imgdata, params, iccprofile, &icclength);
+	char * image = _loadRAW_m(filename, &width, &height, &colors, &bpp, imgdata, params, &iccprofile, &icclength);
 	switch (bpp) {
 		case 8: 
 			bits = BPP_8;
@@ -1384,6 +1393,7 @@ gImage gImage::loadRAW(const char * filename, std::string params)
 	}
 	gImage I(image, width, height, colors, bits, imgdata, iccprofile, icclength);
 	delete [] image;
+	if (icclength && iccprofile) delete [] iccprofile;
 	return I;
 
 }
@@ -1401,10 +1411,11 @@ gImage gImage::loadJPEG(const char * filename, std::string params)
 
 gImage gImage::loadTIFF(const char * filename, std::string params)
 {
-	unsigned width, height, colors, bpp;
+	unsigned width, height, colors, bpp, icclength;
 	BPP bits;
+	char * iccprofile;
 	std::map<std::string,std::string> imgdata;
-	char * image = _loadTIFF(filename, &width, &height, &colors, &bpp, imgdata);
+	char * image = _loadTIFF(filename, &width, &height, &colors, &bpp, imgdata, params, &iccprofile, &icclength);
 	switch (bpp) {
 		case 8: 
 			bits = BPP_8;
@@ -1415,8 +1426,9 @@ gImage gImage::loadTIFF(const char * filename, std::string params)
 		//default:
 		//	throw bad_typeid;
 	}
-	gImage I(image, width, height, colors, bits, imgdata);
+	gImage I(image, width, height, colors, bits, imgdata, iccprofile, icclength);
 	delete [] image;
+	if (icclength && iccprofile) delete [] iccprofile;
 	return I;
 }
 

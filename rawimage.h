@@ -18,7 +18,7 @@ char * _loadRAW_m(const char *filename,
 			unsigned *numbits, 
 			std::map<std::string,std::string> &info, 
 			std::string params="",
-			char * icc_m=NULL, 
+			char ** icc_m=NULL, 
 			unsigned  *icclength=0);
 
 #endif
