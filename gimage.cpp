@@ -12,6 +12,7 @@
 #include "tiffimage.h"
 #include "strutil.h"
 
+#define PI            3.14159265358979323846
 
 //Range 0.0-255.0 constants
 //#define SCALE_16BIT 256.0
@@ -464,7 +465,7 @@ gImage * gImage::Rotate(double angle, int threadcount)
 
 	pix * src = getImageData();
 
-	double rangle = angle * M_PI / 180.0;
+	double rangle = angle * PI / 180.0;
 	double cosine = cos(-rangle);
 	double sine = sin(-rangle);
 
@@ -517,7 +518,7 @@ void gImage::ApplyRotate(double angle, int threadcount)
 {
 	//gImage I, J, K, L;
 	unsigned x1, x2, y1, y2;
-	double rangle = angle * M_PI / 180.0;
+	double rangle = angle * PI / 180.0;
 
 	ApplyXShear(rangle,threadcount);
 	ApplyYShear(rangle,threadcount);
@@ -997,7 +998,7 @@ void gImage::ApplyNLMeans(double sigma, int local, int patch, int threadcount)
 
 double sinc(double x)
 {
-	x *= M_PI;
+	x *= PI;
 	if(x != 0) return(sin(x) / x);
 	return(1.0);
 }
