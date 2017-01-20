@@ -299,14 +299,14 @@ std::map<std::string,std::string> gImage::getInfo(const char * filename)
 
 GIMAGE_FILETYPE gImage::getFileType(const char * filename)
 {
-	unsigned width, height, colors, bpp;
-	char ext[5];
-	std::map<std::string, std::string> imgdata;
-	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
-	if (strcmp(ext,"tif") == 0) return FILETYPE_TIFF;
-	if (strcmp(ext,"tiff") == 0) return FILETYPE_TIFF;
-	if (strcmp(ext,"NEF") == 0) return FILETYPE_RAW;
-	if ((strcmp(ext,"jpg") == 0) | (strcmp(ext,"JPG") == 0)) return FILETYPE_JPEG;
+	std::string fname = filename;
+	int dotpos = fname.find_last_of(".");
+	std::string ext = fname.substr(dotpos);
+
+	if (ext.compare("tif") == 0) return FILETYPE_TIFF;
+	if (ext.compare("tiff") == 0) return FILETYPE_TIFF;
+	if (ext.compare("NEF") == 0) return FILETYPE_RAW;
+	if ((ext.compare("jpg") == 0) | (ext.compare("JPG") == 0)) return FILETYPE_JPEG;
 	return FILETYPE_UNKNOWN;
 }
 
@@ -1369,7 +1369,7 @@ gImage gImage::loadImageFile(const char * filename, std::string params)
 {
 	char ext[5];
 	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
-	if (strcmp(ext,"tif") == 0) return gImage::loadTIFF(filename, params);
+	if ((strcmp(ext,"tif") ==0) | (strcmp(ext,"tiff") == 0)) return gImage::loadTIFF(filename, params);
 	if (strcmp(ext,"NEF") == 0) return gImage::loadRAW(filename, params);
 	if ((strcmp(ext,"jpg") == 0) | (strcmp(ext,"JPG") == 0)) return gImage::loadJPEG(filename, params);
 	return gImage();
@@ -1463,6 +1463,70 @@ void gImage::saveTIFF(const char * filename, BPP bits)
 	if (bits == BPP_16) b = 16;
 	if (bits == BPP_8)  b = 8;
 	_writeTIFF(filename, getImageData(bits),  w, h, c, b, imginfo);
+}
+
+
+//ICC Profiles:
+//
+//Primaries and black/white points from Elle Stone's make-elles-profiles.c, 
+//https://github.com/ellelstone/elles_icc_profiles, GPL V2
+//
+cmsCIExyY d50_romm_spec= {0.3457, 0.3585, 1.0};
+cmsCIEXYZ d50_romm_spec_media_whitepoint = {0.964295676, 1.0, 0.825104603};
+cmsCIExyY d65_srgb_adobe_specs = {0.3127, 0.3290, 1.0};
+cmsCIEXYZ d65_media_whitepoint = {0.95045471, 1.0, 1.08905029};
+
+cmsCIExyYTRIPLE aces_primaries_prequantized = 
+{
+{0.734704192222, 0.265298276252,  1.0},
+{-0.000004945077, 0.999992850272,  1.0},
+{0.000099889199, -0.077007518685,  1.0}
+};
+
+cmsCIExyYTRIPLE romm_primaries = {
+{0.7347, 0.2653, 1.0},
+{0.1596, 0.8404, 1.0},
+{0.0366, 0.0001, 1.0}
+};
+
+cmsCIExyYTRIPLE widegamut_pascale_primaries = {
+{0.7347, 0.2653, 1.0},
+{0.1152, 0.8264, 1.0},
+{0.1566, 0.0177, 1.0}
+};
+
+cmsCIExyYTRIPLE adobe_primaries_prequantized = {
+{0.639996511, 0.329996864, 1.0},
+{0.210005295, 0.710004866, 1.0},
+{0.149997606, 0.060003644, 1.0}
+};
+
+cmsCIExyYTRIPLE srgb_primaries_pre_quantized = {
+{0.639998686, 0.330010138, 1.0},
+{0.300003784, 0.600003357, 1.0},
+{0.150002046, 0.059997204, 1.0}
+};
+
+cmsHPROFILE gImage::makeLCMSProfile(const std::string name, float gamma)
+{
+	//cmsHPROFILE p;
+	cmsCIExyYTRIPLE c;
+	if (name == "srgb") c =  srgb_primaries_pre_quantized;
+	else if (name == "wide") c =  widegamut_pascale_primaries;
+	else if (name == "adobe") c =  adobe_primaries_prequantized;
+	else if (name == "prophoto") c =  romm_primaries;
+	else return NULL;
+	cmsToneCurve *curve[3], *tonecurve;
+	tonecurve = cmsBuildGamma (NULL, gamma);
+	curve[0] = curve[1] = curve[2] = tonecurve;
+	return cmsCreateRGBProfile ( &d65_srgb_adobe_specs, &c, curve);
+}
+
+void gImage::makeICCProfile(cmsHPROFILE hProfile, char * profile, cmsUInt32Number  &profilesize)
+{
+	cmsSaveProfileToMem(hProfile, NULL, &profilesize);
+	profile = new char[profilesize];
+	cmsSaveProfileToMem(profile, profile, &profilesize);
 }
 
 
