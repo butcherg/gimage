@@ -8,7 +8,7 @@ CXX=g++
 LIBDIRS=-L$(OBJDIR)/lib
 LIBS=-lgimage -lraw -ltiff -ljpeg 
 INCLUDEDIRS=
-CFLAGS=-std=c++11 -w
+CFLAGS=
 LFLAGS=
 
 -include $(OBJDIR)/localmake.txt
