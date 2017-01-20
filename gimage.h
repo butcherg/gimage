@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <lcms2.h>
 #include "curve.h"
 #include "half.hpp"
 
@@ -116,6 +117,10 @@ class gImage
 		bool saveImageFile(const char * filename, std::string params="");
 		void saveJPEG(const char * filename, std::string params="");
 		void saveTIFF(const char * filename, BPP bits);
+
+		//ICC (LittleCMS) profiles.
+		static cmsHPROFILE makeLCMSProfile(const std::string name, float gamma);
+		static void makeICCProfile(cmsHPROFILE hProfile, char * profile, cmsUInt32Number  &profilesize);
 
 	protected:
 		gImage XShear(double rangle, int threadcount);

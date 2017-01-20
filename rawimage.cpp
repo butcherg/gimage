@@ -9,8 +9,9 @@
 #include <libraw.h>
 #include "dcraw_icc.h"
 #include <lcms2.h>
+#include "gimage.h"
 
-
+/*
 //ICC Profiles:
 cmsCIExyY d50_romm_spec= {0.3457, 0.3585, 1.0};
 cmsCIEXYZ d50_romm_spec_media_whitepoint = {0.964295676, 1.0, 0.825104603};
@@ -62,7 +63,7 @@ cmsHPROFILE makeProfile(const std::string name, float gamma)
 	curve[0] = curve[1] = curve[2] = tonecurve;
 	return cmsCreateRGBProfile ( &d65_srgb_adobe_specs, &c, curve);
 }
-
+*/
 
 bool _loadRAWInfo_m(const char *filename, 
 			unsigned *width, 
@@ -508,28 +509,28 @@ char * _loadRAW_m(const char *filename,
 		cmsUInt32Number size;
 		float gamma = 1.0/RawProcessor.imgdata.params.gamm[0];
 		if (RawProcessor.imgdata.params.output_color == 1) {
-			profile = makeProfile("srgb", gamma);
+			profile = gImage::makeLCMSProfile("srgb", gamma);
 			cmsSaveProfileToMem(profile, NULL, &size);
 			*icclength = size;
 			*icc_m = new char[size];
 			cmsSaveProfileToMem(profile, *icc_m, &size);
 		}
 		if (RawProcessor.imgdata.params.output_color == 2) {
-			profile = makeProfile("adobe", gamma);
+			profile = gImage::makeLCMSProfile("adobe", gamma);
 			cmsSaveProfileToMem(profile, NULL, &size);
 			*icclength = size;
 			*icc_m = new char[size];
 			cmsSaveProfileToMem(profile, *icc_m, &size);
 		}
 		if (RawProcessor.imgdata.params.output_color == 3) {
-			profile = makeProfile("wide", gamma);
+			profile = gImage::makeLCMSProfile("wide", gamma);
 			cmsSaveProfileToMem(profile, NULL, &size);
 			*icclength = size;
 			*icc_m = new char[size];
 			cmsSaveProfileToMem(profile, *icc_m, &size);
 		}
 		if (RawProcessor.imgdata.params.output_color == 4) {
-			profile = makeProfile("prophoto", gamma);
+			profile = gImage::makeLCMSProfile("prophoto", gamma);
 			cmsSaveProfileToMem(profile, NULL, &size);
 			*icclength = size;
 			*icc_m = new char[size];
