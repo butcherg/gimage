@@ -207,8 +207,42 @@ std::vector<float> gImage::getPixelArray(unsigned x,  unsigned y)
 struct cpix { char r, g, b; };
 struct uspix { unsigned short r, g, b; };
 
-char * gImage::getImageData(BPP bits)
+char * gImage::getTransformedImageData(BPP bits, cmsHPROFILE profile)
 {
+	cmsHPROFILE hImgProfile;
+	cmsUInt32Number informat, outformat;
+	cmsHTRANSFORM hTransform;
+	char * imagedata;
+	if (bits == BPP_16) {
+		imagedata = new char[w*h*c*2];
+		outformat = TYPE_RGB_16;
+	}
+	else if (bits == BPP_8) {
+		imagedata = new char[w*h*c];
+		outformat = TYPE_RGB_8;
+	}
+	else
+		return NULL;
+
+	if (sizeof(PIXTYPE) == 2) informat = TYPE_RGB_HALF_FLT; 
+	if (sizeof(PIXTYPE) == 4) informat = TYPE_RGB_FLT;
+	if (sizeof(PIXTYPE) == 8) informat = TYPE_RGB_DBL;
+
+	hImgProfile = cmsOpenProfileFromMem(getProfile(), getProfileLength());
+
+	if (hImgProfile != NULL & profile != NULL) {
+		hTransform = cmsCreateTransform(hImgProfile, informat, profile, outformat, INTENT_PERCEPTUAL, 0);
+		cmsDoTransform(hTransform, image.data(), imagedata, w*h);
+	}
+
+	return imagedata;
+}
+
+char * gImage::getImageData(BPP bits, cmsHPROFILE profile)
+{
+	cmsHPROFILE hImgProfile;
+	cmsUInt32Number format;
+	cmsHTRANSFORM hTransform;
 	char * imagedata;
 	if (bits == BPP_16)
 		imagedata = new char[w*h*c*2];
@@ -228,6 +262,7 @@ char * gImage::getImageData(BPP bits)
 				dst[pos].b = (unsigned short) lrint(fmin(fmax(image[pos].b*SCALE_16BIT,0.0),65535.0)); 
 			}
 		}
+		format = TYPE_RGB_16;
 	}
 
 	if (bits == BPP_8) {
@@ -241,7 +276,18 @@ char * gImage::getImageData(BPP bits)
 				dst[pos].b = (unsigned char) lrint(fmin(fmax(image[pos].b*SCALE_8BIT,0.0),255.0)); 
 			}
 		}
+		format = TYPE_RGB_8;
 	}
+
+	if (profile) {
+		hImgProfile = cmsOpenProfileFromMem(getProfile(), getProfileLength());
+		if (hImgProfile != NULL & profile != NULL) {
+			hTransform = cmsCreateTransform(hImgProfile, format, profile, format, INTENT_PERCEPTUAL, 0);
+			cmsCloseProfile(hImgProfile);
+			cmsDoTransform(hTransform, imagedata, imagedata, w*h);
+		}
+	}
+
 	return imagedata;
 }
 
@@ -301,8 +347,7 @@ GIMAGE_FILETYPE gImage::getFileType(const char * filename)
 {
 	std::string fname = filename;
 	int dotpos = fname.find_last_of(".");
-	std::string ext = fname.substr(dotpos);
-
+	std::string ext = fname.substr(dotpos+1);
 	if (ext.compare("tif") == 0) return FILETYPE_TIFF;
 	if (ext.compare("tiff") == 0) return FILETYPE_TIFF;
 	if (ext.compare("NEF") == 0) return FILETYPE_RAW;
@@ -1367,11 +1412,11 @@ std::vector<long> gImage::Histogram()
 
 gImage gImage::loadImageFile(const char * filename, std::string params)
 {
-	char ext[5];
-	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
-	if ((strcmp(ext,"tif") ==0) | (strcmp(ext,"tiff") == 0)) return gImage::loadTIFF(filename, params);
-	if (strcmp(ext,"NEF") == 0) return gImage::loadRAW(filename, params);
-	if ((strcmp(ext,"jpg") == 0) | (strcmp(ext,"JPG") == 0)) return gImage::loadJPEG(filename, params);
+	GIMAGE_FILETYPE ext = gImage::getFileType(filename);
+
+	if (ext == FILETYPE_TIFF) return gImage::loadTIFF(filename, params);
+	if (ext == FILETYPE_RAW) return gImage::loadRAW(filename, params);
+	if (ext == FILETYPE_JPEG) return gImage::loadJPEG(filename, params);
 	return gImage();
 }
 
@@ -1436,33 +1481,48 @@ gImage gImage::loadTIFF(const char * filename, std::string params)
 
 //Savers:
 
-bool gImage::saveImageFile(const char * filename, std::string params)
+bool gImage::saveImageFile(const char * filename, std::string params, cmsHPROFILE profile)
 {
 	char ext[5];
 	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
 	if (strcmp(ext,"tif") == 0) {
-		saveTIFF(filename, BPP_16);
+		if (profile)
+			saveTIFF(filename, BPP_16, profile);
+		else
+			saveTIFF(filename, BPP_16);
 		return true;
 	}
 	if (strcmp(ext,"jpg") == 0) {
-		saveJPEG(filename, params);
+		if (profile)
+			saveJPEG(filename, params, profile);
+		else
+			saveJPEG(filename, params);
 		return true;
 	}
 	return false;
 }
 
 
-void gImage::saveJPEG(const char * filename, std::string params)
+void gImage::saveJPEG(const char * filename, std::string params, cmsHPROFILE profile)
 {
-	_writeJPEG(filename, getImageData(BPP_8),  w, h, c, imginfo, params);
+	if (profile) {
+		_writeJPEG(filename, getTransformedImageData(BPP_8, profile),  w, h, c, imginfo, params);  //slower, but not as noisy
+		//_writeJPEG(filename, getImageData(BPP_8, profile),  w, h, c, imginfo, params);  //seems a bit noisier
+	}
+	else
+		_writeJPEG(filename, getImageData(BPP_8),  w, h, c, imginfo, params);
 }
 
-void gImage::saveTIFF(const char * filename, BPP bits)
+void gImage::saveTIFF(const char * filename, BPP bits, cmsHPROFILE profile)
 {
 	unsigned b = 16;
 	if (bits == BPP_16) b = 16;
 	if (bits == BPP_8)  b = 8;
-	_writeTIFF(filename, getImageData(bits),  w, h, c, b, imginfo);
+	if (profile)
+		_writeTIFF(filename, getTransformedImageData(bits, profile),  w, h, c, b, imginfo);
+		//_writeTIFF(filename, getImageData(bits, profile),  w, h, c, b, imginfo);
+	else
+		_writeTIFF(filename, getImageData(bits),  w, h, c, b, imginfo);		
 }
 
 
@@ -1509,7 +1569,7 @@ cmsCIExyYTRIPLE srgb_primaries_pre_quantized = {
 
 cmsHPROFILE gImage::makeLCMSProfile(const std::string name, float gamma)
 {
-	//cmsHPROFILE p;
+	cmsHPROFILE profile;
 	cmsCIExyYTRIPLE c;
 	if (name == "srgb") c =  srgb_primaries_pre_quantized;
 	else if (name == "wide") c =  widegamut_pascale_primaries;
@@ -1519,7 +1579,17 @@ cmsHPROFILE gImage::makeLCMSProfile(const std::string name, float gamma)
 	cmsToneCurve *curve[3], *tonecurve;
 	tonecurve = cmsBuildGamma (NULL, gamma);
 	curve[0] = curve[1] = curve[2] = tonecurve;
-	return cmsCreateRGBProfile ( &d65_srgb_adobe_specs, &c, curve);
+
+	profile =  cmsCreateRGBProfile ( &d65_srgb_adobe_specs, &c, curve);
+
+	std::string descr = "rawproc D65-"+name;
+	cmsMLU *description;
+	description = cmsMLUalloc(NULL, 1);
+	cmsMLUsetASCII(description, "en", "US", descr.c_str());
+	cmsWriteTag(profile, cmsSigProfileDescriptionTag, description);
+
+	return profile;
+	
 }
 
 void gImage::makeICCProfile(cmsHPROFILE hProfile, char * profile, cmsUInt32Number  &profilesize)

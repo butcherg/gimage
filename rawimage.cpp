@@ -128,7 +128,7 @@ char * _loadRAW_m(const char *filename,
 	std::map<std::string,std::string> p = parseparams(params);
 
 	//for (std::map<std::string,std::string>::iterator it=p.begin(); it!=p.end(); ++it)
-	//	std::cout << it->first << ": " << it->second << std::endl;
+	//	std::cout << it->first << ": -" << it->second << "-" << std::endl;
 	//printf("\n");
 	
 #define P1 RawProcessor.imgdata.idata
@@ -165,6 +165,7 @@ char * _loadRAW_m(const char *filename,
 		if (p["colorspace"].compare("xyz") == 0) 
 			RawProcessor.imgdata.params.output_color = 5;
 	}
+
 	if (p.find("output_color") != p.end()) 
 		RawProcessor.imgdata.params.output_color = atoi(p["output_color"].c_str());
 

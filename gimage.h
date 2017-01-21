@@ -56,7 +56,8 @@ class gImage
 		//Getters
 		pix getPixel(unsigned x,  unsigned y);
 		std::vector<float> getPixelArray(unsigned x,  unsigned y);
-		char *getImageData(BPP bits);
+		char *getImageData(BPP bits, cmsHPROFILE profile=NULL);
+		char *getTransformedImageData(BPP bits, cmsHPROFILE profile);
 		std::vector<pix>& getImageData();
 		pix* getImageDataRaw();
 		unsigned getWidth();
@@ -114,9 +115,9 @@ class gImage
 		static gImage loadImageFile(const char * filename, std::string params);
 
 		//Image savers. 
-		bool saveImageFile(const char * filename, std::string params="");
-		void saveJPEG(const char * filename, std::string params="");
-		void saveTIFF(const char * filename, BPP bits);
+		bool saveImageFile(const char * filename, std::string params="", cmsHPROFILE profile=NULL);
+		void saveJPEG(const char * filename, std::string params="", cmsHPROFILE profile=NULL);
+		void saveTIFF(const char * filename, BPP bits, cmsHPROFILE profile=NULL);
 
 		//ICC (LittleCMS) profiles.
 		static cmsHPROFILE makeLCMSProfile(const std::string name, float gamma);
