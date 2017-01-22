@@ -54,11 +54,12 @@ std::string FormatName(int fmt)
 	return "beats me...";
 }
 
-
+/*
 typedef struct {
     unsigned short Tag;
     const char * Desc;
 }TagTable_t;
+*/
 
 //--------------------------------------------------------------------------
 // Describes tag values
@@ -172,118 +173,135 @@ typedef struct {
 #define TAG_DISTANCE_RANGE         0xA40C
 #define TAG_IMAGE_UNIQUE_ID        0xA420
 
+
+
+typedef struct {
+	unsigned short Tag;
+	const char * Desc;
+	unsigned short Format;
+}TagTable_t;
+
 const TagTable_t TagTable[] = {
-  { TAG_INTEROP_INDEX,          "InteropIndex"},
-  { TAG_INTEROP_VERSION,        "InteropVersion"},
-  { TAG_IMAGE_WIDTH,            "ImageWidth"},
-  { TAG_IMAGE_LENGTH,           "ImageLength"},
-  { TAG_BITS_PER_SAMPLE,        "BitsPerSample"},
-  { TAG_COMPRESSION,            "Compression"},
-  { TAG_PHOTOMETRIC_INTERP,     "PhotometricInterpretation"},
-  { TAG_FILL_ORDER,             "FillOrder"},
-  { TAG_DOCUMENT_NAME,          "DocumentName"},
-  { TAG_IMAGE_DESCRIPTION,      "ImageDescription"},
-  { TAG_MAKE,                   "Make"},
-  { TAG_MODEL,                  "Model"},
-  { TAG_SRIP_OFFSET,            "StripOffsets"},
-  { TAG_ORIENTATION,            "Orientation"},
-  { TAG_SAMPLES_PER_PIXEL,      "SamplesPerPixel"},
-  { TAG_ROWS_PER_STRIP,         "RowsPerStrip"},
-  { TAG_STRIP_BYTE_COUNTS,      "StripByteCounts"},
-  { TAG_X_RESOLUTION,           "XResolution"},
-  { TAG_Y_RESOLUTION,           "YResolution"},
-  { TAG_PLANAR_CONFIGURATION,   "PlanarConfiguration"},
-  { TAG_RESOLUTION_UNIT,        "ResolutionUnit"},
-  { TAG_TRANSFER_FUNCTION,      "TransferFunction"},
-  { TAG_SOFTWARE,               "Software"},
-  { TAG_DATETIME,               "DateTime"},
-  { TAG_ARTIST,                 "Artist"},
-  { TAG_WHITE_POINT,            "WhitePoint"},
-  { TAG_PRIMARY_CHROMATICITIES, "PrimaryChromaticities"},
-  { TAG_TRANSFER_RANGE,         "TransferRange"},
-  { TAG_JPEG_PROC,              "JPEGProc"},
-  { TAG_THUMBNAIL_OFFSET,       "ThumbnailOffset"},
-  { TAG_THUMBNAIL_LENGTH,       "ThumbnailLength"},
-  { TAG_Y_CB_CR_COEFFICIENTS,   "YCbCrCoefficients"},
-  { TAG_Y_CB_CR_SUB_SAMPLING,   "YCbCrSubSampling"},
-  { TAG_Y_CB_CR_POSITIONING,    "YCbCrPositioning"},
-  { TAG_REFERENCE_BLACK_WHITE,  "ReferenceBlackWhite"},
-  { TAG_RELATED_IMAGE_WIDTH,    "RelatedImageWidth"},
-  { TAG_RELATED_IMAGE_LENGTH,   "RelatedImageLength"},
-  { TAG_CFA_REPEAT_PATTERN_DIM, "CFARepeatPatternDim"},
-  { TAG_CFA_PATTERN1,           "CFAPattern"},
-  { TAG_BATTERY_LEVEL,          "BatteryLevel"},
-  { TAG_COPYRIGHT,              "Copyright"},
-  { TAG_EXPOSURETIME,           "ExposureTime"},
-  { TAG_FNUMBER,                "FNumber"},
-  { TAG_IPTC_NAA,               "IPTC/NAA"},
-  { TAG_EXIF_OFFSET,            "ExifOffset"},
-  { TAG_INTER_COLOR_PROFILE,    "InterColorProfile"},
-  { TAG_EXPOSURE_PROGRAM,       "ExposureProgram"},
-  { TAG_SPECTRAL_SENSITIVITY,   "SpectralSensitivity"},
-  { TAG_GPSINFO,                "GPS Dir offset"},
-  { TAG_ISO_EQUIVALENT,         "ISOSpeedRatings"},
-  { TAG_OECF,                   "OECF"},
-  { TAG_EXIF_VERSION,           "ExifVersion"},
-  { TAG_DATETIME_ORIGINAL,      "DateTimeOriginal"},
-  { TAG_DATETIME_DIGITIZED,     "DateTimeDigitized"},
-  { TAG_COMPONENTS_CONFIG,      "ComponentsConfiguration"},
-  { TAG_CPRS_BITS_PER_PIXEL,    "CompressedBitsPerPixel"},
-  { TAG_SHUTTERSPEED,           "ShutterSpeedValue"},
-  { TAG_APERTURE,               "ApertureValue"},
-  { TAG_BRIGHTNESS_VALUE,       "BrightnessValue"},
-  { TAG_EXPOSURE_BIAS,          "ExposureBiasValue"},
-  { TAG_MAXAPERTURE,            "MaxApertureValue"},
-  { TAG_SUBJECT_DISTANCE,       "SubjectDistance"},
-  { TAG_METERING_MODE,          "MeteringMode"},
-  { TAG_LIGHT_SOURCE,           "LightSource"},
-  { TAG_FLASH,                  "Flash"},
-  { TAG_FOCALLENGTH,            "FocalLength"},
-  { TAG_MAKER_NOTE,             "MakerNote"},
-  { TAG_USERCOMMENT,            "UserComment"},
-  { TAG_SUBSEC_TIME,            "SubSecTime"},
-  { TAG_SUBSEC_TIME_ORIG,       "SubSecTimeOriginal"},
-  { TAG_SUBSEC_TIME_DIG,        "SubSecTimeDigitized"},
-  { TAG_WINXP_TITLE,            "Windows-XP Title"},
-  { TAG_WINXP_COMMENT,          "Windows-XP comment"},
-  { TAG_WINXP_AUTHOR,           "Windows-XP author"},
-  { TAG_WINXP_KEYWORDS,         "Windows-XP keywords"},
-  { TAG_WINXP_SUBJECT,          "Windows-XP subject"},
-  { TAG_FLASH_PIX_VERSION,      "FlashPixVersion"},
-  { TAG_COLOR_SPACE,            "ColorSpace"},
-  { TAG_PIXEL_X_DIMENSION,      "ExifImageWidth"},
-  { TAG_PIXEL_Y_DIMENSION,      "ExifImageLength"},
-  { TAG_RELATED_AUDIO_FILE,     "RelatedAudioFile"},
-  { TAG_INTEROP_OFFSET,         "InteroperabilityOffset"},
-  { TAG_FLASH_ENERGY,           "FlashEnergy"},              
-  { TAG_SPATIAL_FREQ_RESP,      "SpatialFrequencyResponse"}, 
-  { TAG_FOCAL_PLANE_XRES,       "FocalPlaneXResolution"},    
-  { TAG_FOCAL_PLANE_YRES,       "FocalPlaneYResolution"},    
-  { TAG_FOCAL_PLANE_UNITS,      "FocalPlaneResolutionUnit"}, 
-  { TAG_SUBJECT_LOCATION,       "SubjectLocation"},          
-  { TAG_EXPOSURE_INDEX,         "ExposureIndex"},            
-  { TAG_SENSING_METHOD,         "SensingMethod"},            
-  { TAG_FILE_SOURCE,            "FileSource"},
-  { TAG_SCENE_TYPE,             "SceneType"},
-  { TAG_CFA_PATTERN,            "CFA Pattern"},
-  { TAG_CUSTOM_RENDERED,        "CustomRendered"},
-  { TAG_EXPOSURE_MODE,          "ExposureMode"},
-  { TAG_WHITEBALANCE,           "WhiteBalance"},
-  { TAG_DIGITALZOOMRATIO,       "DigitalZoomRatio"},
-  { TAG_FOCALLENGTH_35MM,       "FocalLengthIn35mmFilm"},
-  { TAG_SUBJECTAREA,            "SubjectArea"},
-  { TAG_SCENE_CAPTURE_TYPE,     "SceneCaptureType"},
-  { TAG_GAIN_CONTROL,           "GainControl"},
-  { TAG_CONTRAST,               "Contrast"},
-  { TAG_SATURATION,             "Saturation"},
-  { TAG_SHARPNESS,              "Sharpness"},
-  { TAG_DISTANCE_RANGE,         "SubjectDistanceRange"},
-  { TAG_IMAGE_UNIQUE_ID,        "ImageUniqueId"},
+{TAG_APERTURE,"ApertureValue",FMT_URATIONAL},
+{TAG_ARTIST,"Artist",FMT_STRING},
+{TAG_BATTERY_LEVEL,"BatteryLevel",FMT_URATIONAL},
+{TAG_BITS_PER_SAMPLE,"BitsPerSample",FMT_USHORT},
+{TAG_BRIGHTNESS_VALUE,"BrightnessValue",FMT_SRATIONAL},
+{TAG_CFA_PATTERN1,"CFAPattern",FMT_BYTE},
+{TAG_CFA_REPEAT_PATTERN_DIM,"CFARepeatPatternDim",FMT_USHORT},
+{TAG_COLOR_SPACE,"ColorSpace",FMT_USHORT},
+{TAG_COMPRESSION,"Compression",FMT_USHORT},
+{TAG_CONTRAST,"Contrast",FMT_USHORT},
+{TAG_COPYRIGHT,"Copyright",FMT_STRING},
+{TAG_CPRS_BITS_PER_PIXEL,"CompressedBitsPerPixel",FMT_URATIONAL},
+{TAG_CUSTOM_RENDERED,"CustomRendered",FMT_USHORT},
+{TAG_DATETIME,"DateTime",FMT_STRING},
+{TAG_DATETIME_DIGITIZED,"DateTimeDigitized",FMT_STRING},
+{TAG_DATETIME_ORIGINAL,"DateTimeOriginal",FMT_STRING},
+{TAG_DIGITALZOOMRATIO,"DigitalZoomRatio",FMT_URATIONAL},
+{TAG_DISTANCE_RANGE,"SubjectDistanceRange",FMT_USHORT},
+{TAG_DOCUMENT_NAME,"DocumentName",FMT_STRING},
+{TAG_EXIF_OFFSET,"ExifTag",FMT_ULONG},
+{TAG_EXPOSURE_BIAS,"ExposureBiasValue",FMT_SRATIONAL},
+{TAG_EXPOSURE_INDEX,"ExposureIndex",FMT_URATIONAL},
+{TAG_EXPOSURE_MODE,"ExposureMode",FMT_USHORT},
+{TAG_EXPOSURE_PROGRAM,"ExposureProgram",FMT_USHORT},
+{TAG_EXPOSURETIME,"ExposureTime",FMT_URATIONAL},
+{TAG_FILL_ORDER,"FillOrder",FMT_USHORT},
+{TAG_FLASH,"Flash",FMT_USHORT},
+{TAG_FLASH_ENERGY,"FlashEnergy",FMT_URATIONAL},
+{TAG_FNUMBER,"FNumber",FMT_URATIONAL},
+{TAG_FOCAL_PLANE_UNITS,"FocalPlaneResolutionUnit",FMT_USHORT},
+{TAG_FOCAL_PLANE_XRES,"FocalPlaneXResolution",FMT_URATIONAL},
+{TAG_FOCAL_PLANE_YRES,"FocalPlaneYResolution",FMT_URATIONAL},
+{TAG_FOCALLENGTH,"FocalLength",FMT_URATIONAL},
+{TAG_FOCALLENGTH_35MM,"FocalLengthIn35mmFilm",FMT_USHORT},
+{TAG_GAIN_CONTROL,"GainControl",FMT_USHORT},
+{TAG_GPSINFO,"GPSTag",FMT_ULONG},
+{TAG_IMAGE_DESCRIPTION,"ImageDescription",FMT_STRING},
+{TAG_IMAGE_LENGTH,"ImageLength",FMT_ULONG},
+{TAG_IMAGE_UNIQUE_ID,"ImageUniqueID",FMT_STRING},
+{TAG_IMAGE_WIDTH,"ImageWidth",FMT_ULONG},
+{TAG_INTEROP_OFFSET,"InteroperabilityTag",FMT_ULONG},
+{TAG_IPTC_NAA,"IPTCNAA",FMT_ULONG},
+{TAG_ISO_EQUIVALENT,"ISOSpeedRatings",FMT_USHORT},
+{TAG_JPEG_PROC,"JPEGProc",FMT_ULONG},
+{TAG_LIGHT_SOURCE,"LightSource",FMT_USHORT},
+{TAG_MAKE,"Make",FMT_STRING},
+{TAG_MAXAPERTURE,"MaxApertureValue",FMT_URATIONAL},
+{TAG_METERING_MODE,"MeteringMode",FMT_USHORT},
+{TAG_MODEL,"Model",FMT_STRING},
+{TAG_ORIENTATION,"Orientation",FMT_USHORT},
+{TAG_PHOTOMETRIC_INTERP,"PhotometricInterpretation",FMT_USHORT},
+{TAG_PIXEL_X_DIMENSION,"PixelXDimension",FMT_ULONG},
+{TAG_PIXEL_Y_DIMENSION,"PixelYDimension",FMT_ULONG},
+{TAG_PLANAR_CONFIGURATION,"PlanarConfiguration",FMT_USHORT},
+{TAG_PRIMARY_CHROMATICITIES,"PrimaryChromaticities",FMT_URATIONAL},
+{TAG_REFERENCE_BLACK_WHITE,"ReferenceBlackWhite",FMT_URATIONAL},
+{TAG_RELATED_AUDIO_FILE,"RelatedSoundFile",FMT_STRING},
+{TAG_RELATED_IMAGE_LENGTH,"RelatedImageLength",FMT_ULONG},
+{TAG_RELATED_IMAGE_WIDTH,"RelatedImageWidth",FMT_ULONG},
+{TAG_RESOLUTION_UNIT,"ResolutionUnit",FMT_USHORT},
+{TAG_ROWS_PER_STRIP,"RowsPerStrip",FMT_ULONG},
+{TAG_SAMPLES_PER_PIXEL,"SamplesPerPixel",FMT_USHORT},
+{TAG_SATURATION,"Saturation",FMT_USHORT},
+{TAG_SCENE_CAPTURE_TYPE,"SceneCaptureType",FMT_USHORT},
+{TAG_SENSING_METHOD,"SensingMethod",FMT_USHORT},
+{TAG_SHARPNESS,"Sharpness",FMT_USHORT},
+{TAG_SHUTTERSPEED,"ShutterSpeedValue",FMT_SRATIONAL},
+{TAG_SOFTWARE,"Software",FMT_STRING},
+{TAG_SPECTRAL_SENSITIVITY,"SpectralSensitivity",FMT_STRING},
+{TAG_SRIP_OFFSET,"StripOffsets",FMT_ULONG},
+{TAG_STRIP_BYTE_COUNTS,"StripByteCounts",FMT_ULONG},
+{TAG_SUBJECT_DISTANCE,"SubjectDistance",FMT_SRATIONAL},
+{TAG_SUBJECT_LOCATION,"SubjectLocation",FMT_USHORT},
+{TAG_SUBJECTAREA,"SubjectLocation",FMT_USHORT},
+{TAG_SUBSEC_TIME,"SubSecTime",FMT_STRING},
+{TAG_SUBSEC_TIME_DIG,"SubSecTimeDigitized",FMT_STRING},
+{TAG_SUBSEC_TIME_ORIG,"SubSecTimeOriginal",FMT_STRING},
+{TAG_THUMBNAIL_LENGTH,"JPEGInterchangeFormatLength",FMT_ULONG},
+{TAG_THUMBNAIL_OFFSET,"JPEGInterchangeFormat",FMT_ULONG},
+{TAG_TRANSFER_FUNCTION,"TransferFunction",FMT_USHORT},
+{TAG_TRANSFER_RANGE,"TransferRange",FMT_USHORT},
+{TAG_WHITE_POINT,"WhitePoint",FMT_URATIONAL},
+{TAG_WHITEBALANCE,"WhiteBalance",FMT_USHORT},
+{TAG_WINXP_AUTHOR,"XPAuthor",FMT_BYTE},
+{TAG_WINXP_COMMENT,"XPComment",FMT_BYTE},
+{TAG_WINXP_KEYWORDS,"XPKeywords",FMT_BYTE},
+{TAG_WINXP_SUBJECT,"XPSubject",FMT_BYTE},
+{TAG_WINXP_TITLE,"XPTitle",FMT_BYTE},
+{TAG_X_RESOLUTION,"XResolution",FMT_URATIONAL},
+{TAG_Y_CB_CR_COEFFICIENTS,"YCbCrCoefficients",FMT_URATIONAL},
+{TAG_Y_CB_CR_POSITIONING,"YCbCrPositioning",FMT_USHORT},
+{TAG_Y_CB_CR_SUB_SAMPLING,"YCbCrSubSampling",FMT_USHORT},
+{TAG_Y_RESOLUTION,"YResolution",FMT_URATIONAL},
+{TAG_USERCOMMENT,"UserComment",FMT_STRING}
 } ;
 
 #define TAG_TABLE_SIZE  (sizeof(TagTable) / sizeof(TagTable_t))
 
 
+unsigned getTag(std::string tagname)
+{
+	for (unsigned i = 0; i < TAG_TABLE_SIZE; i++) 
+		if (tagname.compare(TagTable[i].Desc) == 0) return TagTable[i].Tag;
+	return 0;
+}
+
+unsigned getTagFormat(std::string tagname)
+{
+	for (unsigned i = 0; i < TAG_TABLE_SIZE; i++) 
+		if (tagname.compare(TagTable[i].Desc) == 0) return TagTable[i].Format;
+	return 0;
+}
+
+unsigned countValidEXIFEntries(std::map<std::string,std::string> imageinfo)
+{
+	unsigned c = 0;
+	for (std::map<std::string,std::string>::iterator it=imageinfo.begin(); it!=imageinfo.end(); ++it)
+		if (getTag(it->first)) c++;
+	return c;
+}
 
 
 typedef unsigned char uchar;
@@ -692,216 +710,99 @@ void parse_APP1marker(unsigned char * marker, unsigned length, std::map<std::str
 
 
 
+
+
+//Globals for constructing the APP1 marker:
+
+unsigned char Buffer[512];
+
+unsigned short NumEntries;
+int DataWriteIndex;
+int DateIndex;
+int DirIndex;
+int DirContinuation;
+    
+void addAPP1Entry(unsigned tag, unsigned format, std::string value)
+{
+	// Tag
+	Put16u(Buffer+DirIndex, tag);
+
+	// Format
+	Put16u(Buffer+DirIndex + 2, format);
+
+	//Components
+	if (format == FMT_STRING) 
+		Put32u(Buffer+DirIndex + 4, value.length()+1);	
+	else if (format == FMT_URATIONAL | format == FMT_USHORT)
+		Put32u(Buffer+DirIndex + 4, 1);	
+
+	//Pointer or value
+	if (format == FMT_USHORT)
+		Put16u(Buffer+DirIndex + 8, atoi(value.c_str()));
+	else if (format == FMT_URATIONAL | format == FMT_STRING)
+		Put32u(Buffer+DirIndex + 8, DataWriteIndex-8);
+
+	DirIndex += 12;
+
+	if (format == FMT_URATIONAL) {
+		Put32u(Buffer+DataWriteIndex, (int)(atof(value.c_str())*10000000.0));
+		Put32u(Buffer+DataWriteIndex+4, 10000000);
+		DataWriteIndex += 8;
+	}
+	else if (format == FMT_STRING) {
+		strcpy((char *) Buffer+DataWriteIndex, value.c_str());
+		DataWriteIndex += value.length()+1;
+	}
+}
+
+
 unsigned char * construct_APP1marker(std::map<std::string,std::string> imageinfo, unsigned *markerlength)
 {
-    unsigned char Buffer[512];
 
-    unsigned short NumEntries;
-    int DataWriteIndex;
-    int DateIndex;
-    int DirIndex;
-    int DirContinuation;
-    
-    MotorolaOrder = 0;
+	MotorolaOrder = 0;
 
-    memcpy(Buffer+2, "Exif\0\0II",8);
-    Put16u(Buffer+10, 0x2a);
+	memcpy(Buffer+2, "Exif\0\0II",8);
+	Put16u(Buffer+10, 0x2a);
 
-    DataWriteIndex = 16;
-    Put32u(Buffer+12, DataWriteIndex-8); // first IFD offset.  Means start 16 bytes in.
-
-    {
-        DirIndex = DataWriteIndex;
-        NumEntries = 10;
-        DataWriteIndex += 2 + NumEntries*12 + 4;
-
-        Put16u(Buffer+DirIndex, NumEntries); // Number of entries
-        DirIndex += 2;
-  
-        // Enitries go here...
-        {
-		// Date/time entry
-		Put16u(Buffer+DirIndex, TAG_DATETIME);         // Tag
-		Put16u(Buffer+DirIndex + 2, FMT_STRING);       // Format
-		Put32u(Buffer+DirIndex + 4, imageinfo["DateTime"].length()+1);               // Components
-		Put32u(Buffer+DirIndex + 8, DataWriteIndex-8); // Pointer or value.
-		DirIndex += 12;
-		strcpy((char *) Buffer+DataWriteIndex, imageinfo["DateTime"].c_str());
-		DataWriteIndex += imageinfo["DateTime"].length()+1;
+	DataWriteIndex = 16;
+	Put32u(Buffer+12, DataWriteIndex-8); // first IFD offset.  Means start 16 bytes in.
 
 
-		// Make:
-		Put16u(Buffer+DirIndex, TAG_MAKE);         // Tag
-		Put16u(Buffer+DirIndex + 2, FMT_STRING);       // Format
-		Put32u(Buffer+DirIndex + 4, imageinfo["Make"].length()+1);               // Components
-		Put32u(Buffer+DirIndex + 8, DataWriteIndex-8); // Pointer or value.
-		DirIndex += 12;
-		strcpy((char *) Buffer+DataWriteIndex, imageinfo["Make"].c_str());
-		DataWriteIndex += imageinfo["Make"].length()+1;
+	DirIndex = DataWriteIndex;
+	NumEntries = countValidEXIFEntries(imageinfo);
+	DataWriteIndex += 2 + NumEntries*12 + 4;
 
-		// Model:
-		Put16u(Buffer+DirIndex, TAG_MODEL);         // Tag
-		Put16u(Buffer+DirIndex + 2, FMT_STRING);       // Format
-		Put32u(Buffer+DirIndex + 4, imageinfo["Model"].length()+1);               // Components
-		Put32u(Buffer+DirIndex + 8, DataWriteIndex-8); // Pointer or value.
-		DirIndex += 12;
-		strcpy((char *) Buffer+DataWriteIndex, imageinfo["Model"].c_str());
-		DataWriteIndex += imageinfo["Model"].length()+1;
-
-		// FNumber:
-		Put16u(Buffer+DirIndex, TAG_FNUMBER);		// Tag
-		Put16u(Buffer+DirIndex + 2, FMT_URATIONAL);	// Format
-		Put32u(Buffer+DirIndex + 4, 1);			// Components
-		Put32u(Buffer+DirIndex + 8, DataWriteIndex-8);	// Pointer or value.
-		DirIndex += 12;
-		Put32u(Buffer+DataWriteIndex, (int)(atof(imageinfo["FNumber"].c_str())*10000000.0));
-		Put32u(Buffer+DataWriteIndex+4, 10000000);
-		DataWriteIndex += 8;
-
-		// ExposureTime:
-		Put16u(Buffer+DirIndex, TAG_EXPOSURETIME);	// Tag
-		Put16u(Buffer+DirIndex + 2, FMT_URATIONAL);	// Format
-		Put32u(Buffer+DirIndex + 4, 1);			// Components
-		Put32u(Buffer+DirIndex + 8, DataWriteIndex-8);	// Pointer or value.
-		DirIndex += 12;
-		Put32u(Buffer+DataWriteIndex, (int)(atof(imageinfo["ExposureTime"].c_str())*10000000.0));
-		Put32u(Buffer+DataWriteIndex+4, 10000000);
-		DataWriteIndex += 8;
-
-		// FocalLength:
-		Put16u(Buffer+DirIndex, TAG_FOCALLENGTH);	// Tag
-		Put16u(Buffer+DirIndex + 2, FMT_URATIONAL);	// Format
-		Put32u(Buffer+DirIndex + 4, 1);			// Components
-		Put32u(Buffer+DirIndex + 8, DataWriteIndex-8);	// Pointer or value.
-		DirIndex += 12;
-		Put32u(Buffer+DataWriteIndex, (int)(atof(imageinfo["FocalLength"].c_str())*10000000.0));
-		Put32u(Buffer+DataWriteIndex+4, 10000000);
-		DataWriteIndex += 8;
-
-		// ISOSpeedRatings:
-		Put16u(Buffer+DirIndex, TAG_ISO_EQUIVALENT);	// Tag
-		Put16u(Buffer+DirIndex + 2, FMT_USHORT);	// Format
-		Put32u(Buffer+DirIndex + 4, 1);			// Components
-		Put16u(Buffer+DirIndex + 8, atoi(imageinfo["ISOSpeedRatings"].c_str())); // Pointer or value.
-		DirIndex += 12;
-
-		// Software:
-		Put16u(Buffer+DirIndex, TAG_SOFTWARE);         // Tag
-		Put16u(Buffer+DirIndex + 2, FMT_STRING);       // Format
-		Put32u(Buffer+DirIndex + 4, imageinfo["Software"].length()+1);               // Components
-		Put32u(Buffer+DirIndex + 8, DataWriteIndex-8); // Pointer or value.
-		DirIndex += 12;
-		strcpy((char *) Buffer+DataWriteIndex, imageinfo["Software"].c_str());
-		DataWriteIndex += imageinfo["Software"].length()+1;
-
-		// Image Description:
-		Put16u(Buffer+DirIndex, TAG_IMAGE_DESCRIPTION);         // Tag
-		Put16u(Buffer+DirIndex + 2, FMT_STRING);       // Format
-		Put32u(Buffer+DirIndex + 4, imageinfo["ImageDescription"].length()+1);               // Components
-		Put32u(Buffer+DirIndex + 8, DataWriteIndex-8); // Pointer or value.
-		DirIndex += 12;
-		strcpy((char *) Buffer+DataWriteIndex, imageinfo["ImageDescription"].c_str());
-		DataWriteIndex += imageinfo["ImageDescription"].length()+1;
+	Put16u(Buffer+DirIndex, NumEntries); // Number of entries
+	DirIndex += 2;
 
 
+	for (std::map<std::string,std::string>::iterator it=imageinfo.begin(); it!=imageinfo.end(); ++it) {
+		unsigned tag = getTag(it->first);
+		if (tag) {
+			addAPP1Entry(tag, getTagFormat(it->first), it->second);
+		}
+	}
 
-        
-            // Link to exif dir entry
-            Put16u(Buffer+DirIndex, TAG_EXIF_OFFSET);      // Tag
-            Put16u(Buffer+DirIndex + 2, FMT_ULONG);        // Format
-            Put32u(Buffer+DirIndex + 4, 1);                // Components
-            Put32u(Buffer+DirIndex + 8, DataWriteIndex-8); // Pointer or value.
-            DirIndex += 12;
-        }
+	Put32u(Buffer+DirIndex, 0);
 
-        // End of directory - contains optional link to continued directory.
-        DirContinuation = DirIndex;
-    }
 
-    {
-        DirIndex = DataWriteIndex;
-        NumEntries = 1;
-        DataWriteIndex += 2 + NumEntries*12 + 4;
+	Buffer[0] = (unsigned char)(DataWriteIndex >> 8);
+	Buffer[1] = (unsigned char)DataWriteIndex;
 
-        Put16u(Buffer+DirIndex, NumEntries); // Number of entries
-        DirIndex += 2;
+	// Remove old exif section, if there was one.
+	//RemoveSectionType(M_EXIF);
 
-        // Original date/time entry
-        Put16u(Buffer+DirIndex, TAG_DATETIME_ORIGINAL);// Tag
-        Put16u(Buffer+DirIndex + 2, FMT_STRING);       // Format
-        Put32u(Buffer+DirIndex + 4, imageinfo["DateTime"].length()+1);               // Components
-        Put32u(Buffer+DirIndex + 8, DataWriteIndex-8); // Pointer or value.
-        DirIndex += 12;
-
-        //memcpy(Buffer+DataWriteIndex, Buffer+DateIndex, 20);
-        //DataWriteIndex += 20;
-
-	strcpy((char *) Buffer+DataWriteIndex, imageinfo["DateTime"].c_str());
-	DataWriteIndex += imageinfo["DateTime"].length()+1;
-
-        
-        // End of directory - contains optional link to continued directory.
-        Put32u(Buffer+DirIndex, 0);
-    }
-
-    {
-        //Continuation which links to this directory;
-        Put32u(Buffer+DirContinuation, DataWriteIndex-8);
-        DirIndex = DataWriteIndex;
-        NumEntries = 2;
-        DataWriteIndex += 2 + NumEntries*12 + 4;
-
-        Put16u(Buffer+DirIndex, NumEntries); // Number of entries
-        DirIndex += 2;
-        {
-            // Link to exif dir entry
-            Put16u(Buffer+DirIndex, TAG_THUMBNAIL_OFFSET);         // Tag
-            Put16u(Buffer+DirIndex + 2, FMT_ULONG);       // Format
-            Put32u(Buffer+DirIndex + 4, 1);               // Components
-            Put32u(Buffer+DirIndex + 8, DataWriteIndex-8); // Pointer or value.
-            DirIndex += 12;
-        }
-
-        {
-            // Link to exif dir entry
-            Put16u(Buffer+DirIndex, TAG_THUMBNAIL_LENGTH);         // Tag
-            Put16u(Buffer+DirIndex + 2, FMT_ULONG);       // Format
-            Put32u(Buffer+DirIndex + 4, 1);               // Components
-            Put32u(Buffer+DirIndex + 8, 0); // Pointer or value.
-            DirIndex += 12;
-        }
-
-        // End of directory - contains optional link to continued directory.
-        Put32u(Buffer+DirIndex, 0);
-    }
-
-    
-    Buffer[0] = (unsigned char)(DataWriteIndex >> 8);
-    Buffer[1] = (unsigned char)DataWriteIndex;
-
-    // Remove old exif section, if there was one.
-    //RemoveSectionType(M_EXIF);
-
-    //{
-        // Sections need allocated buffers, so do that now, especially because
-        // we now know how big it needs to be allocated.
 	unsigned char * NewBuf = new unsigned char[DataWriteIndex]; 
         if (NewBuf == NULL){
             //////ErrFatal("Could not allocate memory");
         }
         memcpy(NewBuf, Buffer, DataWriteIndex);
 
-        //CreateSection(M_EXIF, NewBuf, DataWriteIndex);
-
-        // Re-parse new exif section, now that its in place
-        // otherwise, we risk touching data that has already been freed.
-        //process_EXIF(NewBuf, DataWriteIndex);
-    //}
-
-    *markerlength = DataWriteIndex;
-    return NewBuf;
-
+	*markerlength = DataWriteIndex;
+	return NewBuf;
 }
+
+
 
 
 
