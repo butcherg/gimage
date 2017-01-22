@@ -132,7 +132,7 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 	return img;
 }
 
-void _writeTIFF(const char *filename, char *imagedata, unsigned width, unsigned height, unsigned numcolors, unsigned numbits, std::map<std::string,std::string> info)
+void _writeTIFF(const char *filename, char *imagedata, unsigned width, unsigned height, unsigned numcolors, unsigned numbits, std::map<std::string,std::string> info, char *iccprofile, unsigned iccprofilelength)
 {
 	char *img;
 	unsigned char *buf;
@@ -160,8 +160,9 @@ void _writeTIFF(const char *filename, char *imagedata, unsigned width, unsigned 
 		if (info.find("LensInfo") != info.end())  TIFFSetField(tif, TIFFTAG_LENSINFO, info["LensInfo"].c_str());
 		if (info.find("DateTime") != info.end()) TIFFSetField(tif, TIFFTAG_DATETIME, info["DateTime"].c_str());
 		if (info.find("ImageDescription") != info.end())  TIFFSetField(tif, TIFFTAG_IMAGEDESCRIPTION, info["ImageDescription"].c_str());
-		
 
+printf("_writeTIFF: icc profile length = %d (%ld)\n", iccprofilelength, (long) iccprofile);
+		if (iccprofile) TIFFSetField(tif, TIFFTAG_ICCPROFILE, iccprofilelength, iccprofile);
 
 		unsigned scanlinesize = TIFFScanlineSize(tif);
 		buf = (unsigned char *) _TIFFmalloc(scanlinesize);

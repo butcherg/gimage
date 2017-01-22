@@ -1506,8 +1506,9 @@ bool gImage::saveImageFile(const char * filename, std::string params, cmsHPROFIL
 void gImage::saveJPEG(const char * filename, std::string params, cmsHPROFILE profile)
 {
 	if (profile) {
-		_writeJPEG(filename, getTransformedImageData(BPP_8, profile),  w, h, c, imginfo, params);  //slower, but not as noisy
-		//_writeJPEG(filename, getImageData(BPP_8, profile),  w, h, c, imginfo, params);  //seems a bit noisier
+		//Pick one, getTransformedImageData() seems to produce less noise, but is slower:
+		_writeJPEG(filename, getTransformedImageData(BPP_8, profile),  w, h, c, imginfo, params); 
+		//_writeJPEG(filename, getImageData(BPP_8, profile),  w, h, c, imginfo, params); 
 	}
 	else
 		_writeJPEG(filename, getImageData(BPP_8),  w, h, c, imginfo, params);
@@ -1518,9 +1519,18 @@ void gImage::saveTIFF(const char * filename, BPP bits, cmsHPROFILE profile)
 	unsigned b = 16;
 	if (bits == BPP_16) b = 16;
 	if (bits == BPP_8)  b = 8;
-	if (profile)
-		_writeTIFF(filename, getTransformedImageData(bits, profile),  w, h, c, b, imginfo);
-		//_writeTIFF(filename, getImageData(bits, profile),  w, h, c, b, imginfo);
+
+	if (profile) {
+		char * iccprofile;
+		cmsUInt32Number iccprofilesize;
+		makeICCProfile(profile, iccprofile, iccprofilesize);
+
+		//Pick one, getTransformedImageData() seems to produce less noise, but is slower:
+		_writeTIFF(filename, getTransformedImageData(bits, profile),  w, h, c, b, imginfo, iccprofile, iccprofilesize);
+		//_writeTIFF(filename, getImageData(bits, profile),  w, h, c, b, imginfo, iccprofile, iccprofilesize);
+
+		delete iccprofile;
+	}
 	else
 		_writeTIFF(filename, getImageData(bits),  w, h, c, b, imginfo);		
 }
@@ -1582,21 +1592,29 @@ cmsHPROFILE gImage::makeLCMSProfile(const std::string name, float gamma)
 
 	profile =  cmsCreateRGBProfile ( &d65_srgb_adobe_specs, &c, curve);
 
-	std::string descr = "rawproc D65-"+name;
+	std::string descr = "rawproc D65-"+name+", Primaries and black/white points from Elle Stone's make-elles-profiles.c, https://github.com/ellelstone/elles_icc_profiles";
 	cmsMLU *description;
 	description = cmsMLUalloc(NULL, 1);
 	cmsMLUsetASCII(description, "en", "US", descr.c_str());
 	cmsWriteTag(profile, cmsSigProfileDescriptionTag, description);
+	cmsMLUfree(description);
+
+	std::string copyrt = "GPL V2";
+	cmsMLU *copyright;
+	copyright = cmsMLUalloc(NULL, 1);
+	cmsMLUsetASCII(copyright, "en", "US", copyrt.c_str());
+	cmsWriteTag(profile, cmsSigCopyrightTag, copyright);
+	cmsMLUfree(copyright);
 
 	return profile;
 	
 }
 
-void gImage::makeICCProfile(cmsHPROFILE hProfile, char * profile, cmsUInt32Number  &profilesize)
+void gImage::makeICCProfile(cmsHPROFILE hProfile, char *& profile, cmsUInt32Number  &profilesize)
 {
 	cmsSaveProfileToMem(hProfile, NULL, &profilesize);
 	profile = new char[profilesize];
-	cmsSaveProfileToMem(profile, profile, &profilesize);
+	cmsSaveProfileToMem(hProfile, profile, &profilesize);
 }
 
 

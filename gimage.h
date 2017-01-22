@@ -121,7 +121,7 @@ class gImage
 
 		//ICC (LittleCMS) profiles.
 		static cmsHPROFILE makeLCMSProfile(const std::string name, float gamma);
-		static void makeICCProfile(cmsHPROFILE hProfile, char * profile, cmsUInt32Number  &profilesize);
+		static void makeICCProfile(cmsHPROFILE hProfile, char *& profile, cmsUInt32Number  &profilesize);
 
 	protected:
 		gImage XShear(double rangle, int threadcount);
