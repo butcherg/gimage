@@ -1506,9 +1506,15 @@ bool gImage::saveImageFile(const char * filename, std::string params, cmsHPROFIL
 void gImage::saveJPEG(const char * filename, std::string params, cmsHPROFILE profile)
 {
 	if (profile) {
+		char * iccprofile;
+		cmsUInt32Number iccprofilesize;
+		makeICCProfile(profile, iccprofile, iccprofilesize);
+
 		//Pick one, getTransformedImageData() seems to produce less noise, but is slower:
-		_writeJPEG(filename, getTransformedImageData(BPP_8, profile),  w, h, c, imginfo, params); 
+		_writeJPEG(filename, getTransformedImageData(BPP_8, profile),  w, h, c, imginfo, params, iccprofile, iccprofilesize); 
 		//_writeJPEG(filename, getImageData(BPP_8, profile),  w, h, c, imginfo, params); 
+
+		delete iccprofile;
 	}
 	else
 		_writeJPEG(filename, getImageData(BPP_8),  w, h, c, imginfo, params);
@@ -1581,11 +1587,13 @@ cmsHPROFILE gImage::makeLCMSProfile(const std::string name, float gamma)
 {
 	cmsHPROFILE profile;
 	cmsCIExyYTRIPLE c;
+
 	if (name == "srgb") c =  srgb_primaries_pre_quantized;
 	else if (name == "wide") c =  widegamut_pascale_primaries;
 	else if (name == "adobe") c =  adobe_primaries_prequantized;
 	else if (name == "prophoto") c =  romm_primaries;
 	else return NULL;
+
 	cmsToneCurve *curve[3], *tonecurve;
 	tonecurve = cmsBuildGamma (NULL, gamma);
 	curve[0] = curve[1] = curve[2] = tonecurve;

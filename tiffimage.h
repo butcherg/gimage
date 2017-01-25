@@ -18,7 +18,15 @@ char * _loadTIFF(const char *filename,
 			char ** icc_m=NULL, 
 			unsigned  *icclength=0);
 
-void _writeTIFF(const char *filename, char *imagedata, unsigned width, unsigned height, unsigned numcolors, unsigned numbits, std::map<std::string,std::string> info, char *iccprofile=NULL, unsigned iccprofilelength=0);
+void _writeTIFF(const char *filename, 
+			char *imagedata, 
+			unsigned width, 
+			unsigned height, 
+			unsigned numcolors, 
+			unsigned numbits, 
+			std::map<std::string,std::string> info, 
+			char *iccprofile=NULL, 
+			unsigned iccprofilelength=0);
 
 #endif
 

@@ -275,7 +275,7 @@ const TagTable_t TagTable[] = {
 {TAG_Y_CB_CR_POSITIONING,"YCbCrPositioning",FMT_USHORT},
 {TAG_Y_CB_CR_SUB_SAMPLING,"YCbCrSubSampling",FMT_USHORT},
 {TAG_Y_RESOLUTION,"YResolution",FMT_URATIONAL},
-{TAG_USERCOMMENT,"UserComment",FMT_STRING}
+//{TAG_USERCOMMENT,"UserComment",FMT_STRING}
 } ;
 
 #define TAG_TABLE_SIZE  (sizeof(TagTable) / sizeof(TagTable_t))

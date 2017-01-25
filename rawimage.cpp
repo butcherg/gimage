@@ -7,7 +7,6 @@
 #include <vector>
 #include "strutil.h"
 #include <libraw.h>
-#include "dcraw_icc.h"
 #include <lcms2.h>
 #include "gimage.h"
 
