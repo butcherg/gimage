@@ -88,6 +88,10 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 			memcpy(*icc_m, buffer, len);
 			*icclength = len;
 		}
+		else {
+			*icc_m = NULL;
+			*icclength = 0;
+		}
 		
 
 		if (b != 16) return NULL;
@@ -106,8 +110,6 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 				for(unsigned x=0; x < w; x++) {
 					if (c == 1) {
 						dst[0] = (unsigned short) src[0];
-						//dst[1] = (unsigned short) src[0];
-						//dst[2] = (unsigned short) src[0];
 						dst+=1;
 						src+=1;
 					}
@@ -161,8 +163,8 @@ void _writeTIFF(const char *filename, char *imagedata, unsigned width, unsigned 
 		if (info.find("DateTime") != info.end()) TIFFSetField(tif, TIFFTAG_DATETIME, info["DateTime"].c_str());
 		if (info.find("ImageDescription") != info.end())  TIFFSetField(tif, TIFFTAG_IMAGEDESCRIPTION, info["ImageDescription"].c_str());
 
-printf("_writeTIFF: icc profile length = %d (%ld)\n", iccprofilelength, (long) iccprofile);
 		if (iccprofile) TIFFSetField(tif, TIFFTAG_ICCPROFILE, iccprofilelength, iccprofile);
+
 
 		unsigned scanlinesize = TIFFScanlineSize(tif);
 		buf = (unsigned char *) _TIFFmalloc(scanlinesize);

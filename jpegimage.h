@@ -7,7 +7,7 @@ bool _loadJPEGInfo(const char *filename,
 			unsigned *numcolors, 
 			std::map<std::string,std::string> &info,
 			std::string params="",
-			char * icc_m=NULL, 
+			char ** iccprofile=NULL, 
 			unsigned  *icclength=0);
 
 char * _loadJPEG(const char *filename, 
@@ -16,7 +16,7 @@ char * _loadJPEG(const char *filename,
 			unsigned *numcolors, 
 			std::map<std::string,std::string> &info,
 			std::string params="",
-			char * icc_m=NULL, 
+			char ** iccprofile=NULL, 
 			unsigned  *icclength=0);
 
 void _writeJPEG(const char *filename, 

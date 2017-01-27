@@ -1446,11 +1446,13 @@ gImage gImage::loadRAW(const char * filename, std::string params)
 
 gImage gImage::loadJPEG(const char * filename, std::string params)
 {
-	unsigned width, height, colors, bpp;
+	unsigned width, height, colors, bpp, icclength;
+	char * iccprofile;
 	std::map<std::string,std::string> imgdata;
-	char * image = _loadJPEG(filename, &width, &height, &colors, imgdata);
-	gImage I(image, width, height, colors, BPP_8, imgdata);
+	char * image = _loadJPEG(filename, &width, &height, &colors, imgdata, "", &iccprofile, &icclength);
+	gImage I(image, width, height, colors, BPP_8, imgdata, iccprofile, icclength);
 	delete [] image;
+	if (icclength && iccprofile != NULL) delete [] iccprofile;
 	return I;
 }
 
@@ -1474,7 +1476,7 @@ gImage gImage::loadTIFF(const char * filename, std::string params)
 	}
 	gImage I(image, width, height, colors, bits, imgdata, iccprofile, icclength);
 	delete [] image;
-	if (icclength && iccprofile) delete [] iccprofile;
+	if (icclength && iccprofile != NULL) delete [] iccprofile;
 	return I;
 }
 
