@@ -5,6 +5,7 @@
 #include <string.h>
 #include <math.h>
 #include <exception>
+#include <algorithm> 
 #include <omp.h>
 
 #include "rawimage.h"
@@ -501,83 +502,210 @@ void gImage::ApplySharpen(int strength, int threadcount)
 //method to use them in the proscribed order.  Not implemented at this writing is an 
 //intelligent adjustment of the rotated pixel to reflect its changed relationship with 
 //adjunct pixels.  This does not seem to be an egregious issue with large out-of-camera
-//images.
+//images at small angles of rotation.  
 //
 
-/*
-gImage * gImage::Rotate(double angle, int threadcount)
+
+#define ROTATE_BILINEAR_INTERPOLATION 1
+
+// sin-cos rotate, with bilnear interpolation from http://supercomputingblog.com/graphics/coding-bilinear-interpolation/
+// Change the above define of ROTATE_BILINEAR_INTERPOLATION to 0, recompile, and see the difference...
+
+void gImage::ApplyRotate(double angle, int threadcount)
 {
+	std::vector<pix> *s = new std::vector<pix>(image);
+	std::vector<pix> &src = *s;
 
-	pix * src = getImageData();
+	double rangle = -(-angle * PI / 180.0); // negate for destination interpolation
+        double cosine = cos(rangle);
+        double sine = sin(rangle);
 
-	double rangle = angle * PI / 180.0;
-	double cosine = cos(-rangle);
-	double sine = sin(-rangle);
 
-	int x1 = (int) -(h * sine);
-	int y1 = (int)  (h * cosine);
-	int x2 = (int)  (w * cosine - h * sine);
-	int y2 = (int)  (h * cosine + w * sine);
-	int x3 = (int)  (w * cosine);
-	int y3 = (int)  (w * sine);
+	int width = w;
+	int height = h;
+	double cX = (double)width/2.0f;
+	double cY = (double)height/2.0f;
 
-	int minx = std::min(0,std::min(x1, std::min(x2,x3)));
-	int miny = std::min(0,std::min(y1, std::min(y2,y3)));
-	int maxx = std::max(x1, std::max(x2,x3));
-	int maxy = std::max(y1, std::max(y2,y3));
+	//compute bounding box:
+	int x = 0;
+	int y = 0;
+	int x1 = cX+(x-cX)*cosine+(y-cY)*sine;
+	int y1 = cY-(x-cX)*sine+(y-cY)*cosine;
 
-	int tx = minx;
-	int ty = -miny;
+	x = w;
+	y = 0;
+	int x2 = cX+(x-cX)*cosine+(y-cY)*sine;
+	int y2 = cY-(x-cX)*sine+(y-cY)*cosine;
 
-	gImage *S = new gImage(maxx,maxy-miny, c, imginfo);
-	pix * dst = S->getImageData();
-	unsigned dw = S->getWidth();
-	unsigned dh = S->getHeight();
+	x = 0;
+	y = h;
+	int x3 = cX+(x-cX)*cosine+(y-cY)*sine;
+	int y3 = cY-(x-cX)*sine+(y-cY)*cosine;
 
-	//printf("1:%d,%d  2:%d,%d  3:%d,%d\n", x1,y1,x2,y2,x3,y3);
-	//printf("min: %d,%d   max:%d,%d\n",minx, miny, maxx, maxy);
-	//printf("new image: %dx%d  shift: %d,%d\n", dw, dh, tx, ty);
+	x = w;
+	y = h;
+	int x4 = cX+(x-cX)*cosine+(y-cY)*sine;
+	int y4 = cY-(x-cX)*sine+(y-cY)*cosine;
 
-	for (unsigned y=0; y<h; y++) {
-		for (unsigned x=0; x<w; x++) {
+	int minx = std::min(x1, std::min(x2, std::min(x3,x4)));
+	int maxx = std::max(x1, std::max(x2, std::max(x3,x4)));
 
-			unsigned u = ( cosine * x + sine * y) - tx;
-			unsigned v = (-sine * x + cosine * y) - ty;
+	int miny = std::min(y1, std::min(y2, std::min(y3,y4)));
+	int maxy = std::max(y1, std::max(y2, std::max(y3,y4)));
 
-			if (u < 0 | u >= dw) continue;
-			if (v < 0 | v >= dh) continue;
-			dst[x + y*dw].r = src[u + v*w].r;
-			dst[x + y*dw].g = src[u + v*w].g;
-			dst[x + y*dw].b = src[u + v*w].b;
+	int nw = maxx-minx;
+	int nh = maxy-miny;
+
+	// variables for coordinate translation:
+	int dw = nw - w;
+	int dh = nh - h ;
+
+	int tx = nw/2;
+	int ty = nh/2;
+
+	//prep image for rotated result:
+	image.resize(nw*nh);
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned y=0; y<nh; y++) {
+		for (unsigned x=0; x<nw; x++) {
+
+			int ux = x - tx;
+			int uy = y - ty;
+
+			double du = ( cosine * ux + sine * uy);
+			double dv = (-sine * ux + cosine * uy);
+
+			int u = du + tx - dw/2;
+			int v = dv + ty - dh/2;
+
+
+			if (u < 0 | u >= w | v < 0 | v >= h) {
+				image[x + y*nw].r = 0.0;
+				image[x + y*nw].g = 0.0;
+				image[x + y*nw].b = 0.0;
+			}
+	
+		else {
+
+#ifdef ROTATE_BILINEAR_INTERPOLATION 
+
+				double xPrime = du + double(tx) - double(dw)/2.0;
+				double yPrime = dv + double(ty) - double(dh)/2.0;
+
+				int q12x = (int)floor(xPrime);
+				int q12y = (int)floor(yPrime);
+				q12x = std::max(0, q12x);
+				q12y = std::max(0, q12y);
+				q12x = std::min(width-1, q12x);
+				q12y = std::min(height-1, q12y);
+				int q22x = (int)ceil(xPrime);
+				int q22y = q12y;
+				q22x = std::min(width-1, q22x);
+				q22x = std::max(0, q22x);
+				int q11x = q12x;
+				int q11y = (int)ceil(yPrime);
+				q11y = std::min(height-1, q11y);
+				q11y = std::max(0, q11y);
+				int q21x = q22x;
+				int q21y = q11y;
+
+				pix q11 = src[q11y*w + q11x];
+				pix q12 = src[q12y*w + q12x];
+				pix q21 = src[q21y*w + q21x];
+				pix q22 = src[q22y*w + q22x];
+
+				double factor1;
+				double factor2;
+			
+				if ( q21x == q11x ) // special case to avoid divide by zero
+				{
+					factor1 = 1; // They're at the same X coordinate, so just force the calculatione to one point
+					factor2 = 0;
+				}
+				else
+				{
+					factor1 = (((double)q21x - (double)xPrime)/((double)q21x - (double)q11x));
+					factor2 = (((double)xPrime - (double)q11x)/((double)q21x - (double)q11x));
+				}
+
+				double R1r = factor1 * (double)q11.r + factor2*(double)q21.r;
+				double R1g = factor1 * (double)q11.g + factor2*(double)q21.g;
+				double R1b = factor1 * (double)q11.b + factor2*(double)q21.b;
+				double R2r = factor1 * (double)q12.r + factor2*(double)q22.r;
+				double R2g = factor1 * (double)q12.g + factor2*(double)q22.g;
+				double R2b = factor1 * (double)q12.b + factor2*(double)q22.b;
+				double factor3;
+				double factor4;
+				if (q12y == q11y) // special case to avoid divide by zero
+				{
+					factor3 = 1;
+					factor4 = 0;
+				}
+				else
+				{
+					factor3 = ((double) q12y - yPrime)/((double)q12y - (double)q11y);
+					factor4 = (yPrime - (double)q11y)/((double)q12y - (double)q11y);
+				}
+
+				pix finalpix;
+	
+				finalpix.r = ((factor3 * R1r) + (factor4*R2r));
+				finalpix.g = ((factor3 * R1g) + (factor4*R2g));
+				finalpix.b = ((factor3 * R1b) + (factor4*R2b));
+
+				image[x + y*nw] = finalpix;
+
+#else
+
+				image[x + y*nw].r = src[u + v*w].r;
+				image[x + y*nw].g = src[u + v*w].g;
+				image[x + y*nw].b = src[u + v*w].b;
+
+#endif //ROTATE_BILINEAR_INTERPOLATION 
+
+			}
 
 		}
 	}
-	
-	return S;
 
+	w = nw;
+	h = nh;
+	delete s;
 }
-*/
 
 
+
+/*
 void gImage::ApplyRotate(double angle, int threadcount)
 {
 	//gImage I, J, K, L;
 	unsigned x1, x2, y1, y2;
+	unsigned cx1, cx2, cy1, cy2;
 	double rangle = angle * PI / 180.0;
 
 	ApplyXShear(rangle,threadcount);
 	ApplyYShear(rangle,threadcount);
 	ApplyXShear(rangle,threadcount);
 	ImageBounds(&x1, &x2, &y1, &y2);
+	//ImageBounds(&cx1, &cx2, &cy1, &cy2, true);
 	ApplyCrop(x1, y1, x2, y2,threadcount);
+	//ApplyCrop(cx1, cy1, cx2, cy2,threadcount);
 }
+*/
 
+/*  original shears:
 void gImage::ApplyXShear(double rangle, int threadcount)
 {
-	double sine = sin(rangle);
+	//double sine = sin(rangle);
 	double tangent = tan(rangle/2.0);
 	int dw = tangent * (double) h;
 	unsigned nw = w+abs(dw);
+
+	//nearest neighbor stuff:
+	double ddw = tangent * (double) h;
+	double lw = ddw - (double) dw;
+	double rw = 1.0 - lw;
 
 	std::vector<pix> *s = new std::vector<pix>(image);
 	std::vector<pix> &src = *s;
@@ -614,10 +742,14 @@ void gImage::ApplyXShear(double rangle, int threadcount)
 void gImage::ApplyYShear(double rangle, int threadcount)
 {
 	double sine = sin(rangle);
-	double tangent = tan(rangle/2.0);
 	int dh = sine * (double) w;
 	unsigned nh = h+abs(dh);
 	unsigned dw = w;
+
+	//nearest neighbor stuff:
+	double ddh = sine * (double) (w);
+	double lw = ddh - (double) dh;
+	double rw = 1.0 - lw;
 
 	std::vector<pix> *s = new std::vector<pix>(image);
 	std::vector<pix> &src = *s;
@@ -647,11 +779,218 @@ void gImage::ApplyYShear(double rangle, int threadcount)
 			dst[dpos].b = src[spos].b;
 		}
 	}
+
+	h = nh;
+	delete s;
+}
+*/
+
+
+//second generation shears, not working...
+/*
+void gImage::ApplyXShear(double rangle, int threadcount)
+{
+	double tangent = tan(rangle/2.0);
+	int dw = tangent * (double) h;
+	unsigned nw = w+abs(dw);
+
+	//nearest neighbor stuff:
+	double ddw = tangent * (double) h;
+	double lw = ddw - (double) dw;
+	double rw = 1.0 - lw;
+
+	std::vector<pix> *s = new std::vector<pix>(image);
+	std::vector<pix> &src = *s;
+	image.resize(nw*h);
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned i = 0; i<image.size(); i++) {
+		image[i].r = 0.0;
+		image[i].g = 0.0;
+		image[i].b = 0.0;
+	}
+
+	if (dw < 0) dw = 0;
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned y=0; y<h; y++) {
+		for (unsigned x=0; x<w; x++) {
+			unsigned u = (x - tangent * y) + dw;
+			unsigned v = y;
+			if (u >= nw) continue;
+			if (v >= h) continue;
+			unsigned dpos =u + v*nw;
+			unsigned spos = x + y*w;
+			unsigned spos1 = spos+1;
+			if (spos1 >=w) spos1--;
+			image[dpos].r = ((src[spos].r*lw)+(src[spos1].r*rw));
+			image[dpos].g = ((src[spos].g*lw)+(src[spos1].g*rw));
+			image[dpos].b = ((src[spos].b*lw)+(src[spos1].b*rw));
+		}
+	}
+
+
+	w = nw;
+	delete s;
+}
+
+void gImage::ApplyYShear(double rangle, int threadcount)
+{
+	double sine = sin(rangle);
+	int dh = sine * (double) w;
+	unsigned nh = h+abs(dh);
+	unsigned dw = w;
+
+	//nearest neighbor stuff:
+	double ddh = sine * (double) (w);
+	double lw = ddh - (double) dh;
+	double rw = 1.0 - lw;
+
+	std::vector<pix> *s = new std::vector<pix>(image);
+	std::vector<pix> &src = *s;
+	std::vector<pix>& dst = getImageData();
+	dst.resize(w*nh);
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned i = 0; i<image.size(); i++) {
+		image[i].r = 0.0;
+		image[i].g = 0.0;
+		image[i].b = 0.0;
+	}
+
+	if (dh < 0) dh = -dh; else dh = 0;
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned x=0; x<w; x++) {
+		for (unsigned y=0; y<h; y++) {
+			unsigned u = x;
+			unsigned v = (y + sine * x) + dh;
+			if (u >= w) continue;
+			if (v >= nh) continue;
+			unsigned dpos = u + v*dw;
+			unsigned spos = x + y*w;
+			unsigned spos1 = spos;
+			if (y < h-1) unsigned spos1 = x + (y+1)*h;
+			image[dpos].r = ((src[spos].r*lw)+(src[spos1].r*rw));
+			image[dpos].g = ((src[spos].g*lw)+(src[spos1].g*rw));
+			image[dpos].b = ((src[spos].b*lw)+(src[spos1].b*rw));
+		}
+	}
+
+	h = nh;
+	delete s;
+}
+*/
+
+// Paeth's shears, kinda...
+void gImage::ApplyXShear(double rangle, int threadcount)
+{
+	double tangent = tan(rangle/2.0);
+	int dw = tangent * (double) h;
+	unsigned nw = w+abs(dw);
+
+	std::vector<pix> *s = new std::vector<pix>(image);
+	std::vector<pix> &src = *s;
+	image.resize(nw*h);
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned i = 0; i<image.size(); i++) {
+		image[i].r = 0.0;
+		image[i].g = 0.0;
+		image[i].b = 0.0;
+	}
+
+	if (dw < 0) dw = 0;
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned y=0; y<h; y++) {
+		//double skew = tangent * (y + 0.5);
+		double skew = (tangent >= 0)? tangent * (y + 0.5) : tangent * (double(y) - h + 0.5);
+		double skewi = floor(skew);
+		double skewf = skew - double(skewi);
+//printf("gImage::ApplyXShear: y: %d     skew: %f  skewi: %f skewf: %f\n",y,skew, skewi, skewf);
+
+		pix left, oleft;
+		oleft.r = 0.0; oleft.g = 0.0; oleft.b = 0.0;
+		for (unsigned x=0; x<w; x++) {
+			unsigned u = (x - tangent * y) + dw;
+			unsigned v = y;
+			if (u >= nw) continue;
+			if (v >= h) continue;
+			unsigned dpos =u + v*nw;
+			unsigned spos = x + y*w;
+						
+			left.r = src[spos].r * skewf;
+			left.g = src[spos].g * skewf;
+			left.b = src[spos].b * skewf;
+
+			image[dpos].r = src[spos].r - left.r + oleft.r;
+			image[dpos].g = src[spos].g - left.g + oleft.g;
+			image[dpos].b = src[spos].b - left.b + oleft.b;
+			oleft = left;
+		}
+	}
+
+
+	w = nw;
+	delete s;
+}
+
+void gImage::ApplyYShear(double rangle, int threadcount)
+{
+	double sine = sin(rangle);
+	int dh = sine * (double) w;
+	unsigned nh = h+abs(dh);
+	unsigned dw = w;
+
+	std::vector<pix> *s = new std::vector<pix>(image);
+	std::vector<pix> &src = *s;
+	std::vector<pix>& dst = getImageData();
+	dst.resize(w*nh);
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned i = 0; i<image.size(); i++) {
+		image[i].r = 0.0;
+		image[i].g = 0.0;
+		image[i].b = 0.0;
+	}
+
+	if (dh < 0) dh = -dh; else dh = 0;
+
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned x=0; x<w; x++) {
+		//double skew = sine * (x + 0.5);
+		double skew = (sine >= 0)? sine * (x + 0.5) : sine * (double(x) - w + 0.5);
+		double skewi = floor(skew);
+		double skewf = skew - double(skewi);
+//printf("gImage::ApplyYShear: x: %d     skew: %f  skewi: %f skewf: %f\n",x,skew, skewi, skewf);
+		pix left, oleft;
+		oleft.r = 0.0; oleft.g = 0.0; oleft.b = 0.0;
+		for (unsigned y=0; y<h; y++) {
+			unsigned u = x;
+			unsigned v = (y + sine * x) + dh;
+			if (u >= w) continue;
+			if (v >= nh) continue;
+			unsigned dpos = u + v*dw;
+			unsigned spos = x + y*w;
+
+			left.r = src[spos].r * skewf;
+			left.g = src[spos].g * skewf;
+			left.b = src[spos].b * skewf;
+
+			image[dpos].r = src[spos].r - left.r + oleft.r;
+			image[dpos].g = src[spos].g - left.g + oleft.g;
+			image[dpos].b = src[spos].b - left.b + oleft.b;
+			oleft = left;
+		}
+	}
+
 	h = nh;
 	delete s;
 }
 
-void gImage::ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2)
+
+void gImage::ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2, bool cropbounds)
 {
 	*x1 = 0; *x2 = w; *y1 = 0; *y2 = h;
 	std::vector<pix>& src = getImageData();
@@ -659,7 +998,7 @@ void gImage::ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2)
 		for (int y=0; y<h; y++) {
 			unsigned pos = x + y*w;
 			if (src[pos].r + src[pos].g + src[pos].b > 0.0) {
-				*x1 = x;
+				if (cropbounds) *y1 = y; else *x1 = x;
 				goto endx1;
 			}
 		}
@@ -669,7 +1008,7 @@ void gImage::ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2)
 		for (int y=0; y<h; y++) {
 			unsigned pos = x + y*w;
 			if (src[pos].r + src[pos].g + src[pos].b > 0.0) {
-				*x2 = x;
+				if (cropbounds) *y2 = y; else *x2 = x;
 				goto endx2;
 			}
 		}
@@ -679,7 +1018,7 @@ void gImage::ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2)
 		for (int x=0; x<w; x++) {
 			unsigned pos = x + y*w;
 			if (src[pos].r + src[pos].g + src[pos].b > 0.0) {
-				*y1 = y;
+				if (cropbounds) *x1 = x; else *y1 = y;
 				goto endy1;
 			}
 		}
@@ -689,7 +1028,7 @@ void gImage::ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2)
 		for (int x=0; x<w; x++) {
 			unsigned pos = x + y*w;
 			if (src[pos].r + src[pos].g + src[pos].b > 0.0) {
-				*y2 = y;
+				if (cropbounds) *x2 = x; else *y2 = y;
 				goto endy2;
 			}
 		}

@@ -126,7 +126,7 @@ class gImage
 	protected:
 		gImage XShear(double rangle, int threadcount);
 		gImage YShear(double rangle, int threadcount);
-		void ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2);
+		void ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2, bool cropbounds=false);
 
 		void ApplyXShear(double rangle, int threadcount);
 		void ApplyYShear(double rangle, int threadcount);
