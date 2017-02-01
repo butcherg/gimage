@@ -98,7 +98,7 @@ class gImage
 		void ApplyConvolutionKernel(double kernel[3][3], int threadcount);
 		void ApplySharpen(int strength, int threadcount);
 		void ApplyResize(unsigned width, unsigned height, RESIZE_FILTER filter, int threadcount);
-		void ApplyRotate(double angle, int threadcount);
+		void ApplyRotate(double angle, bool crop, int threadcount);
 		void ApplyCrop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int threadcount);
 		void ApplySaturate(double saturate, int threadcount);
 		void ApplyTint(double red,double green,double blue, int threadcount);

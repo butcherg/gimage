@@ -486,6 +486,7 @@ void gImage::ApplySharpen(int strength, int threadcount)
 //Rotate
 //
 //Credit: Alan Paeth, "A Fast Algorithm for General Raster Rotation", Graphics Interface '86
+//	  http://supercomputingblog.com/graphics/coding-bilinear-interpolation/
 //
 //Image rotation is a deceivingly complex operation.  One would think it to be sufficient to 
 //apply the sine and cosine of the rotation angle to each pixel coordinate, but you also have to
@@ -493,25 +494,45 @@ void gImage::ApplySharpen(int strength, int threadcount)
 //I started my exploration of image rotation with such an approach, and I've left it in 
 //commented-out.
 //
-//These days, most 'quality' image rotation is done using Paeth's approach, which is the 
+//These days, a lot of image rotation is done using Paeth's approach, which is the 
 //application of three shears, one in the X direction, one in the Y direction, and a final
 //one in the X direction to produce the rotation.  One wonders about the thinking required 
-//to determine such transformations would produce the desired result.
+//to determine such transformations would produce the desired result.  
 //
 //Three methods are presented to perform Paeth roatation: XShear and YShear, and a Rotate
 //method to use them in the proscribed order.  Not implemented at this writing is an 
 //intelligent adjustment of the rotated pixel to reflect its changed relationship with 
 //adjunct pixels.  This does not seem to be an egregious issue with large out-of-camera
-//images at small angles of rotation.  
+//images at small angles of rotation.  I've replaced my shear implementation of ApplyRotate,
+//but I've left the code in, commented-out, for the time being (1/29/2017)
 //
+//After messing around with interpolation in shears, I decided to switch back to a sin-cos
+//rotation approach.  The key consideration was straightforward application of bilinear
+//interpolation, which requires sampling the pixels comprising the "destination" pixel from
+//the reverse rotation.  This hurt my head for a bit, but all came clear when I built the 
+//loop around the new (resized) destination image.  My bilinear interpolation is a copy-paste
+//from the supercomputingblog.com code, so here's the compliance comment for its use:
+
+/*
+
+This code is brought to you by the supercomputingblog.com
+You may use this code for any purpose. However,
+you may redistribute this code only if this comment
+remains intact.
+
+*/
+
+//There's no name I can find on the blog site to which to attribute the source; thanks, whomever
+//you are...
 
 
-#define ROTATE_BILINEAR_INTERPOLATION 1
+#define ROTATE_BILINEAR_INTERPOLATION
 
-// sin-cos rotate, with bilnear interpolation from http://supercomputingblog.com/graphics/coding-bilinear-interpolation/
-// Change the above define of ROTATE_BILINEAR_INTERPOLATION to 0, recompile, and see the difference...
+// sin-cos rotate, with bilnear interpolation adapted from
+// http://supercomputingblog.com/graphics/coding-bilinear-interpolation/
+// Comment out the #define of ROTATE_BILINEAR_INTERPOLATION, recompile, and see the difference...
 
-void gImage::ApplyRotate(double angle, int threadcount)
+void gImage::ApplyRotate(double angle, bool crop, int threadcount)
 {
 	std::vector<pix> *s = new std::vector<pix>(image);
 	std::vector<pix> &src = *s;
@@ -520,32 +541,36 @@ void gImage::ApplyRotate(double angle, int threadcount)
         double cosine = cos(rangle);
         double sine = sin(rangle);
 
-
 	int width = w;
 	int height = h;
 	double cX = (double)width/2.0f;
 	double cY = (double)height/2.0f;
 
+	double brangle = (-angle * PI / 180.0);
+	double bcosine = cos(brangle);
+	double bsine = sin(brangle);
+
 	//compute bounding box:
 	int x = 0;
 	int y = 0;
-	int x1 = cX+(x-cX)*cosine+(y-cY)*sine;
-	int y1 = cY-(x-cX)*sine+(y-cY)*cosine;
+	int x1 = cX+(x-cX)*bcosine+(y-cY)*bsine;
+	int y1 = cY-(x-cX)*bsine+(y-cY)*bcosine;
 
 	x = w;
 	y = 0;
-	int x2 = cX+(x-cX)*cosine+(y-cY)*sine;
-	int y2 = cY-(x-cX)*sine+(y-cY)*cosine;
+	int x2 = cX+(x-cX)*bcosine+(y-cY)*bsine;
+	int y2 = cY-(x-cX)*bsine+(y-cY)*bcosine;
 
 	x = 0;
 	y = h;
-	int x3 = cX+(x-cX)*cosine+(y-cY)*sine;
-	int y3 = cY-(x-cX)*sine+(y-cY)*cosine;
+	int x3 = cX+(x-cX)*bcosine+(y-cY)*bsine;
+	int y3 = cY-(x-cX)*bsine+(y-cY)*bcosine;
 
 	x = w;
 	y = h;
-	int x4 = cX+(x-cX)*cosine+(y-cY)*sine;
-	int y4 = cY-(x-cX)*sine+(y-cY)*cosine;
+	int x4 = cX+(x-cX)*bcosine+(y-cY)*bsine;
+	int y4 = cY-(x-cX)*bsine+(y-cY)*bcosine;
+
 
 	int minx = std::min(x1, std::min(x2, std::min(x3,x4)));
 	int maxx = std::max(x1, std::max(x2, std::max(x3,x4)));
@@ -562,6 +587,11 @@ void gImage::ApplyRotate(double angle, int threadcount)
 
 	int tx = nw/2;
 	int ty = nh/2;
+
+//printf("gImage::ApplyRotate: original image w,h: %d,%d\n",w,h);
+//printf("gImage::ApplyRotate: 0,0: x1=%d, y1=%d;  w,0: x2=%d, y2=%d;   0,h: x3=%d, y3=%d;  w,h: x4=%d, y4=%d\n", x1+dw/2, y1+dh/2, x2+dw/2, y2+dh/2, x3+dw/2, y3+dh/2, x4+dw/2, y4+dh/2);
+//printf("gImage::ApplyRotate: new image w,h: %d,%d\n",nw,nh);
+
 
 	//prep image for rotated result:
 	image.resize(nw*nh);
@@ -589,6 +619,8 @@ void gImage::ApplyRotate(double angle, int threadcount)
 		else {
 
 #ifdef ROTATE_BILINEAR_INTERPOLATION 
+				//The following makes more sense when studied with the graphic on page 1
+				//of the supercomputingblog.com post
 
 				double xPrime = du + double(tx) - double(dw)/2.0;
 				double yPrime = dv + double(ty) - double(dh)/2.0;
@@ -648,6 +680,7 @@ void gImage::ApplyRotate(double angle, int threadcount)
 					factor4 = (yPrime - (double)q11y)/((double)q12y - (double)q11y);
 				}
 
+				//remainder modified to use the gImage pix struct:
 				pix finalpix;
 	
 				finalpix.r = ((factor3 * R1r) + (factor4*R2r));
@@ -657,10 +690,11 @@ void gImage::ApplyRotate(double angle, int threadcount)
 				image[x + y*nw] = finalpix;
 
 #else
-
-				image[x + y*nw].r = src[u + v*w].r;
-				image[x + y*nw].g = src[u + v*w].g;
-				image[x + y*nw].b = src[u + v*w].b;
+				//Plain old nearest-source to destination copy operation
+				image[x + y*nw] = src[u + v*w];
+				//image[x + y*nw].r = src[u + v*w].r;
+				//image[x + y*nw].g = src[u + v*w].g;
+				//image[x + y*nw].b = src[u + v*w].b;
 
 #endif //ROTATE_BILINEAR_INTERPOLATION 
 
@@ -672,6 +706,12 @@ void gImage::ApplyRotate(double angle, int threadcount)
 	w = nw;
 	h = nh;
 	delete s;
+	if (crop) {
+		if (rangle < 0)
+			ApplyCrop(x3+dw/2, y1+dh/2, x2+dw/2,  y4+dh/2, threadcount);
+		else
+			ApplyCrop(x1+dw/2, y2+dh/2, x4+dw/2,  y3+dh/2, threadcount);
+	}
 }
 
 
