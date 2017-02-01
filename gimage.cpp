@@ -334,13 +334,14 @@ unsigned gImage::getProfileLength()
 
 std::map<std::string,std::string> gImage::getInfo(const char * filename)
 {
-	unsigned width, height, colors, bpp;
+	unsigned width, height, colors, bpp, icclength;
+	char * iccprofile;
 	char ext[5];
 	std::map<std::string, std::string> imgdata;
 	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
 	if (strcmp(ext,"tif") == 0) _loadTIFFInfo(filename, &width, &height, &colors, &bpp, imgdata);
 	if (strcmp(ext,"NEF") == 0) _loadRAWInfo_m(filename, &width, &height, &colors, &bpp, imgdata);
-	if ((strcmp(ext,"jpg") == 0) | (strcmp(ext,"JPG") == 0)) _loadJPEGInfo(filename, &width, &height, &colors, imgdata);
+	if ((strcmp(ext,"jpg") == 0) | (strcmp(ext,"JPG") == 0)) _loadJPEGInfo(filename, &width, &height, &colors, imgdata, "", &iccprofile, &icclength);
 	return imgdata;
 }
 
