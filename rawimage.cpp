@@ -209,6 +209,10 @@ char * _loadRAW_m(const char *filename,
 			RawProcessor.imgdata.params.gamm[0] = 1/1.0;
 			RawProcessor.imgdata.params.gamm[1] = 1.0;
 		}
+		if (p["gamma"].compare("prophoto") == 0) {
+			RawProcessor.imgdata.params.gamm[0] = 1/1.8;
+			RawProcessor.imgdata.params.gamm[1] = 0.0;
+		}
 	}
 
 	//#
