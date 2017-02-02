@@ -6,7 +6,7 @@ CXX=g++
 
 #+= these in $(OBJDIR) for site-specific things
 LIBDIRS=-L$(OBJDIR)/lib
-LIBS=-lgimage -lraw -ltiff -ljpeg 
+LIBS=-lgimage -lraw -ltiff -ljpeg -llcms2
 INCLUDEDIRS=
 CFLAGS=
 LFLAGS=
@@ -30,7 +30,7 @@ $(OBJDIR)/lib/libgimage.a: $(LIBOBJECTS)
 	ar rcs $@ $(LIBOBJECTS)
 	ranlib $@
 	echo "gimage:" > $(OBJDIR)/build.txt
-	git status |grep "On branch" >> $(OBJDIR)/build.txt
+	#git status |grep "On branch" >> $(OBJDIR)/build.txt
 	echo "CFLAGS=$(CFLAGS)" >> $(OBJDIR)/build.txt
 	echo "LFLAGS=$(LFLAGS)" >> $(OBJDIR)/build.txt
 
