@@ -469,7 +469,7 @@ char * _loadRAW_m(const char *filename,
 
 
 
-	RawProcessor.open_file(filename);
+	if (RawProcessor.open_file(filename) != LIBRAW_SUCCESS) return NULL;
 	RawProcessor.unpack();
 	RawProcessor.dcraw_process();
 	RawProcessor.get_mem_image_format(&w, &h, &c, &b);

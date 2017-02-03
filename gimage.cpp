@@ -1795,9 +1795,9 @@ gImage gImage::loadImageFile(const char * filename, std::string params)
 	GIMAGE_FILETYPE ext = gImage::getFileType(filename);
 
 	if (ext == FILETYPE_TIFF) return gImage::loadTIFF(filename, params);
-	if (ext == FILETYPE_RAW) return gImage::loadRAW(filename, params);
 	if (ext == FILETYPE_JPEG) return gImage::loadJPEG(filename, params);
-	return gImage();
+	else return gImage::loadRAW(filename, params);
+	//return gImage();
 }
 
 gImage gImage::loadRAW(const char * filename, std::string params)
@@ -1807,6 +1807,7 @@ gImage gImage::loadRAW(const char * filename, std::string params)
 	char * iccprofile;
 	std::map<std::string,std::string> imgdata;
 	char * image = _loadRAW_m(filename, &width, &height, &colors, &bpp, imgdata, params, &iccprofile, &icclength);
+	if (image == NULL) return gImage();
 	switch (bpp) {
 		case 8: 
 			bits = BPP_8;
