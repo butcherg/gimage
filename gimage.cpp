@@ -589,11 +589,6 @@ void gImage::ApplyRotate(double angle, bool crop, int threadcount)
 	int tx = nw/2;
 	int ty = nh/2;
 
-//printf("gImage::ApplyRotate: original image w,h: %d,%d\n",w,h);
-//printf("gImage::ApplyRotate: 0,0: x1=%d, y1=%d;  w,0: x2=%d, y2=%d;   0,h: x3=%d, y3=%d;  w,h: x4=%d, y4=%d\n", x1+dw/2, y1+dh/2, x2+dw/2, y2+dh/2, x3+dw/2, y3+dh/2, x4+dw/2, y4+dh/2);
-//printf("gImage::ApplyRotate: new image w,h: %d,%d\n",nw,nh);
-
-
 	//prep image for rotated result:
 	image.resize(nw*nh);
 
@@ -620,82 +615,78 @@ void gImage::ApplyRotate(double angle, bool crop, int threadcount)
 		else {
 
 #ifdef ROTATE_BILINEAR_INTERPOLATION 
-				//The following makes more sense when studied with the graphic on page 1
-				//of the supercomputingblog.com post
+			//The following makes more sense when studied with the graphic on page 1
+			//of the supercomputingblog.com post
 
-				double xPrime = du + double(tx) - double(dw)/2.0;
-				double yPrime = dv + double(ty) - double(dh)/2.0;
+			double xPrime = du + double(tx) - double(dw)/2.0;
+			double yPrime = dv + double(ty) - double(dh)/2.0;
 
-				int q12x = (int)floor(xPrime);
-				int q12y = (int)floor(yPrime);
-				q12x = std::max(0, q12x);
-				q12y = std::max(0, q12y);
-				q12x = std::min(width-1, q12x);
-				q12y = std::min(height-1, q12y);
-				int q22x = (int)ceil(xPrime);
-				int q22y = q12y;
-				q22x = std::min(width-1, q22x);
-				q22x = std::max(0, q22x);
-				int q11x = q12x;
-				int q11y = (int)ceil(yPrime);
-				q11y = std::min(height-1, q11y);
-				q11y = std::max(0, q11y);
-				int q21x = q22x;
-				int q21y = q11y;
+			int q12x = (int)floor(xPrime);
+			int q12y = (int)floor(yPrime);
+			q12x = std::max(0, q12x);
+			q12y = std::max(0, q12y);
+			q12x = std::min(width-1, q12x);
+			q12y = std::min(height-1, q12y);
+			int q22x = (int)ceil(xPrime);
+			int q22y = q12y;
+			q22x = std::min(width-1, q22x);
+			q22x = std::max(0, q22x);
+			int q11x = q12x;
+			int q11y = (int)ceil(yPrime);
+			q11y = std::min(height-1, q11y);
+			q11y = std::max(0, q11y);
+			int q21x = q22x;
+			int q21y = q11y;
+			pix q11 = src[q11y*w + q11x];
+			pix q12 = src[q12y*w + q12x];
+			pix q21 = src[q21y*w + q21x];
+			pix q22 = src[q22y*w + q22x];
 
-				pix q11 = src[q11y*w + q11x];
-				pix q12 = src[q12y*w + q12x];
-				pix q21 = src[q21y*w + q21x];
-				pix q22 = src[q22y*w + q22x];
-
-				double factor1;
-				double factor2;
+			double factor1;
+			double factor2;
 			
-				if ( q21x == q11x ) // special case to avoid divide by zero
-				{
-					factor1 = 1; // They're at the same X coordinate, so just force the calculatione to one point
-					factor2 = 0;
-				}
-				else
-				{
-					factor1 = (((double)q21x - (double)xPrime)/((double)q21x - (double)q11x));
-					factor2 = (((double)xPrime - (double)q11x)/((double)q21x - (double)q11x));
-				}
+			if ( q21x == q11x ) // special case to avoid divide by zero
+			{
+				factor1 = 1; // They're at the same X coordinate, so just force the calculatione to one point
+				factor2 = 0;
+			}
+			else
+			{
+				factor1 = (((double)q21x - (double)xPrime)/((double)q21x - (double)q11x));
+				factor2 = (((double)xPrime - (double)q11x)/((double)q21x - (double)q11x));
+			}
 
-				double R1r = factor1 * (double)q11.r + factor2*(double)q21.r;
-				double R1g = factor1 * (double)q11.g + factor2*(double)q21.g;
-				double R1b = factor1 * (double)q11.b + factor2*(double)q21.b;
-				double R2r = factor1 * (double)q12.r + factor2*(double)q22.r;
-				double R2g = factor1 * (double)q12.g + factor2*(double)q22.g;
-				double R2b = factor1 * (double)q12.b + factor2*(double)q22.b;
-				double factor3;
-				double factor4;
-				if (q12y == q11y) // special case to avoid divide by zero
-				{
-					factor3 = 1;
-					factor4 = 0;
-				}
-				else
-				{
-					factor3 = ((double) q12y - yPrime)/((double)q12y - (double)q11y);
-					factor4 = (yPrime - (double)q11y)/((double)q12y - (double)q11y);
-				}
+			double R1r = factor1 * (double)q11.r + factor2*(double)q21.r;
+			double R1g = factor1 * (double)q11.g + factor2*(double)q21.g;
+			double R1b = factor1 * (double)q11.b + factor2*(double)q21.b;
+			double R2r = factor1 * (double)q12.r + factor2*(double)q22.r;
+			double R2g = factor1 * (double)q12.g + factor2*(double)q22.g;
+			double R2b = factor1 * (double)q12.b + factor2*(double)q22.b;
+			double factor3;
+			double factor4;
+			if (q12y == q11y) // special case to avoid divide by zero
+			{
+				factor3 = 1;
+				factor4 = 0;
+			}
+			else
+			{
+				factor3 = ((double) q12y - yPrime)/((double)q12y - (double)q11y);
+				factor4 = (yPrime - (double)q11y)/((double)q12y - (double)q11y);
+			}
 
-				//remainder modified to use the gImage pix struct:
-				pix finalpix;
+			//remainder modified to use the gImage pix struct:
+			pix finalpix;
 	
-				finalpix.r = ((factor3 * R1r) + (factor4*R2r));
-				finalpix.g = ((factor3 * R1g) + (factor4*R2g));
-				finalpix.b = ((factor3 * R1b) + (factor4*R2b));
+			finalpix.r = ((factor3 * R1r) + (factor4*R2r));
+			finalpix.g = ((factor3 * R1g) + (factor4*R2g));
+			finalpix.b = ((factor3 * R1b) + (factor4*R2b));
 
-				image[x + y*nw] = finalpix;
+			image[x + y*nw] = finalpix;
 
 #else
-				//Plain old nearest-source to destination copy operation
-				image[x + y*nw] = src[u + v*w];
-				//image[x + y*nw].r = src[u + v*w].r;
-				//image[x + y*nw].g = src[u + v*w].g;
-				//image[x + y*nw].b = src[u + v*w].b;
+			//Plain old nearest-source to destination copy operation
+			image[x + y*nw] = src[u + v*w];
 
 #endif //ROTATE_BILINEAR_INTERPOLATION 
 
@@ -717,7 +708,7 @@ void gImage::ApplyRotate(double angle, bool crop, int threadcount)
 
 
 
-/*
+/* Rotate by three Shears:
 void gImage::ApplyRotate(double angle, int threadcount)
 {
 	//gImage I, J, K, L;
@@ -923,7 +914,7 @@ void gImage::ApplyYShear(double rangle, int threadcount)
 }
 */
 
-// Paeth's shears, kinda...
+/* Paeth's shears, kinda...
 void gImage::ApplyXShear(double rangle, int threadcount)
 {
 	double tangent = tan(rangle/2.0);
@@ -949,7 +940,6 @@ void gImage::ApplyXShear(double rangle, int threadcount)
 		double skew = (tangent >= 0)? tangent * (y + 0.5) : tangent * (double(y) - h + 0.5);
 		double skewi = floor(skew);
 		double skewf = skew - double(skewi);
-//printf("gImage::ApplyXShear: y: %d     skew: %f  skewi: %f skewf: %f\n",y,skew, skewi, skewf);
 
 		pix left, oleft;
 		oleft.r = 0.0; oleft.g = 0.0; oleft.b = 0.0;
@@ -1004,7 +994,6 @@ void gImage::ApplyYShear(double rangle, int threadcount)
 		double skew = (sine >= 0)? sine * (x + 0.5) : sine * (double(x) - w + 0.5);
 		double skewi = floor(skew);
 		double skewf = skew - double(skewi);
-//printf("gImage::ApplyYShear: x: %d     skew: %f  skewi: %f skewf: %f\n",x,skew, skewi, skewf);
 		pix left, oleft;
 		oleft.r = 0.0; oleft.g = 0.0; oleft.b = 0.0;
 		for (unsigned y=0; y<h; y++) {
@@ -1077,7 +1066,7 @@ void gImage::ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2,
 	endy2:
 	return;
 }
-
+*/
 
 //Crop
 //
@@ -1122,6 +1111,7 @@ void gImage::ApplyCrop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int t
 }
 
 
+
 //Curve
 //
 //Credit: Tino Kluge, http://kluge.in-chemnitz.de/opensource/spline/, GPLV2
@@ -1151,33 +1141,8 @@ void gImage::ApplyCrop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int t
 //is not clear.
 //
 
-
-/*
-gImage gImage::ToneLine(double low, double high, int threadcount)
-{
-	gImage S(w, h, c, imginfo);
-	std::vector<pix>& src = getImageData();
-	std::vector<pix>& dst = S.getImageData();
-
-	double slope = 255.0 / (high-low);
-
-	#pragma omp parallel for num_threads(threadcount)
-	for (unsigned x=0; x<w; x++) {
-		for (unsigned y=0; y<h; y++) {
-			unsigned pos = x + y*w;
-			dst[pos].r = src[pos].r * slope;
-			dst[pos].g = src[pos].g * slope;
-			dst[pos].b = src[pos].b * slope;
-		}
-	}
-	return S;
-}
-*/
-
 void gImage::ApplyToneCurve(std::vector<cp> ctpts, int threadcount)
 {
-	std::vector<pix>& dst = getImageData();
-
 	Curve c;
 	c.setControlPoints(ctpts);
 	c.scalepoints(1.0/SCALE_CURVE);
@@ -1186,17 +1151,28 @@ void gImage::ApplyToneCurve(std::vector<cp> ctpts, int threadcount)
 	for (int x=0; x<w; x++) {
 		for (int y=0; y<h; y++) {
 			int pos = x + y*w;;
-			dst[pos].r = c.getpoint(dst[pos].r);
-			dst[pos].g = c.getpoint(dst[pos].g);
-			dst[pos].b = c.getpoint(dst[pos].b);
+			image[pos].r = c.getpoint(image[pos].r);
+			image[pos].g = c.getpoint(image[pos].g);
+			image[pos].b = c.getpoint(image[pos].b);
 		}
 	}
 }
 
 void gImage::ApplyToneLine(double low, double high, int threadcount)
 {
+	double slope = 255.0 / (high-low);
 
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned x=0; x<w; x++) {
+		for (unsigned y=0; y<h; y++) {
+			unsigned pos = x + y*w;
+			image[pos].r = image[pos].r * slope;
+			image[pos].g = image[pos].g * slope;
+			image[pos].b = image[pos].b * slope;
+		}
+	}
 }
+
 
 
 //Saturation
@@ -1211,7 +1187,6 @@ void gImage::ApplyToneLine(double low, double high, int threadcount)
 #define  Pr  .299
 #define  Pg  .587
 #define  Pb  .114
-
 
 void gImage::ApplySaturate(double saturate, int threadcount)
 {
@@ -1236,6 +1211,8 @@ void gImage::ApplySaturate(double saturate, int threadcount)
 	}
 }
 
+
+
 //Tint
 //
 //Credit:
@@ -1243,8 +1220,6 @@ void gImage::ApplySaturate(double saturate, int threadcount)
 //Tint allows the addition or subtraction of a single value from a single
 //channel.  My use case is to introduce tint to grayscale images.
 //
-
-
 
 void gImage::ApplyTint(double red,double green,double blue, int threadcount)
 {
@@ -1276,14 +1251,13 @@ void gImage::ApplyTint(double red,double green,double blue, int threadcount)
 //Retaining the three-channel image allows subsequent manipulation of the channels to introduce
 //tint.
 
-
 void gImage::ApplyGray(double redpct, double greenpct, double bluepct, int threadcount)
 {
 	#pragma omp parallel for num_threads(threadcount)
 	for (unsigned x=0; x<w; x++) {
 		for (unsigned y=0; y<h; y++) {
 			unsigned pos = x + y*w;
-			//double G = floor(image[pos].r*redpct + image[pos].g*greenpct + image[pos].b*bluepct)+0.5;
+			//double G = floor(image[pos].r*redpct + image[pos].g*greenpct + image[pos].b*bluepct)+0.5; 
 			double G = image[pos].r*redpct + image[pos].g*greenpct + image[pos].b*bluepct;
 			image[pos].r=G;
 			image[pos].g=G;
@@ -1292,6 +1266,7 @@ void gImage::ApplyGray(double redpct, double greenpct, double bluepct, int threa
 		}
 	}
 }
+
 
 
 //NLMeans Denoise
@@ -1310,7 +1285,6 @@ void gImage::ApplyGray(double redpct, double greenpct, double bluepct, int threa
 //below is a simplistic but straightforward interpretation of the algorithm presented as a 
 //GMIC script by David Tschumperlé in his blog at http://gmic.eu
 //
-
 
 void gImage::ApplyNLMeans(double sigma, int local, int patch, int threadcount)
 {
@@ -1340,7 +1314,6 @@ void gImage::ApplyNLMeans(double sigma, int local, int patch, int threadcount)
 			unsigned px = x;
 			if (px<xplb) px = xplb;
 			if (px>xpub) px = xpub;
-			//pix * wdstpix = dstbits + dpitch*y + x;
 			unsigned wdstpix = dpitch*y + x;
 			double valueR = 0.0;
 			double valueG = 0.0;
@@ -1355,9 +1328,7 @@ void gImage::ApplyNLMeans(double sigma, int local, int patch, int threadcount)
 					double diffB = 0.0;
 					for (int s = -patch; s<=patch; ++s) {
 						for (int r = -patch; r<=patch; ++r) {
-							//pix * ppix = srcbits + spitch*(py+q+s) + (px+p+r);
 							unsigned ppix = spitch*(py+q+s) + (px+p+r);
-							//pix * lpix = srcbits + spitch*(py+s) + (px+r);
 							unsigned lpix = spitch*(py+s) + (px+r);
 							diffR += pow((src[ppix].r - src[lpix].r),2);
 							diffG += pow((src[ppix].g - src[lpix].g),2);
@@ -1368,7 +1339,6 @@ void gImage::ApplyNLMeans(double sigma, int local, int patch, int threadcount)
 					double weightR = exp(-diffR/sigma2);
 					double weightG = exp(-diffG/sigma2);
 					double weightB = exp(-diffB/sigma2);
-					//pix * localpix = srcbits + spitch*(y+q) + (x+p);
 					unsigned localpix = spitch*(y+q) + (x+p);
 					valueR += weightR*src[localpix].r;
 					valueG += weightG*src[localpix].g;
@@ -1797,7 +1767,6 @@ gImage gImage::loadImageFile(const char * filename, std::string params)
 	if (ext == FILETYPE_TIFF) return gImage::loadTIFF(filename, params);
 	if (ext == FILETYPE_JPEG) return gImage::loadJPEG(filename, params);
 	else return gImage::loadRAW(filename, params);
-	//return gImage();
 }
 
 gImage gImage::loadRAW(const char * filename, std::string params)
@@ -1815,8 +1784,6 @@ gImage gImage::loadRAW(const char * filename, std::string params)
 		case 16:
 			bits = BPP_16;
 			break;
-		//default:
-		//	throw bad_typeid;
 	}
 	gImage I(image, width, height, colors, bits, imgdata, iccprofile, icclength);
 	delete [] image;
@@ -1852,8 +1819,6 @@ gImage gImage::loadTIFF(const char * filename, std::string params)
 		case 16:
 			bits = BPP_16;
 			break;
-		//default:
-		//	throw bad_typeid;
 	}
 	gImage I(image, width, height, colors, bits, imgdata, iccprofile, icclength);
 	delete [] image;

@@ -1,7 +1,6 @@
 
 #define NDEBUG
 
-//#include <vector>
 #include <string>
 #include <cmath>
 
@@ -36,8 +35,6 @@ void Curve::insertpoint(double x, double y)
 	struct cp p;
 	p.x = x;
 	p.y = y;
-	//if (mn>-1.0) if (p.x < mn) p.x = mn;
-	//if (mx>-1.0) if (p.y > mx) p.y = mx;
 	controlpts.push_back(p);
 	setpoints();
 }

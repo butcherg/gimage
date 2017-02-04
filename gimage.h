@@ -79,21 +79,6 @@ class gImage
 		static int ThreadCount();
 		static std::string Version();
 
-/*
-		//Image operations
-		gImage ConvolutionKernel(double kernel[3][3], int threadcount);
-		gImage Sharpen(int strength, int threadcount);
-		gImage Resize(unsigned width, unsigned height, RESIZE_FILTER filter, int threadcount);
-		gImage Rotate(double angle, int threadcount);
-		gImage Crop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int threadcount);
-		gImage Saturate(double saturate, int threadcount);
-		gImage Tint(double red,double green,double blue, int threadcount);
-		gImage Gray(double redpct, double greenpct, double bluepct, int threadcount);
-		gImage ToneCurve(std::vector<cp> ctpts, int threadcount);
-		gImage ToneLine(double low, double high, int threadcount);
-		gImage NLMeans(double sigma, int local, int patch, int threadcount);
-*/
-
 		//In-place versions of image operations:
 		void ApplyConvolutionKernel(double kernel[3][3], int threadcount);
 		void ApplySharpen(int strength, int threadcount);
@@ -124,12 +109,10 @@ class gImage
 		static void makeICCProfile(cmsHPROFILE hProfile, char *& profile, cmsUInt32Number  &profilesize);
 
 	protected:
-		gImage XShear(double rangle, int threadcount);
-		gImage YShear(double rangle, int threadcount);
-		void ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2, bool cropbounds=false);
 
-		void ApplyXShear(double rangle, int threadcount);
-		void ApplyYShear(double rangle, int threadcount);
+		//void ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2, bool cropbounds=false);
+		//void ApplyXShear(double rangle, int threadcount);
+		//void ApplyYShear(double rangle, int threadcount);
 
 
 	private:
@@ -140,9 +123,6 @@ class gImage
 		char *profile;
 		unsigned profile_length;
 		
-
-		//Add:		
-		//	icc
 
 };
 

@@ -51,7 +51,6 @@ class Curve
 
 		std::vector<cp> controlpts;
 		std::vector<double> X, Y;
-		//tk::
 		spline s;
 		cp ctrlpoint;
 		double mn, mx, slope;
