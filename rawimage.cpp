@@ -10,59 +10,6 @@
 #include <lcms2.h>
 #include "gimage.h"
 
-/*
-//ICC Profiles:
-cmsCIExyY d50_romm_spec= {0.3457, 0.3585, 1.0};
-cmsCIEXYZ d50_romm_spec_media_whitepoint = {0.964295676, 1.0, 0.825104603};
-cmsCIExyY d65_srgb_adobe_specs = {0.3127, 0.3290, 1.0};
-cmsCIEXYZ d65_media_whitepoint = {0.95045471, 1.0, 1.08905029};
-
-cmsCIExyYTRIPLE aces_primaries_prequantized = 
-{
-{0.734704192222, 0.265298276252,  1.0},
-{-0.000004945077, 0.999992850272,  1.0},
-{0.000099889199, -0.077007518685,  1.0}
-};
-
-cmsCIExyYTRIPLE romm_primaries = {
-{0.7347, 0.2653, 1.0},
-{0.1596, 0.8404, 1.0},
-{0.0366, 0.0001, 1.0}
-};
-
-cmsCIExyYTRIPLE widegamut_pascale_primaries = {
-{0.7347, 0.2653, 1.0},
-{0.1152, 0.8264, 1.0},
-{0.1566, 0.0177, 1.0}
-};
-
-cmsCIExyYTRIPLE adobe_primaries_prequantized = {
-{0.639996511, 0.329996864, 1.0},
-{0.210005295, 0.710004866, 1.0},
-{0.149997606, 0.060003644, 1.0}
-};
-
-cmsCIExyYTRIPLE srgb_primaries_pre_quantized = {
-{0.639998686, 0.330010138, 1.0},
-{0.300003784, 0.600003357, 1.0},
-{0.150002046, 0.059997204, 1.0}
-};
-
-cmsHPROFILE makeProfile(const std::string name, float gamma)
-{
-	//cmsHPROFILE p;
-	cmsCIExyYTRIPLE c;
-	if (name == "srgb") c =  srgb_primaries_pre_quantized;
-	else if (name == "wide") c =  widegamut_pascale_primaries;
-	else if (name == "adobe") c =  adobe_primaries_prequantized;
-	else if (name == "prophoto") c =  romm_primaries;
-	else return NULL;
-	cmsToneCurve *curve[3], *tonecurve;
-	tonecurve = cmsBuildGamma (NULL, gamma);
-	curve[0] = curve[1] = curve[2] = tonecurve;
-	return cmsCreateRGBProfile ( &d65_srgb_adobe_specs, &c, curve);
-}
-*/
 
 bool _loadRAWInfo_m(const char *filename, 
 			unsigned *width, 
@@ -150,6 +97,7 @@ char * _loadRAW_m(const char *filename,
 	//#
 	//# output_color=0|1|2|3|4|5 - Output color space, default=1
 	//# colorspace=raw|srgb|adobe|wide|prophoto|xyz - Alias of output_color space, default=srgb
+	//#
 	if (p.find("colorspace") != p.end()) {
 		if (p["colorspace"].compare("raw") == 0) 
 			RawProcessor.imgdata.params.output_color = 0;
@@ -171,6 +119,7 @@ char * _loadRAW_m(const char *filename,
 	//#
 	//# user_qual=0|1|2|3|4 - Demosaic algorithm, default=3 (ahd)
 	//# demosaic=linear|vng|ppg|ahd|dcb - Alias of user_qual, with mnemonic values
+	//#
 	if (p.find("demosaic") != p.end()) {
 		if (p["demosaic"].compare("linear") == 0) 
 			RawProcessor.imgdata.params.user_qual = 0;
@@ -187,6 +136,7 @@ char * _loadRAW_m(const char *filename,
 
 	//#
 	//# output_bps=8|16 - bits per sample, default=16
+	//#
 	if (p.find("output_bps") != p.end()) 
 		RawProcessor.imgdata.params.gamm[0] = atoi(p["bps"].c_str());
 
@@ -195,7 +145,8 @@ char * _loadRAW_m(const char *filename,
 	//#	2. gammaval=2.222;gammatoe=4.5
 	//#	3. gamm=2.222,4.5
 	//#
-	//# gamma=bt709|srgb|linear - Gamma presets
+	//# gamma=bt709|srgb|linear|prophoto - Gamma presets
+	//#
 	if (p.find("gamma") != p.end()) {
 		if (p["gamma"].compare("bt709") == 0) {
 			RawProcessor.imgdata.params.gamm[0] = 1/2.222;
@@ -217,16 +168,19 @@ char * _loadRAW_m(const char *filename,
 
 	//#
 	//# gammaval=2.222 - Set specific power gamma value, overrides preset, default=1.0 (linear)
+	//#
 	if (p.find("gammaval") != p.end()) 
 		RawProcessor.imgdata.params.gamm[0] = 1.0/atof(p["gammaval"].c_str());
 
 	//#
 	//# gammatoe=4.5 - Set specific gamma toe, overrides preset, default=1.0 (linear)
 	//# gamm1=4.5 - LIbRaw alias
+	//#
 	if (p.find("gammatoe") != p.end()) 
 		RawProcessor.imgdata.params.gamm[0] = atof(p["gammatoe"].c_str());
 
 	//# gamm=2.222,4.5 - Set gamm[0] and gamm[1]
+	//#
 	if (p.find("gamm") != p.end()) {
 		std::vector<std::string> g = split(p["gamm"],",");
 		RawProcessor.imgdata.params.gamm[0] = 1.0/atof(g[0].c_str());
@@ -235,6 +189,7 @@ char * _loadRAW_m(const char *filename,
 
 	//#
 	//# autobright - Use dcraw automatic brightness (note the difference from no_auto_bright)
+	//#
 	if (p.find("autobright") != p.end()) 
 		RawProcessor.imgdata.params.no_auto_bright = 0; 
 	else
@@ -242,6 +197,7 @@ char * _loadRAW_m(const char *filename,
 
 	//#
 	//# greybox=x,y,w,h - coordinates of a rectangle used for white balance 
+	//#
 	if (p.find("greybox") != p.end()) {
 		std::vector<std::string> g = split(p["greybox"],",");
 		if (g.size() == 4) {
@@ -254,6 +210,7 @@ char * _loadRAW_m(const char *filename,
 
 	//#
 	//# cropbox=x,y,w,h - coordinates of a rectangle used for crop 
+	//#
 	if (p.find("cropbox") != p.end()) {
 		std::vector<std::string> c = split(p["cropbox"],",");
 		if (c.size() == 4) {
@@ -266,6 +223,7 @@ char * _loadRAW_m(const char *filename,
 
 	//#
 	//# aber=rmult,gmult - chromatic aberration correction 
+	//#
 	if (p.find("aber") != p.end()) {
 		std::vector<std::string> c = split(p["aber"],",");
 		if (c.size() == 2) {
@@ -276,6 +234,7 @@ char * _loadRAW_m(const char *filename,
 
 	//#
 	//# user_mul=mul0,mul1,mul2,mul3 - user white balance multipliers, r,g,b,g
+	//#
 	if (p.find("user_mul") != p.end()) {
 		std::vector<std::string> c = split(p["user_mul"],",");
 		if (c.size() == 4) {
@@ -288,91 +247,109 @@ char * _loadRAW_m(const char *filename,
 
 	//#
 	//# shot_select=n - select image number for processing
+	//#
 	if (p.find("shot_select") != p.end()) 
 		RawProcessor.imgdata.params.shot_select = atoi(p["shot_select"].c_str());
 
 	//#
 	//# bright=1.0 - brighten image, default=1.0
+	//#
 	if (p.find("bright") != p.end()) 
 		RawProcessor.imgdata.params.bright = atof(p["bright"].c_str());
 
 	//#
 	//# threshold=1.0 - wavelet denoising threshold
+	//#
 	if (p.find("threshold") != p.end()) 
 		RawProcessor.imgdata.params.threshold = atof(p["threshold"].c_str());
 
 	//#
 	//# half_size=0|1 - output image in half-size
+	//#
 	if (p.find("half_size") != p.end()) 
 		RawProcessor.imgdata.params.half_size = atoi(p["half_size"].c_str());
 
 	//#
 	//# four_color_rgb=0|1 - separate interpolations for the two green components
+	//#
 	if (p.find("four_color_rgb") != p.end()) 
 		RawProcessor.imgdata.params.four_color_rgb = atoi(p["four_color_rgb"].c_str());
 
 	//#
 	//# highlight=0|1|2|3+ - deal with image highlights, clip=0, 1=unclip, 2=blend, 3+=rebuild
+	//#
 	if (p.find("highlight") != p.end()) 
 		RawProcessor.imgdata.params.highlight = atoi(p["highlight"].c_str());
 
 	//#
 	//# use_auto_wb=0|1 - use auto white balance, averaging over entire image
+	//#
 	if (p.find("use_auto_wb") != p.end()) 
 		RawProcessor.imgdata.params.use_auto_wb = atoi(p["use_auto_wb"].c_str());
 
 	//#
 	//# use_camera_wb=0|1 - use camera white balance, if available
+	//#
 	if (p.find("use_camera_wb") != p.end()) 
 		RawProcessor.imgdata.params.use_camera_wb = atoi(p["use_camera_wb"].c_str());
 
 	//#
 	//# use_camera_matrix=0|1 - use camera color matrix
+	//#
 	if (p.find("use_camera_matrix") != p.end()) 
 		RawProcessor.imgdata.params.use_camera_matrix = atoi(p["use_camera_matrix"].c_str());
 
 	//#
 	//# output_profile=filepath - use ICC profile from the file
+	//#
 	if (p.find("output_profile") != p.end()) 
 		RawProcessor.imgdata.params.output_profile = (char *) p["output_profile"].c_str();
 
 	//#
 	//# camera_profile=filepath|embed - use ICC profile from the file
+	//#
 	if (p.find("camera_profile") != p.end()) 
 		RawProcessor.imgdata.params.camera_profile = (char *) p["camera_profile"].c_str();
 
 	//#
 	//# bad_pixels=filepath - use bad pixel map
+	//#
 	if (p.find("bad_pixels") != p.end()) 
 		RawProcessor.imgdata.params.bad_pixels = (char *) p["bad_pixels"].c_str();
 
 	//#
 	//# dark_frame=filepath - use bad pixel map
+	//#
 	if (p.find("dark_frame") != p.end()) 
 		RawProcessor.imgdata.params.dark_frame = (char *) p["dark_frame"].c_str();
 
 	//#
 	//# output_bps=8|16 - bits per sample
+	//#
 	if (p.find("output_bps") != p.end()) 
 		RawProcessor.imgdata.params.output_bps = atoi(p["output_bps"].c_str());
 
 	//#
 	//# output_tiff=0|1 - 0=output PPM, 1=output TIFF
+	//#
 	if (p.find("output_tiff") != p.end()) 
 		RawProcessor.imgdata.params.output_tiff = atoi(p["output_tiff"].c_str());
 
 	//#
 	//# user_flip=0|1 - Flip image (0=none, 3=180, 5=90CCW, =90CW)
+	//#
 	if (p.find("user_flip") != p.end()) 
 		RawProcessor.imgdata.params.user_flip = atoi(p["user_flip"].c_str());
 
 	//#
 	//# user_black=n - User black level
+	//#
 	if (p.find("user_black") != p.end()) 
 		RawProcessor.imgdata.params.user_black = atoi(p["user_black"].c_str());
 
 	//#
 	//# user_cblack=rb,gb,bb,gb - user per-channel black levels, r,g,b,g
+	//#
 	if (p.find("user_cblack") != p.end()) {
 		std::vector<std::string> c = split(p["user_cblack"],",");
 		if (c.size() == 4) {
@@ -391,81 +368,145 @@ char * _loadRAW_m(const char *filename,
 
 	//#
 	//# user_sat=n - saturation
+	//#
 	if (p.find("user_sat") != p.end()) 
 		RawProcessor.imgdata.params.user_sat = atoi(p["user_sat"].c_str());
 
 	//#
 	//# med_passes=n - number of median filter passes
+	//#
 	if (p.find("med_passes") != p.end()) 
 		RawProcessor.imgdata.params.med_passes = atoi(p["med_passes"].c_str());
 
 	//#
 	//# auto_bright_thr=0.01 - portion of clipped pixel with autobright
+	//#
 	if (p.find("auto_bright_thr") != p.end()) 
 		RawProcessor.imgdata.params.auto_bright_thr = atof(p["auto_bright_thr"].c_str());
 
 	//#
 	//# adjust_maximum_thr=0.01 - portion of clipped pixel with autobright
+	//#
 	if (p.find("adjust_maximum_thr") != p.end()) 
 		RawProcessor.imgdata.params.adjust_maximum_thr = atof(p["adjust_maximum_thr"].c_str());
 
 	//#
 	//# use_fuji_rotate=0|1 - rotation for cameras with Fuji sensor
+	//#
 	if (p.find("use_fuji_rotate") != p.end()) 
 		RawProcessor.imgdata.params.use_fuji_rotate = atoi(p["use_fuji_rotate"].c_str());
 
 	//#
 	//# green_matching=0|1 - fix green channel disbalance
+	//#
 	if (p.find("green_matching") != p.end()) 
 		RawProcessor.imgdata.params.green_matching = atoi(p["green_matching"].c_str());
 
 	//#
 	//# dcb_iterations=n - number of DCB correction passes, -1 is no correction, default
+	//#
 	if (p.find("dcb_iterations") != p.end()) 
 		RawProcessor.imgdata.params.dcb_iterations = atoi(p["dcb_iterations"].c_str());
 
 	//#
 	//# dcb_enhance_fl=n - DCB interpolation with enhanced interpolated colors
+	//#
 	if (p.find("dcb_enhance_fl") != p.end()) 
 		RawProcessor.imgdata.params.dcb_enhance_fl = atoi(p["dcb_enhance_fl"].c_str());
 
 	//#
 	//# fbdd_noiserd=n - FBDD noise reduction, before demosaic
+	//#
 	if (p.find("fbdd_noiserd") != p.end()) 
 		RawProcessor.imgdata.params.fbdd_noiserd = atoi(p["fbdd_noiserd"].c_str());
 
 	//#
 	//# eeci_refine=n - non-zero for ECCI refine for VCD interpolation
+	//#
 	if (p.find("eeci_refine") != p.end()) 
 		RawProcessor.imgdata.params.eeci_refine = atoi(p["eeci_refine"].c_str());
 
 	//#
 	//# es_med_passes=n - number of edge-sensitive median filter passes after VCD+AHD demosaic
+	//#
 	if (p.find("es_med_passes") != p.end()) 
 		RawProcessor.imgdata.params.es_med_passes = atoi(p["es_med_passes"].c_str());
 
 	//#
 	//# ca_correc=0|1 - chromatic aberration suppression
+	//#
 	if (p.find("ca_correc") != p.end()) 
 		RawProcessor.imgdata.params.ca_correc = atoi(p["ca_correc"].c_str());
 
 	//# cared=0.01 - chromatic aberration suppression red correction
+	//#
 	if (p.find("cared") != p.end()) 
 		RawProcessor.imgdata.params.cared = atof(p["cared"].c_str());
 
 	//# cablue=0.01 - chromatic aberration suppression blue correction
+	//#
 	if (p.find("cablue") != p.end()) 
 		RawProcessor.imgdata.params.cablue = atof(p["cablue"].c_str());
 
 	//#
 	//# cfaline=0|1 - banding reduction
+	//#
 	if (p.find("cfaline") != p.end()) 
 		RawProcessor.imgdata.params.cfaline = atoi(p["cfaline"].c_str());
 
 	//# linenoise=0.01 - banding reduction amount
+	//#
 	if (p.find("linenoise") != p.end()) 
 		RawProcessor.imgdata.params.linenoise = atof(p["linenoise"].c_str());
 
+	//#
+	//# cfa_clean=0|1 - Turns on impulse noise and Gaussian high frequency reduction
+	//# lclean=0.005 to 0.05 - Amount of luminance reduction, 0.01 is a common value
+	//# cclean=0.005 to 0.05 - Amount of color reduction, 0.01 is a common value
+	//#
+	if (p.find("cfa_clean") != p.end()) 
+		RawProcessor.imgdata.params.cfa_clean = atoi(p["cfa_clean"].c_str());
+	if (p.find("lclean") != p.end()) 
+		RawProcessor.imgdata.params.lclean = atof(p["lclean"].c_str());
+	if (p.find("cclean") != p.end()) 
+		RawProcessor.imgdata.params.cclean = atof(p["cclean"].c_str());
+
+	//#
+	//# cfa_green=0|1 - Turns on reduction of maze artifacts produced by bad balance of green channels
+	//# green_thresh=0.01 to 0.1 - Max difference between channels allowed for equalization 
+	//#
+	if (p.find("cfa_green") != p.end()) 
+		RawProcessor.imgdata.params.cfa_green = atoi(p["cfa_green"].c_str());
+	if (p.find("green_thresh") != p.end()) 
+		RawProcessor.imgdata.params.green_thresh = atof(p["green_thresh"].c_str());
+
+	//#
+	//# exp_correc=0|1 - Turns on exposure correction before demosaic
+	//# exp_shift=0.25 (2 stops darken) to 8.0 (3 stops lighten), default 1.0=no shift
+	//# exp_preser=0.0 to 1.0 Preserve hightlights when lightening the image
+	//#
+	if (p.find("exp_correc") != p.end()) 
+		RawProcessor.imgdata.params.exp_correc = atoi(p["exp_correc"].c_str());
+	if (p.find("exp_shift") != p.end()) 
+		RawProcessor.imgdata.params.exp_shift = atof(p["exp_shift"].c_str());
+	if (p.find("exp_preser") != p.end()) 
+		RawProcessor.imgdata.params.exp_preser = atof(p["exp_preser"].c_str());
+
+	//#
+	//# wf_debanding=0|1 - Turns on banding suppression
+	//# wf_deband_threshold=tr,tg,tb,tg - Per-channel debanding thresholds
+	//#
+	if (p.find("wf_debanding") != p.end()) 
+		RawProcessor.imgdata.params.wf_debanding = atoi(p["wf_debanding"].c_str());
+	if (p.find("wf_deband_treshold") != p.end()) {
+		std::vector<std::string> c = split(p["wf_deband_treshold"],",");
+		if (c.size() == 4) {
+			RawProcessor.imgdata.params.wf_deband_treshold[0] = atoi(c[0].c_str());
+			RawProcessor.imgdata.params.wf_deband_treshold[1] = atoi(c[1].c_str());
+			RawProcessor.imgdata.params.wf_deband_treshold[2] = atoi(c[2].c_str());
+			RawProcessor.imgdata.params.wf_deband_treshold[3] = atoi(c[3].c_str());
+		}
+	}
 
 
 
