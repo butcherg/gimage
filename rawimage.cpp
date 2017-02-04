@@ -168,14 +168,11 @@ char * _loadRAW_m(const char *filename,
 
 	//#
 	//# gammaval=2.222 - Set specific power gamma value, overrides preset, default=1.0 (linear)
+	//# gammatoe=4.5 - Set specific gamma toe, overrides preset, default=1.0 (linear)
+	// gamm1=4.5 - LIbRaw alias
 	//#
 	if (p.find("gammaval") != p.end()) 
 		RawProcessor.imgdata.params.gamm[0] = 1.0/atof(p["gammaval"].c_str());
-
-	//#
-	//# gammatoe=4.5 - Set specific gamma toe, overrides preset, default=1.0 (linear)
-	//# gamm1=4.5 - LIbRaw alias
-	//#
 	if (p.find("gammatoe") != p.end()) 
 		RawProcessor.imgdata.params.gamm[0] = atof(p["gammatoe"].c_str());
 
@@ -438,11 +435,13 @@ char * _loadRAW_m(const char *filename,
 	if (p.find("ca_correc") != p.end()) 
 		RawProcessor.imgdata.params.ca_correc = atoi(p["ca_correc"].c_str());
 
+	//#
 	//# cared=0.01 - chromatic aberration suppression red correction
 	//#
 	if (p.find("cared") != p.end()) 
 		RawProcessor.imgdata.params.cared = atof(p["cared"].c_str());
 
+	//#
 	//# cablue=0.01 - chromatic aberration suppression blue correction
 	//#
 	if (p.find("cablue") != p.end()) 
@@ -454,6 +453,7 @@ char * _loadRAW_m(const char *filename,
 	if (p.find("cfaline") != p.end()) 
 		RawProcessor.imgdata.params.cfaline = atoi(p["cfaline"].c_str());
 
+	//#
 	//# linenoise=0.01 - banding reduction amount
 	//#
 	if (p.find("linenoise") != p.end()) 
