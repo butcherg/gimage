@@ -340,7 +340,7 @@ std::map<std::string,std::string> gImage::getInfo(const char * filename)
 	std::map<std::string, std::string> imgdata;
 	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
 	if (strcmp(ext,"tif") == 0) _loadTIFFInfo(filename, &width, &height, &colors, &bpp, imgdata);
-	if (strcmp(ext,"NEF") == 0) _loadRAWInfo_m(filename, &width, &height, &colors, &bpp, imgdata);
+	if (strcmp(ext,"NEF") == 0) _loadRAWInfo(filename, &width, &height, &colors, &bpp, imgdata);
 	if ((strcmp(ext,"jpg") == 0) | (strcmp(ext,"JPG") == 0)) _loadJPEGInfo(filename, &width, &height, &colors, imgdata, "", &iccprofile, &icclength);
 	return imgdata;
 }
@@ -1775,7 +1775,7 @@ gImage gImage::loadRAW(const char * filename, std::string params)
 	BPP bits;
 	char * iccprofile;
 	std::map<std::string,std::string> imgdata;
-	char * image = _loadRAW_m(filename, &width, &height, &colors, &bpp, imgdata, params, &iccprofile, &icclength);
+	char * image = _loadRAW(filename, &width, &height, &colors, &bpp, imgdata, params, &iccprofile, &icclength);
 	if (image == NULL) return gImage();
 	switch (bpp) {
 		case 8: 
