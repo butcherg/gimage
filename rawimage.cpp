@@ -26,7 +26,7 @@ bool _loadRAWInfo_m(const char *filename,
 #define C RawProcessor.imgdata.color
 #define T RawProcessor.imgdata.thumbnail
 #define P2 RawProcessor.imgdata.other
-//#define OUT RawProcessor.imgdata.params
+// #define OUT RawProcessor.imgdata.params
 
 	if (RawProcessor.open_file(filename) == LIBRAW_SUCCESS) {
 		RawProcessor.unpack();
@@ -82,7 +82,7 @@ char * _loadRAW_m(const char *filename,
 #define C RawProcessor.imgdata.color
 #define T RawProcessor.imgdata.thumbnail
 #define P2 RawProcessor.imgdata.other
-//#define OUT RawProcessor.imgdata.params
+// #define OUT RawProcessor.imgdata.params
 
 	RawProcessor.imgdata.params.shot_select = 0;
 	RawProcessor.imgdata.params.use_camera_wb = 1;
@@ -96,7 +96,7 @@ char * _loadRAW_m(const char *filename,
 
 	//#
 	//# output_color=0|1|2|3|4|5 - Output color space, default=1
-	//# colorspace=raw|srgb|adobe|wide|prophoto|xyz - Alias of output_color space, default=srgb
+	//# colorspace=raw|srgb|adobe|wide|prophoto|xyz - Alias of output_color, with mnemonic values. default=srgb
 	//#
 	if (p.find("colorspace") != p.end()) {
 		if (p["colorspace"].compare("raw") == 0) 
@@ -118,7 +118,7 @@ char * _loadRAW_m(const char *filename,
 
 	//#
 	//# user_qual=0|1|2|3|4 - Demosaic algorithm, default=3 (ahd)
-	//# demosaic=linear|vng|ppg|ahd|dcb - Alias of user_qual, with mnemonic values
+	//# demosaic=linear|vng|ppg|ahd|dcb - Alias of user_qual, with mnemonic values. Default=ahd
 	//#
 	if (p.find("demosaic") != p.end()) {
 		if (p["demosaic"].compare("linear") == 0) 
@@ -141,11 +141,11 @@ char * _loadRAW_m(const char *filename,
 		RawProcessor.imgdata.params.gamm[0] = atoi(p["bps"].c_str());
 
 	//# Gamma:  three ways to set it:
-	//#	1. gamma=preset
-	//#	2. gammaval=2.222;gammatoe=4.5
-	//#	3. gamm=2.222,4.5
+	//#       1. gamma=preset
+	//#       2. gammaval=2.222;gammatoe=4.5
+	//#       3. gamm=2.222,4.5
 	//#
-	//# gamma=bt709|srgb|linear|prophoto - Gamma presets
+	//#    gamma=bt709|srgb|linear|prophoto - Gamma presets
 	//#
 	if (p.find("gamma") != p.end()) {
 		if (p["gamma"].compare("bt709") == 0) {
@@ -167,8 +167,8 @@ char * _loadRAW_m(const char *filename,
 	}
 
 	//#
-	//# gammaval=2.222 - Set specific power gamma value, overrides preset, default=1.0 (linear)
-	//# gammatoe=4.5 - Set specific gamma toe, overrides preset, default=1.0 (linear)
+	//#    gammaval=2.222 - Set specific power gamma value, overrides preset, default=1.0 (linear)
+	//#    gammatoe=4.5 - Set specific gamma toe, overrides preset, default=1.0 (linear)
 	// gamm1=4.5 - LIbRaw alias
 	//#
 	if (p.find("gammaval") != p.end()) 
@@ -176,7 +176,7 @@ char * _loadRAW_m(const char *filename,
 	if (p.find("gammatoe") != p.end()) 
 		RawProcessor.imgdata.params.gamm[0] = atof(p["gammatoe"].c_str());
 
-	//# gamm=2.222,4.5 - Set gamm[0] and gamm[1]
+	//#    gamm=2.222,4.5 - Set gamm[0] and gamm[1]
 	//#
 	if (p.find("gamm") != p.end()) {
 		std::vector<std::string> g = split(p["gamm"],",");
@@ -185,7 +185,7 @@ char * _loadRAW_m(const char *filename,
 	}
 
 	//#
-	//# autobright - Use dcraw automatic brightness (note the difference from no_auto_bright)
+	//# autobright=0|1 - Use dcraw automatic brightness (note the difference from no_auto_bright)
 	//#
 	if (p.find("autobright") != p.end()) 
 		RawProcessor.imgdata.params.no_auto_bright = 0; 
