@@ -11,7 +11,7 @@
 #include "gimage.h"
 
 
-bool _loadRAWInfo_m(const char *filename, 
+bool _loadRAWInfo(const char *filename, 
 			unsigned *width, 
 			unsigned *height, 
 			unsigned *numcolors, 
@@ -55,7 +55,7 @@ bool _loadRAWInfo_m(const char *filename,
 	}
 }
 
-char * _loadRAW_m(const char *filename, 
+char * _loadRAW(const char *filename, 
 			unsigned *width, 
 			unsigned *height, 
 			unsigned *numcolors, 
