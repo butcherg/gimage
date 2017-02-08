@@ -190,7 +190,8 @@ std::vector<float> gImage::getPixelArray(unsigned x,  unsigned y)
 	int i = x + y*w;
 	std::vector<float> pixel;
 	pixel.resize(3);
-	if ((x < w) && (y < h)) {
+	//if ((x < w) && (y < h)) {
+	if (i < image.size()) {
 		pixel[0] = (float) image[i].r;
 		pixel[1] = (float) image[i].g;
 		pixel[2] = (float) image[i].b;
