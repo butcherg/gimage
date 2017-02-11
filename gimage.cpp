@@ -1932,6 +1932,12 @@ cmsCIExyYTRIPLE srgb_primaries_pre_quantized = {
 {0.150002046, 0.059997204, 1.0}
 };
 
+cmsCIExyYTRIPLE identity_primaries = {
+{1.0, 0.0, 1.0},
+{0.0, 1.0, 1.0},
+{0.0, 0.0, 1.0}
+};
+
 cmsHPROFILE gImage::makeLCMSProfile(const std::string name, float gamma)
 {
 	cmsHPROFILE profile;
@@ -1941,6 +1947,7 @@ cmsHPROFILE gImage::makeLCMSProfile(const std::string name, float gamma)
 	else if (name == "wide") c =  widegamut_pascale_primaries;
 	else if (name == "adobe") c =  adobe_primaries_prequantized;
 	else if (name == "prophoto") c =  romm_primaries;
+	else if (name == "identity") c =  identity_primaries;
 	else return NULL;
 
 	cmsToneCurve *curve[3], *tonecurve;
