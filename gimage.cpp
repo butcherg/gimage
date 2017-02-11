@@ -381,6 +381,12 @@ void gImage::setInfo(std::string name, std::string value)
 	imginfo[name] = value;
 }
 
+void gImage::setProfile(char * prof, unsigned proflength)
+{
+	profile = prof;
+	profile_length = proflength;
+}
+
 
 
 
