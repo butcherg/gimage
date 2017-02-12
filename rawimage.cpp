@@ -39,6 +39,7 @@ bool _loadRAWInfo(const char *filename,
 		info["Artist"] = P2.artist; 
 		info["Make"] = P1.make;  
 		info["Model"] = P1.model;  
+		info["Orientation"] = tostr(S.flip);
 
 		time_t rawtime = P2.timestamp;
 		struct tm * timeinfo;
@@ -536,6 +537,7 @@ char * _loadRAW(const char *filename,
 	info["Artist"] = P2.artist; 
 	info["Make"] = P1.make;  
 	info["Model"] = P1.model;  
+	info["Orientation"] = tostr(S.flip);
 
 	time_t rawtime = P2.timestamp;
 	struct tm * timeinfo;
