@@ -509,6 +509,18 @@ char * _loadRAW(const char *filename,
 		}
 	}
 
+	//#
+	//# no_auto_scale=0|1 - Disables pixel scaling, dcraw: -D.  Default=0
+	//#
+	if (p.find("no_auto_scale") != p.end()) 
+		RawProcessor.imgdata.params.no_auto_scale = atoi(p["no_auto_scale"].c_str());
+
+	//#
+	//# no_interpolation=0|1 - Disables demosaic. dcraw: -d  Default=0
+	//#
+	if (p.find("no_interpolation") != p.end()) 
+		RawProcessor.imgdata.params.no_interpolation = atoi(p["no_interpolation"].c_str());
+
 
 
 	if (RawProcessor.open_file(filename) != LIBRAW_SUCCESS) return NULL;
