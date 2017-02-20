@@ -57,7 +57,7 @@ class gImage
 		pix getPixel(unsigned x,  unsigned y);
 		std::vector<float> getPixelArray(unsigned x,  unsigned y);
 		char *getImageData(BPP bits, cmsHPROFILE profile=NULL);
-		char *getTransformedImageData(BPP bits, cmsHPROFILE profile);
+		char *getTransformedImageData(BPP bits, cmsHPROFILE profile, cmsUInt32Number intent=INTENT_PERCEPTUAL);
 		std::vector<pix>& getImageData();
 		pix* getImageDataRaw();
 		unsigned getWidth();

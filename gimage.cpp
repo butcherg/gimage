@@ -209,7 +209,7 @@ std::vector<float> gImage::getPixelArray(unsigned x,  unsigned y)
 struct cpix { char r, g, b; };
 struct uspix { unsigned short r, g, b; };
 
-char * gImage::getTransformedImageData(BPP bits, cmsHPROFILE profile)
+char * gImage::getTransformedImageData(BPP bits, cmsHPROFILE profile, cmsUInt32Number intent)
 {
 	cmsHPROFILE hImgProfile;
 	cmsUInt32Number informat, outformat;
@@ -233,7 +233,7 @@ char * gImage::getTransformedImageData(BPP bits, cmsHPROFILE profile)
 	hImgProfile = cmsOpenProfileFromMem(getProfile(), getProfileLength());
 
 	if (hImgProfile != NULL & profile != NULL) {
-		hTransform = cmsCreateTransform(hImgProfile, informat, profile, outformat, INTENT_PERCEPTUAL, 0);
+		hTransform = cmsCreateTransform(hImgProfile, informat, profile, outformat, intent, 0);
 		cmsDoTransform(hTransform, image.data(), imagedata, w*h);
 	}
 
