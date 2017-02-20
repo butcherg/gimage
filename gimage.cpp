@@ -1836,20 +1836,20 @@ gImage gImage::loadTIFF(const char * filename, std::string params)
 
 //Savers:
 
-bool gImage::saveImageFile(const char * filename, std::string params, cmsHPROFILE profile)
+bool gImage::saveImageFile(const char * filename, std::string params, cmsHPROFILE profile, cmsUInt32Number intent)
 {
 	char ext[5];
 	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
 	if (strcmp(ext,"tif") == 0) {
 		if (profile)
-			saveTIFF(filename, BPP_16, profile);
+			saveTIFF(filename, BPP_16, profile, intent);
 		else
 			saveTIFF(filename, BPP_16);
 		return true;
 	}
 	if (strcmp(ext,"jpg") == 0) {
 		if (profile)
-			saveJPEG(filename, params, profile);
+			saveJPEG(filename, params, profile, intent);
 		else
 			saveJPEG(filename, params);
 		return true;
@@ -1858,7 +1858,7 @@ bool gImage::saveImageFile(const char * filename, std::string params, cmsHPROFIL
 }
 
 
-void gImage::saveJPEG(const char * filename, std::string params, cmsHPROFILE profile)
+void gImage::saveJPEG(const char * filename, std::string params, cmsHPROFILE profile, cmsUInt32Number intent)
 {
 	if (profile) {
 		char * iccprofile;
@@ -1866,7 +1866,7 @@ void gImage::saveJPEG(const char * filename, std::string params, cmsHPROFILE pro
 		makeICCProfile(profile, iccprofile, iccprofilesize);
 
 		//Pick one, getTransformedImageData() seems to produce less noise, but is slower:
-		_writeJPEG(filename, getTransformedImageData(BPP_8, profile),  w, h, c, imginfo, params, iccprofile, iccprofilesize); 
+		_writeJPEG(filename, getTransformedImageData(BPP_8, profile, intent),  w, h, c, imginfo, params, iccprofile, iccprofilesize); 
 		//_writeJPEG(filename, getImageData(BPP_8, profile),  w, h, c, imginfo, params); 
 
 		delete iccprofile;
@@ -1875,7 +1875,7 @@ void gImage::saveJPEG(const char * filename, std::string params, cmsHPROFILE pro
 		_writeJPEG(filename, getImageData(BPP_8),  w, h, c, imginfo, params);
 }
 
-void gImage::saveTIFF(const char * filename, BPP bits, cmsHPROFILE profile)
+void gImage::saveTIFF(const char * filename, BPP bits, cmsHPROFILE profile, cmsUInt32Number intent)
 {
 	unsigned b = 16;
 	if (bits == BPP_16) b = 16;
@@ -1887,7 +1887,7 @@ void gImage::saveTIFF(const char * filename, BPP bits, cmsHPROFILE profile)
 		makeICCProfile(profile, iccprofile, iccprofilesize);
 
 		//Pick one, getTransformedImageData() seems to produce less noise, but is slower:
-		_writeTIFF(filename, getTransformedImageData(bits, profile),  w, h, c, b, imginfo, iccprofile, iccprofilesize);
+		_writeTIFF(filename, getTransformedImageData(bits, profile, intent),  w, h, c, b, imginfo, iccprofile, iccprofilesize);
 		//_writeTIFF(filename, getImageData(bits, profile),  w, h, c, b, imginfo, iccprofile, iccprofilesize);
 
 		delete iccprofile;

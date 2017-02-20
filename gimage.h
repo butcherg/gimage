@@ -101,9 +101,9 @@ class gImage
 		static gImage loadImageFile(const char * filename, std::string params);
 
 		//Image savers. 
-		bool saveImageFile(const char * filename, std::string params="", cmsHPROFILE profile=NULL);
-		void saveJPEG(const char * filename, std::string params="", cmsHPROFILE profile=NULL);
-		void saveTIFF(const char * filename, BPP bits, cmsHPROFILE profile=NULL);
+		bool saveImageFile(const char * filename, std::string params="", cmsHPROFILE profile=NULL, cmsUInt32Number intent=INTENT_PERCEPTUAL);
+		void saveJPEG(const char * filename, std::string params="", cmsHPROFILE profile=NULL, cmsUInt32Number intent=INTENT_PERCEPTUAL);
+		void saveTIFF(const char * filename, BPP bits, cmsHPROFILE profile=NULL, cmsUInt32Number intent=INTENT_PERCEPTUAL);
 
 		//ICC (LittleCMS) profiles.
 		static cmsHPROFILE makeLCMSProfile(const std::string name, float gamma);
