@@ -337,24 +337,25 @@ std::map<std::string,std::string> gImage::getInfo(const char * filename)
 {
 	unsigned width, height, colors, bpp, icclength;
 	char * iccprofile;
-	char ext[5];
 	std::map<std::string, std::string> imgdata;
-	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
-	if (strcmp(ext,"tif") == 0) _loadTIFFInfo(filename, &width, &height, &colors, &bpp, imgdata);
-	if (strcmp(ext,"NEF") == 0) _loadRAWInfo(filename, &width, &height, &colors, &bpp, imgdata);
-	if ((strcmp(ext,"jpg") == 0) | (strcmp(ext,"JPG") == 0)) _loadJPEGInfo(filename, &width, &height, &colors, imgdata, "", &iccprofile, &icclength);
+	GIMAGE_FILETYPE ftype = gImage::getFileType(filename);
+	
+	if (ftype == FILETYPE_TIFF) _loadTIFFInfo(filename, &width, &height, &colors, &bpp, imgdata);
+	if (ftype == FILETYPE_RAW) _loadRAWInfo(filename, &width, &height, &colors, &bpp, imgdata);
+	if (ftype == FILETYPE_JPEG) _loadJPEGInfo(filename, &width, &height, &colors, imgdata, "", &iccprofile, &icclength);
 	return imgdata;
 }
 
 GIMAGE_FILETYPE gImage::getFileType(const char * filename)
 {
 	std::string fname = filename;
-	int dotpos = fname.find_last_of(".");
-	std::string ext = fname.substr(dotpos+1);
-	if (ext.compare("tif") == 0) return FILETYPE_TIFF;
-	if (ext.compare("tiff") == 0) return FILETYPE_TIFF;
-	if (ext.compare("NEF") == 0) return FILETYPE_RAW;
-	if ((ext.compare("jpg") == 0) | (ext.compare("JPG") == 0)) return FILETYPE_JPEG;
+	std::vector<std::string> fpieces =  split(fname, ".");
+	std::string ext = fpieces.back();
+
+	if (ext.compare("tif") == 0 | ext.compare("tiff") == 0) if (_checkTIFF(filename)) return FILETYPE_TIFF;
+	if ((ext.compare("jpg") == 0) | (ext.compare("JPG") == 0)) if (_checkJPEG(filename)) return FILETYPE_JPEG;
+	if (_checkRAW(filename)) return FILETYPE_RAW;
+
 	return FILETYPE_UNKNOWN;
 }
 

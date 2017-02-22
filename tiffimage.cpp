@@ -8,11 +8,18 @@
 
 #include "strutil.h"
 
+bool _checkTIFF(const char *filename)
+{
+	if (TIFFOpen(filename, "r") != NULL) return true;
+	return false;
+}
+
 bool _loadTIFFInfo(const char *filename, unsigned *width, unsigned *height, unsigned *numcolors, unsigned *numbits, std::map<std::string,std::string> &info)
 {
 	char *img, *buf;
 	FILE * infile;
-	uint16 w, h, c, b;
+	uint32 w, h;
+	uint16 c, b;
 
 	TIFF* tif = TIFFOpen(filename, "r");
 	if (tif) {

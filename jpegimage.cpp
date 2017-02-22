@@ -232,6 +232,20 @@ read_icc_profile (j_decompress_ptr cinfo,
   return TRUE;
 }
 
+bool _checkJPEG(const char *filename)
+{
+	FILE * infile;
+	struct jpeg_decompress_struct cinfo;
+	struct jpeg_error_mgr jerr;
+
+	cinfo.err = jpeg_std_error(&jerr);
+	jpeg_create_decompress(&cinfo);
+	if ((infile = fopen(filename, "rb")) == NULL) return false;
+	jpeg_stdio_src(&cinfo, infile);
+	if (jpeg_read_header(&cinfo, TRUE) == JPEG_HEADER_OK) return true;
+	return false;
+}
+
 bool _loadJPEGInfo(const char *filename, 
 			unsigned *width, 
 			unsigned *height, 

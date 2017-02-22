@@ -4,6 +4,8 @@
 #include <string>
 #include <map>
 
+bool _checkRAW(const char *filename);
+
 bool _loadRAWInfo(const char *filename, 
 			unsigned *width, 
 			unsigned *height, 

@@ -10,6 +10,13 @@
 #include <lcms2.h>
 #include "gimage.h"
 
+bool _checkRAW(const char *filename)
+{
+	LibRaw RawProcessor;
+	if (RawProcessor.open_file(filename) == LIBRAW_SUCCESS) return true;
+	return false;
+}
+
 
 bool _loadRAWInfo(const char *filename, 
 			unsigned *width, 
