@@ -39,6 +39,8 @@ gImage::gImage(const gImage &o)
 	w = o.w;
 	h = o.h;
 	c = o.c;
+	b = o.b;
+	
 	imginfo = o.imginfo;
 	image = o.image;
 
@@ -53,6 +55,7 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 	w=width;
 	h=height;
 	c=colors;
+	b=bits;
 
 	if (bits ==BPP_16) {
 		unsigned short * src = (unsigned short *) imagedata;
@@ -139,6 +142,7 @@ gImage::gImage(unsigned width, unsigned height, unsigned colors, std::map<std::s
 	w=width;
 	h=height;
 	c=colors;
+	b=BPP_FP;
 
 	for (unsigned y=0; y<height; y++) {
 		for (unsigned x=0; x<width; x++) {
@@ -190,11 +194,14 @@ std::vector<float> gImage::getPixelArray(unsigned x,  unsigned y)
 	int i = x + y*w;
 	std::vector<float> pixel;
 	pixel.resize(3);
-	//if ((x < w) && (y < h)) {
-	if (i < image.size()) {
-		pixel[0] = (float) image[i].r;
-		pixel[1] = (float) image[i].g;
-		pixel[2] = (float) image[i].b;
+	if (!image.empty()) {
+		if (i < w * h) {
+			if (i < image.size()) {
+				pixel[0] = (float) image[i].r;
+				pixel[1] = (float) image[i].g;
+				pixel[2] = (float) image[i].b;
+			}
+		}
 	}
 	else {
 		pixel[0] = 0.0;
@@ -316,6 +323,20 @@ unsigned gImage::getHeight()
 unsigned gImage::getColors()
 {
 	return c;
+}
+
+BPP gImage::getBits()
+{
+	return b;
+}
+
+std::string gImage::getBitsStr()
+{
+	switch (b) {
+		case BPP_FP: return "internal floating point";
+		case BPP_8: return "8";
+		case BPP_16: return "16";
+	}
 }
 
 std::map<std::string,std::string> gImage::getInfo()

@@ -21,6 +21,7 @@ struct pix {
 };
 
 enum BPP {
+	BPP_FP,
 	BPP_8,
 	BPP_16
 };
@@ -63,6 +64,8 @@ class gImage
 		unsigned getWidth();
 		unsigned getHeight();
 		unsigned getColors();
+		BPP getBits();
+		std::string getBitsStr();
 		std::map<std::string,std::string> getInfo();
 		char * getProfile();
 		unsigned getProfileLength();
@@ -119,6 +122,7 @@ class gImage
 	private:
 		std::vector<pix> image;
 		unsigned w, h, c;
+		BPP b;
 		std::map<std::string,std::string> imginfo;
 
 		char *profile;
