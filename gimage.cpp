@@ -44,9 +44,12 @@ gImage::gImage(const gImage &o)
 	imginfo = o.imginfo;
 	image = o.image;
 
-	profile = new char[o.profile_length];
-	memcpy(profile, o.profile, o.profile_length);
-	profile_length = o.profile_length;
+	if (o.profile) {
+		profile = new char[o.profile_length];
+		memcpy(profile, o.profile, o.profile_length);
+		profile_length = o.profile_length;
+	}
+	else profile = NULL;
 }
 
 gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, BPP bits, std::map<std::string,std::string> imageinfo, char * icc_profile, unsigned icc_profile_length)
@@ -325,6 +328,7 @@ unsigned gImage::getColors()
 	return c;
 }
 
+
 BPP gImage::getBits()
 {
 	return b;
@@ -338,6 +342,7 @@ std::string gImage::getBitsStr()
 		case BPP_16: return "16";
 	}
 }
+
 
 std::map<std::string,std::string> gImage::getInfo()
 {
