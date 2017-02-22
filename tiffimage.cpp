@@ -101,15 +101,64 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 		}
 		
 
-		if (b != 16) return NULL;
+		//if (b != 16) return NULL;
 		//if (c != 3) return NULL;
 
 		img = new char[w*h*c*(b/8)];
-		unsigned short * dst = (unsigned short *) img;
+		//unsigned short * dst = (unsigned short *) img;
 
 		buf = (char *) _TIFFmalloc(TIFFScanlineSize(tif));
-		unsigned short * src = (unsigned short *) buf;
+		//unsigned short * src = (unsigned short *) buf;
+		
+		if (config != PLANARCONFIG_CONTIG) return NULL;
+		
+		if (b == 8) {
+			char * dst = (char *) img;
+			for (unsigned y = 0; y < h; y++){
+				TIFFReadScanline(tif, buf, y, 0);
+				char * src = (char *) buf;
+				for(unsigned x=0; x < w; x++) {
+					if (c == 1) {
+						dst[0] = (char) src[0];
+						dst+=1;
+						src+=1;
+					}
+					else if(c == 3 ){
+						dst[0] = (char) src[0];
+						dst[1] = (char) src[1];
+						dst[2] = (char) src[2];
+						dst+=3;
+						src+=3;
+					}
+				}
+			}
+		}
+		else if (b == 16) {
+			unsigned short * dst = (unsigned short *) img;
+			for (unsigned y = 0; y < h; y++){
+				TIFFReadScanline(tif, buf, y, 0);
+				unsigned short * src = (unsigned short *) buf;
+				for(unsigned x=0; x < w; x++) {
+					if (c == 1) {
+						dst[0] = (unsigned short) src[0];
+						dst+=1;
+						src+=1;
+					}
+					else if(c == 3 ){
+						dst[0] = (unsigned short) src[0];
+						dst[1] = (unsigned short) src[1];
+						dst[2] = (unsigned short) src[2];
+						dst+=3;
+						src+=3;
+					}
+				}
+			}			
+			
+		}
+		
+		else return NULL;
 
+		/*
 		if (config == PLANARCONFIG_CONTIG) {
 			for (unsigned y = 0; y < h; y++){
 				TIFFReadScanline(tif, buf, y, 0);
@@ -130,15 +179,17 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 				}
 			}			
 		}
+		*/
+		
+		*width = w;
+		*height = h;
+		*numcolors = c;
+		*numbits = b;
+		if (buf) _TIFFfree(buf);
 		TIFFClose(tif);
+		return img;
 	}
-
-	*width = w;
-	*height = h;
-	*numcolors = c;
-	*numbits = b;
-	if (buf) _TIFFfree(buf);
-	return img;
+	else return NULL;
 }
 
 void _writeTIFF(const char *filename, char *imagedata, unsigned width, unsigned height, unsigned numcolors, unsigned numbits, std::map<std::string,std::string> info, char *iccprofile, unsigned iccprofilelength)
