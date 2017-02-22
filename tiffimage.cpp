@@ -99,16 +99,9 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 			*icc_m = NULL;
 			*icclength = 0;
 		}
-		
-
-		//if (b != 16) return NULL;
-		//if (c != 3) return NULL;
 
 		img = new char[w*h*c*(b/8)];
-		//unsigned short * dst = (unsigned short *) img;
-
 		buf = (char *) _TIFFmalloc(TIFFScanlineSize(tif));
-		//unsigned short * src = (unsigned short *) buf;
 		
 		if (config != PLANARCONFIG_CONTIG) return NULL;
 		
@@ -157,29 +150,6 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 		}
 		
 		else return NULL;
-
-		/*
-		if (config == PLANARCONFIG_CONTIG) {
-			for (unsigned y = 0; y < h; y++){
-				TIFFReadScanline(tif, buf, y, 0);
-				src = (unsigned short *) buf;
-				for(unsigned x=0; x < w; x++) {
-					if (c == 1) {
-						dst[0] = (unsigned short) src[0];
-						dst+=1;
-						src+=1;
-					}
-					else if(c == 3 ){
-						dst[0] = (unsigned short) src[0];
-						dst[1] = (unsigned short) src[1];
-						dst[2] = (unsigned short) src[2];
-						dst+=3;
-						src+=3;
-					}
-				}
-			}			
-		}
-		*/
 		
 		*width = w;
 		*height = h;
