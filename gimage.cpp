@@ -250,7 +250,7 @@ char * gImage::getTransformedImageData(BPP bits, cmsHPROFILE profile, cmsUInt32N
 	return imagedata;
 }
 
-char * gImage::getImageData(BPP bits, cmsHPROFILE profile)
+char * gImage::getImageData(BPP bits, cmsHPROFILE profile, cmsUInt32Number intent)
 {
 	cmsHPROFILE hImgProfile;
 	cmsUInt32Number format;
@@ -507,6 +507,7 @@ void gImage::ApplySharpen(int strength, int threadcount)
 		0.0, 0.0, 0.0
 	};
 
+	//build a kernel corresponding to the specified strength
 	double x = -((strength)/4.0);
 	kernel[0][1] = x;
 	kernel[1][0] = x;
@@ -760,7 +761,7 @@ void gImage::ApplyRotate(double angle, int threadcount)
 }
 */
 
-/*  original shears:
+/*  original shears, use these if you just want to try the method without slinging code:
 void gImage::ApplyXShear(double rangle, int threadcount)
 {
 	//double sine = sin(rangle);
@@ -849,7 +850,7 @@ void gImage::ApplyYShear(double rangle, int threadcount)
 	h = nh;
 	delete s;
 }
-*/
+*/  //end original shears
 
 
 //second generation shears, not working...
@@ -946,7 +947,7 @@ void gImage::ApplyYShear(double rangle, int threadcount)
 	h = nh;
 	delete s;
 }
-*/
+*/  //end second generation shears
 
 /* Paeth's shears, kinda...
 void gImage::ApplyXShear(double rangle, int threadcount)
@@ -1052,8 +1053,9 @@ void gImage::ApplyYShear(double rangle, int threadcount)
 	h = nh;
 	delete s;
 }
+*/  //end Paeth's shears
 
-
+/* I used ImageBounds to shrink the resulting image of three shears to its minimum size.  Not much use beyond that...
 void gImage::ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2, bool cropbounds)
 {
 	*x1 = 0; *x2 = w; *y1 = 0; *y2 = h;
@@ -1101,6 +1103,7 @@ void gImage::ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2,
 	return;
 }
 */
+
 
 //Crop
 //
@@ -1253,6 +1256,8 @@ void gImage::ApplySaturate(double saturate, int threadcount)
 //
 //Tint allows the addition or subtraction of a single value from a single
 //channel.  My use case is to introduce tint to grayscale images.
+//A better approach would be to modify ApplyCurve to do individual channels.  A
+//subject of a subsequent version...
 //
 
 void gImage::ApplyTint(double red,double green,double blue, int threadcount)
@@ -1404,7 +1409,7 @@ void gImage::ApplyNLMeans(double sigma, int local, int patch, int threadcount)
 //endeavor has to be well-formed in order to render a pleasing result.
 //
 //The essential operation of resize has two parts: 1) reduction/expansion in one dimension, then
-//2) reduction/expansion of the intermediate image in the other direction.  So, the inter/extrapolation
+//2) reduction/expansion of the intermediate image in the other dimension.  So, the inter/extrapolation
 //of a pixel is peformed with its row or column neighbors.  The amalgamation of neighbor pixels is
 //performed with a filter algorithm, essentially a lookup of an equation based on distance from the
 //source pixel.  Numerous filters have been presented in the literature; a representative sample is 
@@ -1418,10 +1423,9 @@ void gImage::ApplyNLMeans(double sigma, int local, int patch, int threadcount)
 //intermediate image to produce the destination image.
 //
 //The relevant code below are the functions for each of the filters, followed by the Resize method 
-//programmed in the pattern describe above.  You'll recognize a lot of the Schumacher's code; the
+//programmed in the pattern describe above.  You'll recognize a lot of Schumacher's code; the
 //contribution collection loops and data structures are pasted verbatim, as well as the filter
-//functions.  At this writing, only the Lanczos3 filter is used, but that will change in later
-//commits.
+//functions.
 //
 
 
@@ -1745,6 +1749,8 @@ void gImage::ApplyResize(unsigned width, unsigned height, RESIZE_FILTER filter, 
 }
 
 
+// End of Image Manipulations
+
 
 
 //Image Information:
@@ -1771,7 +1777,6 @@ std::string gImage::Stats()
 		}
 	}
 	return string_format("rmin: %f\trmax: %f\ngmin: %f\tgmax: %f\nbmin: %f\tbmax: %f\n\ntonemin: %f\ttonemax: %f\n", rmin, rmax, gmin, gmax, bmin, bmax, tmin, tmax);
-	//printf("iterations: %d\n\n", iter);
 }
 
 std::vector<long> gImage::Histogram()

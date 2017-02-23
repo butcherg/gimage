@@ -57,7 +57,7 @@ class gImage
 		//Getters
 		pix getPixel(unsigned x,  unsigned y);
 		std::vector<float> getPixelArray(unsigned x,  unsigned y);
-		char *getImageData(BPP bits, cmsHPROFILE profile=NULL);
+		char *getImageData(BPP bits, cmsHPROFILE profile=NULL, cmsUInt32Number intent=INTENT_PERCEPTUAL);
 		char *getTransformedImageData(BPP bits, cmsHPROFILE profile, cmsUInt32Number intent=INTENT_PERCEPTUAL);
 		std::vector<pix>& getImageData();
 		pix* getImageDataRaw();
@@ -83,18 +83,19 @@ class gImage
 		static int ThreadCount();
 		static std::string Version();
 
-		//In-place versions of image operations:
-		void ApplyConvolutionKernel(double kernel[3][3], int threadcount);
-		void ApplySharpen(int strength, int threadcount);
-		void ApplyResize(unsigned width, unsigned height, RESIZE_FILTER filter, int threadcount);
-		void ApplyRotate(double angle, bool crop, int threadcount);
-		void ApplyCrop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int threadcount);
-		void ApplySaturate(double saturate, int threadcount);
-		void ApplyTint(double red,double green,double blue, int threadcount);
-		void ApplyGray(double redpct, double greenpct, double bluepct, int threadcount);
-		void ApplyToneCurve(std::vector<cp> ctpts, int threadcount);
-		void ApplyToneLine(double low, double high, int threadcount);
-		void ApplyNLMeans(double sigma, int local, int patch, int threadcount);
+		//Image operations.  
+		//threadcount=0 uses all available CPUs, n uses precisely n CPUs, and -n uses available-n CPUs
+		void ApplyConvolutionKernel(double kernel[3][3], int threadcount=0);
+		void ApplySharpen(int strength, int threadcount=0);
+		void ApplyResize(unsigned width, unsigned height, RESIZE_FILTER filter, int threadcount=0);
+		void ApplyRotate(double angle, bool crop, int threadcount=0);
+		void ApplyCrop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int threadcount=0);
+		void ApplySaturate(double saturate, int threadcount=0);
+		void ApplyTint(double red,double green,double blue, int threadcount=0);
+		void ApplyGray(double redpct, double greenpct, double bluepct, int threadcount=0);
+		void ApplyToneCurve(std::vector<cp> ctpts, int threadcount=0);
+		void ApplyToneLine(double low, double high, int threadcount=0);
+		void ApplyNLMeans(double sigma, int local, int patch, int threadcount=0);
 		
 
 		//Image loaders.  Return a new gImage
