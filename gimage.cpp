@@ -389,7 +389,7 @@ GIMAGE_FILETYPE gImage::getFileType(const char * filename)
 }
 
 //Check the file type of an image file name; is it suitable to use for saving?
-static GIMAGE_FILETYPE getFileNameType(const char * filename)
+GIMAGE_FILETYPE gImage::getFileNameType(const char * filename)
 {
 	std::string fname = filename;
 	std::vector<std::string> fpieces =  split(fname, ".");
