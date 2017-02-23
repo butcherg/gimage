@@ -219,6 +219,7 @@ std::vector<float> gImage::getPixelArray(unsigned x,  unsigned y)
 struct cpix { char r, g, b; };
 struct uspix { unsigned short r, g, b; };
 
+//Lets LittleCMS do both the profile transform and data type conversion:
 char * gImage::getTransformedImageData(BPP bits, cmsHPROFILE profile, cmsUInt32Number intent)
 {
 	cmsHPROFILE hImgProfile;
@@ -250,6 +251,7 @@ char * gImage::getTransformedImageData(BPP bits, cmsHPROFILE profile, cmsUInt32N
 	return imagedata;
 }
 
+//Converts the data to the specified BPP integer format, then performs the profile transform:
 char * gImage::getImageData(BPP bits, cmsHPROFILE profile, cmsUInt32Number intent)
 {
 	cmsHPROFILE hImgProfile;
@@ -294,7 +296,7 @@ char * gImage::getImageData(BPP bits, cmsHPROFILE profile, cmsUInt32Number inten
 	if (profile) {
 		hImgProfile = cmsOpenProfileFromMem(getProfile(), getProfileLength());
 		if (hImgProfile != NULL & profile != NULL) {
-			hTransform = cmsCreateTransform(hImgProfile, format, profile, format, INTENT_PERCEPTUAL, 0);
+			hTransform = cmsCreateTransform(hImgProfile, format, profile, format, intent, 0);
 			cmsCloseProfile(hImgProfile);
 			cmsDoTransform(hTransform, imagedata, imagedata, w*h);
 		}
