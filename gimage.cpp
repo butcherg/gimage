@@ -374,6 +374,7 @@ std::map<std::string,std::string> gImage::getInfo(const char * filename)
 	return imgdata;
 }
 
+//Check the file type of an existing image file; is it suitable for opening?
 GIMAGE_FILETYPE gImage::getFileType(const char * filename)
 {
 	std::string fname = filename;
@@ -384,6 +385,18 @@ GIMAGE_FILETYPE gImage::getFileType(const char * filename)
 	if ((ext.compare("jpg") == 0) | (ext.compare("JPG") == 0)) if (_checkJPEG(filename)) return FILETYPE_JPEG;
 	if (_checkRAW(filename)) return FILETYPE_RAW;
 
+	return FILETYPE_UNKNOWN;
+}
+
+//Check the file type of an image file name; is it suitable to use for saving?
+static GIMAGE_FILETYPE getFileNameType(const char * filename)
+{
+	std::string fname = filename;
+	std::vector<std::string> fpieces =  split(fname, ".");
+	std::string ext = fpieces.back();
+
+	if (ext.compare("tif") == 0 | ext.compare("tiff") == 0) return FILETYPE_TIFF;
+	if ((ext.compare("jpg") == 0) | (ext.compare("JPG") == 0)) return FILETYPE_JPEG;	
 	return FILETYPE_UNKNOWN;
 }
 

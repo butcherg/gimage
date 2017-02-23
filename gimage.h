@@ -80,6 +80,7 @@ class gImage
 		static std::string getRGBCharacteristics();
 		static std::map<std::string,std::string> getInfo(const char * filename);
 		static GIMAGE_FILETYPE getFileType(const char * filename);
+		static GIMAGE_FILETYPE getFileNameType(const char * filename);
 		static int ThreadCount();
 		static std::string Version();
 
