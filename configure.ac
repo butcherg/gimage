@@ -13,7 +13,7 @@ AC_ARG_WITH([jpeg],
 )
 if test "$with_jpeg" != ""
 then
-	CXXFLAGS="$CXXFLAGS -I$with_jpeg"
+	CPPFLAGS="$CPPFLAGS -I$with_jpeg"
 	LDFLAGS="$LDFLAGS -L$with_jpeg"
 fi
 
@@ -22,7 +22,7 @@ AC_ARG_WITH([tiff],
 )
 if test "$with_tiff" != ""
 then
-	CXXFLAGS="$CXXFLAGS -I$with_tiff/libtiff"
+	CPPFLAGS="$CPPFLAGS -I$with_tiff/libtiff"
 	LDFLAGS="$LDFLAGS -L$with_tiff/libtiff/.libs"
 fi
 
@@ -31,7 +31,7 @@ AC_ARG_WITH([lcms2],
 )
 if test "$with_lcms2" != ""
 then
-	CXXFLAGS="$CXXFLAGS -I$with_lcms2/include"
+	CPPFLAGS="$CPPFLAGS -I$with_lcms2/include"
 	LDFLAGS="$LDFLAGS -L$with_lcms2/src/.libs"
 fi
 
@@ -40,9 +40,10 @@ AC_ARG_WITH([libraw],
 )
 if test "$with_libraw" != ""
 then
-	CXXFLAGS="$CXXFLAGS -I$with_libraw/libraw"
+	CPPFLAGS="$CPPFLAGS -I$with_libraw"
 	LDFLAGS="$LDFLAGS -L$with_libraw/lib/.libs"
 fi
+
 
 # Checks for libraries.
 AC_CHECK_HEADERS(jpeglib.h, [], [AC_ERROR([jpeglib.h not found])])
