@@ -1,0 +1,65 @@
+
+CXX=@CXX@
+LD=@CXX@
+
+LIBS=@LIBS@
+INCLUDEDIRS=
+CFLAGS=@CFLAGS@
+CXXFLAGS=@CXXFLAGS@
+LDFLAGS=@LDFLAGS@
+
+srcdir=@srcdir@
+VPATH=@srcdir@
+
+OBJECTS=gimg.o elapsedtime.o
+
+LIBOBJECTS=gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o strutil.o curve.o
+
+gimg: $(OBJECTS)  lib/libgimage.a
+	$(CXX) $(LDFLAGS) -o gimg  $(OBJECTS) lib/libgimage.a  $(LIBS) 
+
+lib/libgimage.a: $(LIBOBJECTS)
+	mkdir -p lib
+	mkdir -p include
+	cp $(srcdir)/gimage.h include
+	cp $(srcdir)/curve.h include
+	cp $(srcdir)/strutil.h include
+	cp $(srcdir)/half.hpp include
+	rm -f lib/libgimage.a
+	ar rcs $@ $(LIBOBJECTS)
+	ranlib $@
+
+gimg.o: gimg.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/gimg.cpp -o$@
+
+gimage.o: gimage.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/gimage.cpp -o$@
+
+tiffimage.o: $(srcdir)/tiffimage.cpp $(srcdir)/tiffimage.h
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/tiffimage.cpp -o$@
+
+rawimage.o: $(srcdir)/rawimage.cpp $(srcdir)/rawimage.h
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/rawimage.cpp -o$@
+
+jpegimage.o: $(srcdir)/jpegimage.cpp $(srcdir)/jpegimage.h
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/jpegimage.cpp -o$@
+
+jpegexif.o: $(srcdir)/jpegexif.cpp $(srcdir)/jpegexif.h
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/jpegexif.cpp -o$@
+
+elapsedtime.o: $(srcdir)/elapsedtime.cpp $(srcdir)/elapsedtime.h
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/elapsedtime.cpp -o$@
+
+strutil.o: $(srcdir)/strutil.cpp $(srcdir)/strutil.h
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/strutil.cpp -o$@
+
+curve.o: $(srcdir)/curve.cpp $(srcdir)/curve.h
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c  $(srcdir)/curve.cpp -o$@
+
+.PHONY: clean
+clean:
+	rm -rf gimg gimg.exe *.o lib/ include/
+
+
+
+

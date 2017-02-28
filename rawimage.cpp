@@ -6,7 +6,7 @@
 #include <map>
 #include <vector>
 #include "strutil.h"
-#include <libraw.h>
+#include <libraw/libraw.h>
 #include <lcms2.h>
 #include "gimage.h"
 
