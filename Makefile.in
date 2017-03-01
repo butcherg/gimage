@@ -7,6 +7,8 @@ INCLUDEDIRS=
 CFLAGS=@CFLAGS@
 CXXFLAGS=@CXXFLAGS@
 LDFLAGS=@LDFLAGS@
+INCLUDEDIRS=@CPPFLAGS@
+EXT=@EXEEXT@
 
 srcdir=@srcdir@
 VPATH=@srcdir@
@@ -16,7 +18,7 @@ OBJECTS=gimg.o elapsedtime.o
 LIBOBJECTS=gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o strutil.o curve.o
 
 gimg: $(OBJECTS)  lib/libgimage.a
-	$(CXX) $(LDFLAGS) -o gimg  $(OBJECTS) lib/libgimage.a  $(LIBS) 
+	$(CXX) $(LDFLAGS) -o gimg$(EXT)  $(OBJECTS) lib/libgimage.a  $(LIBS) 
 
 lib/libgimage.a: $(LIBOBJECTS)
 	mkdir -p lib
@@ -58,7 +60,7 @@ curve.o: $(srcdir)/curve.cpp $(srcdir)/curve.h
 
 .PHONY: clean
 clean:
-	rm -rf gimg gimg.exe *.o lib/ include/
+	rm -rf  gimg$(EXT) *.o lib/ include/
 
 
 

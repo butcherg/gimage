@@ -1,11 +1,13 @@
 AC_PREREQ([2.69])
 AC_INIT(gimage, 0.2)
 
+AC_LANG([C++])
+
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_RANLIB
 
-#AC_SUBST([AM_CXXFLAGS], [-fopenmp -O4])
+#AC_MSG_NOTICE([host os: $host_os])
 
 #Process withs:
 AC_ARG_WITH([jpeg],
@@ -46,6 +48,10 @@ fi
 
 
 # Checks for libraries.
+
+#AC_SEARCH_LIBS(socket,ws2_32, [], [AC_ERROR([A working ws2_32 is required])])
+AC_CHECK_LIB([ws2_32],[main])
+
 AC_CHECK_HEADERS(jpeglib.h, [], [AC_ERROR([jpeglib.h not found])])
 AC_SEARCH_LIBS(jpeg_std_error,jpeg, [], [AC_ERROR([A working libjpeg is required])])
 
@@ -56,7 +62,7 @@ AC_CHECK_HEADERS(lcms2.h, [], [AC_ERROR([lcms2.h not found])])
 AC_SEARCH_LIBS(cmsSetLogErrorHandler,lcms2, [], [AC_ERROR([A working libcms2 is required])])
 
 AC_CHECK_HEADERS(libraw/libraw.h, [], [AC_ERROR([libraw.h not found])])
-AC_SEARCH_LIBS(libraw_strerror,raw, [], [AC_ERROR([A working libraw is required])])
+AC_SEARCH_LIBS(libraw_init,raw, [], [AC_ERROR([A working libraw is required])])
 
 # Checks for header files.
 AC_CHECK_HEADERS([limits.h stdint.h stdlib.h string.h unistd.h utime.h])
