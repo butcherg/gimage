@@ -37,13 +37,13 @@ gimg.o: gimg.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -DLIBRAW_NODLL -c $(srcdir)/gimg.cpp -o$@
 
 gimage.o: gimage.cpp
-	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/gimage.cpp -o$@
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -DLIBRAW_NODLL -c $(srcdir)/gimage.cpp -o$@
 
 tiffimage.o: $(srcdir)/tiffimage.cpp $(srcdir)/tiffimage.h
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/tiffimage.cpp -o$@
 
 rawimage.o: $(srcdir)/rawimage.cpp $(srcdir)/rawimage.h
-	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/rawimage.cpp -o$@
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -DLIBRAW_NODLL -c $(srcdir)/rawimage.cpp -o$@
 
 jpegimage.o: $(srcdir)/jpegimage.cpp $(srcdir)/jpegimage.h
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/jpegimage.cpp -o$@
