@@ -1,4 +1,4 @@
-AC_PREREQ([2.69])
+AC_PREREQ([2.68])
 AC_INIT(gimage, 0.2)
 
 AC_LANG([C++])
@@ -7,9 +7,32 @@ AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_RANLIB
 
-#AC_MSG_NOTICE([host os: $host_os])
-
 #Process withs:
+AC_ARG_WITH([openmp],
+	AS_HELP_STRING([--with-openmp], [enables OpenMP threading])
+)
+if test "$with_openmp" == "yes"
+then
+	CPPFLAGS="$CPPFLAGS -fopenmp"
+	LDFLAGS="$LDFLAGS -fopenmp"
+fi
+
+AC_ARG_WITH([optimization],
+	AS_HELP_STRING([--with-optimization], [enables -O4 optimization])
+)
+if test "$with_optimization" == "yes"
+then
+	CPPFLAGS="$CPPFLAGS -O4"
+fi
+
+AC_ARG_WITH([pixtype],
+	AS_HELP_STRING([--with-pixtype], [=HALF|FLOAT|DOUBLE, specifies data type for pixel structure])
+)
+if test "$with_pixtype" != ""
+then
+	CPPFLAGS="$CPPFLAGS -DPIXTYPE=$with_pixtype"
+fi
+
 AC_ARG_WITH([jpeg],
 	AS_HELP_STRING([--with-jpeg], [=PATH, specifies path to non-standard location of jpeg library])
 )
@@ -68,7 +91,7 @@ AC_SEARCH_LIBS(libraw_init,raw, [], [AC_ERROR([A working libraw is required])])
 AC_CHECK_HEADERS([limits.h stdint.h stdlib.h string.h unistd.h utime.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
-AC_CHECK_HEADER_STDBOOL
+#AC_CHECK_HEADER_STDBOOL
 AC_C_INLINE
 AC_TYPE_SIZE_T
 
