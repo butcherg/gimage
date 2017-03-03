@@ -74,6 +74,13 @@ fi
 
 #AC_SEARCH_LIBS(socket,ws2_32, [], [AC_ERROR([A working ws2_32 is required])])
 AC_CHECK_LIB([ws2_32],[main])
+AC_CHECK_LIB([jasper],[main])
+AC_CHECK_LIB([lzma],[main])
+AC_CHECK_LIB([jbig],[main])
+AC_CHECK_LIB([z],[main])
+AC_CHECK_LIB([exr],[main])
+AC_CHECK_LIB([stdc++],[main])
+AC_CHECK_LIB([dl],[main])
 
 AC_CHECK_HEADERS(jpeglib.h, [], [AC_ERROR([jpeglib.h not found])])
 AC_SEARCH_LIBS(jpeg_std_error,jpeg, [], [AC_ERROR([A working libjpeg is required])])

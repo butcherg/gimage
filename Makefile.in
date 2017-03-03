@@ -1,3 +1,8 @@
+SYS=$(shell gcc -dumpmachine)
+
+ifneq (,$(findstring,mingw,$(SYS)))
+	STATIC=-static
+endif
 
 CXX=@CXX@
 LD=@CXX@
@@ -20,7 +25,7 @@ LIBOBJECTS=gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o strutil.o curv
 
 gimg: $(OBJECTS)  lib/libgimage.a
 	mkdir -p bin
-	$(CXX) $(LDFLAGS) -static -o bin/gimg$(EXT)  $(OBJECTS) lib/libgimage.a  $(LIBS) 
+	$(CXX) $(LDFLAGS) $(STATIC) -o bin/gimg$(EXT)  $(OBJECTS) lib/libgimage.a  $(LIBS) 
 
 lib/libgimage.a: $(LIBOBJECTS)
 	mkdir -p lib
