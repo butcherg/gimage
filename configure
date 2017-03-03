@@ -678,7 +678,8 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
-with_openmp
+enable_openmp
+enable_debug
 with_optimization
 with_pixtype
 with_jpeg
@@ -1314,27 +1315,40 @@ if test -n "$ac_init_help"; then
    esac
   cat <<\_ACEOF
 
+Optional Features:
+  --disable-option-checking  ignore unrecognized --enable/--with options
+  --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
+  --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-openmp         enables OpenMP threading (-fopenmp in compile and
+                          link)
+
+  --enable-debug          enables debug compilation with -g, default is no
+                          debug switch
+
+
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-openmp           enables OpenMP threading
+  --with-optimization     enables -O4 optimization, default is -O2
 
-  --with-optimization     enables -O4 optimization
-
-  --with-pixtype          =HALF|FLOAT|DOUBLE, specifies data type for pixel
-                          structure
+  --with-pixtype          =half|float|double, specifies data type for pixel
+                          structure, default is float
 
   --with-jpeg             =PATH, specifies path to non-standard location of
-                          jpeg library
+                          jpeg library. Omitting the path looks for a jpeg-*
+                          directory in the cwd.
 
   --with-tiff             =PATH, specifies path to non-standard location of
-                          tiff library
+                          tiff library. Omitting the path looks for a tiff*
+                          directory in the cwd.
 
   --with-lcms2            =PATH, specifies path to non-standard location of
-                          Little CMS2 library
+                          Little CMS2 library. Omitting the path looks for a
+                          lcms2* directory in the cwd.
 
   --with-libraw           =PATH, specifies path to non-standard location of
-                          LibRaw library
+                          LibRaw library. Omitting the path looks for a
+                          Libraw* directory in the cwd.
 
 
 Some influential environment variables:
@@ -2230,7 +2244,7 @@ ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
-
+: ${CXXFLAGS=""}
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -3370,18 +3384,31 @@ else
 fi
 
 
-#Process withs:
-
-# Check whether --with-openmp was given.
-if test "${with_openmp+set}" = set; then :
-  withval=$with_openmp;
+#Process enables:
+# Check whether --enable-openmp was given.
+if test "${enable_openmp+set}" = set; then :
+  enableval=$enable_openmp;
 fi
 
-if test "$with_openmp" == "yes"
+if test "$enable_openmp" == "yes"
 then
-	CPPFLAGS="$CPPFLAGS -fopenmp"
+	CXXFLAGS="$CXXFLAGS -fopenmp"
 	LDFLAGS="$LDFLAGS -fopenmp"
 fi
+
+
+# Check whether --enable-debug was given.
+if test "${enable_debug+set}" = set; then :
+  enableval=$enable_debug;
+fi
+
+if test "$enable_debug" == "yes"
+then
+	CXXFLAGS="$CXXFLAGS -g"
+fi
+
+
+#Process withs:
 
 
 # Check whether --with-optimization was given.
@@ -3391,8 +3418,11 @@ fi
 
 if test "$with_optimization" == "yes"
 then
-	CPPFLAGS="$CPPFLAGS -O4"
+	CXXFLAGS="$CXXFLAGS -O4"
+else
+	CXXFLAGS="$CXXFLAGS -O2"
 fi
+
 
 
 # Check whether --with-pixtype was given.
@@ -3406,16 +3436,29 @@ then
 fi
 
 
+
 # Check whether --with-jpeg was given.
 if test "${with_jpeg+set}" = set; then :
   withval=$with_jpeg;
 fi
 
-if test "$with_jpeg" != ""
+if test "$with_jpeg" == "yes"  #look for unpacked jpeg library in ./
 then
-	CPPFLAGS="$CPPFLAGS -I$with_jpeg"
-	LDFLAGS="$LDFLAGS -L$with_jpeg"
+	JPEG=`stat --printf='%n' jpeg-* 2>/dev/null`
+	if test $JPEG == ""
+	then
+		as_fn_error $? "no jpeg library found in ./" "$LINENO" 5
+	fi
+	CPPFLAGS="$CPPFLAGS -I$JPEG"
+	LDFLAGS="$LDFLAGS -L$JPEG"
+else
+	if test "$with_jpeg" != ""
+	then
+		CPPFLAGS="$CPPFLAGS -I$with_jpeg"
+		LDFLAGS="$LDFLAGS -L$with_jpeg"
+	fi
 fi
+
 
 
 # Check whether --with-tiff was given.
@@ -3423,11 +3466,23 @@ if test "${with_tiff+set}" = set; then :
   withval=$with_tiff;
 fi
 
-if test "$with_tiff" != ""
+if test "$with_tiff" == "yes"  #look for unpacked tiff library in ./
 then
-	CPPFLAGS="$CPPFLAGS -I$with_tiff/libtiff"
-	LDFLAGS="$LDFLAGS -L$with_tiff/libtiff/.libs"
+	TIFF=`stat --printf='%n' tiff-* 2>/dev/null`
+	if test $TIFF == ""
+	then
+		as_fn_error $? "no tiff library found in ./" "$LINENO" 5
+	fi
+	CPPFLAGS="$CPPFLAGS -I$TIFF/libtiff"
+	LDFLAGS="$LDFLAGS -L$TIFF/libtiff/.libs"
+else
+	if test "$with_tiff" != ""
+	then
+		CPPFLAGS="$CPPFLAGS -I$with_tiff/libtiff"
+		LDFLAGS="$LDFLAGS -L$with_tiff/libtiff/.libs"
+	fi
 fi
+
 
 
 # Check whether --with-lcms2 was given.
@@ -3435,11 +3490,23 @@ if test "${with_lcms2+set}" = set; then :
   withval=$with_lcms2;
 fi
 
-if test "$with_lcms2" != ""
+if test "$with_lcms2" == "yes"  #look for unpacked tiff library in ./
 then
-	CPPFLAGS="$CPPFLAGS -I$with_lcms2/include"
-	LDFLAGS="$LDFLAGS -L$with_lcms2/src/.libs"
+	LCMS2=`stat --printf='%n' lcms2-* 2>/dev/null`
+	if test $LCMS2 == ""
+	then
+		as_fn_error $? "no tiff library found in ./" "$LINENO" 5
+	fi
+	CPPFLAGS="$CPPFLAGS -I$LCMS2/include"
+	LDFLAGS="$LDFLAGS -L$LCMS2/src/.libs"
+else
+	if test "$with_lcms2" != ""
+	then
+		CPPFLAGS="$CPPFLAGS -I$with_lcms2/include"
+		LDFLAGS="$LDFLAGS -L$with_lcms2/src/.libs"
+	fi
 fi
+
 
 
 # Check whether --with-libraw was given.
@@ -3447,10 +3514,21 @@ if test "${with_libraw+set}" = set; then :
   withval=$with_libraw;
 fi
 
-if test "$with_libraw" != ""
+if test "$with_libraw" == "yes"  #look for unpacked tiff library in ./
 then
-	CPPFLAGS="$CPPFLAGS -I$with_libraw"
-	LDFLAGS="$LDFLAGS -L$with_libraw/lib/.libs"
+	LIBRAW=`stat --printf='%n' LibRaw-* 2>/dev/null`
+	if test $LIBRAW == ""
+	then
+		as_fn_error $? "no LibRaw library found in ./" "$LINENO" 5
+	fi
+	CPPFLAGS="$CPPFLAGS -I$LIBRAW"
+	LDFLAGS="$LDFLAGS -L$LIBRAW/lib/.libs"
+else
+	if test "$with_libraw" != ""
+	then
+		CPPFLAGS="$CPPFLAGS -I$with_libraw"
+		LDFLAGS="$LDFLAGS -L$with_libraw/lib/.libs"
+	fi
 fi
 
 
@@ -3494,279 +3572,6 @@ if test "x$ac_cv_lib_ws2_32_main" = xyes; then :
 _ACEOF
 
   LIBS="-lws2_32 $LIBS"
-
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -ljasper" >&5
-$as_echo_n "checking for main in -ljasper... " >&6; }
-if ${ac_cv_lib_jasper_main+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-ljasper  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-int
-main ()
-{
-return main ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_jasper_main=yes
-else
-  ac_cv_lib_jasper_main=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_jasper_main" >&5
-$as_echo "$ac_cv_lib_jasper_main" >&6; }
-if test "x$ac_cv_lib_jasper_main" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBJASPER 1
-_ACEOF
-
-  LIBS="-ljasper $LIBS"
-
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -llzma" >&5
-$as_echo_n "checking for main in -llzma... " >&6; }
-if ${ac_cv_lib_lzma_main+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-llzma  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-int
-main ()
-{
-return main ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_lzma_main=yes
-else
-  ac_cv_lib_lzma_main=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_lzma_main" >&5
-$as_echo "$ac_cv_lib_lzma_main" >&6; }
-if test "x$ac_cv_lib_lzma_main" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBLZMA 1
-_ACEOF
-
-  LIBS="-llzma $LIBS"
-
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -ljbig" >&5
-$as_echo_n "checking for main in -ljbig... " >&6; }
-if ${ac_cv_lib_jbig_main+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-ljbig  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-int
-main ()
-{
-return main ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_jbig_main=yes
-else
-  ac_cv_lib_jbig_main=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_jbig_main" >&5
-$as_echo "$ac_cv_lib_jbig_main" >&6; }
-if test "x$ac_cv_lib_jbig_main" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBJBIG 1
-_ACEOF
-
-  LIBS="-ljbig $LIBS"
-
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lz" >&5
-$as_echo_n "checking for main in -lz... " >&6; }
-if ${ac_cv_lib_z_main+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lz  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-int
-main ()
-{
-return main ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_z_main=yes
-else
-  ac_cv_lib_z_main=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_z_main" >&5
-$as_echo "$ac_cv_lib_z_main" >&6; }
-if test "x$ac_cv_lib_z_main" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBZ 1
-_ACEOF
-
-  LIBS="-lz $LIBS"
-
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lexr" >&5
-$as_echo_n "checking for main in -lexr... " >&6; }
-if ${ac_cv_lib_exr_main+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lexr  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-int
-main ()
-{
-return main ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_exr_main=yes
-else
-  ac_cv_lib_exr_main=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_exr_main" >&5
-$as_echo "$ac_cv_lib_exr_main" >&6; }
-if test "x$ac_cv_lib_exr_main" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBEXR 1
-_ACEOF
-
-  LIBS="-lexr $LIBS"
-
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lstdc++" >&5
-$as_echo_n "checking for main in -lstdc++... " >&6; }
-if ${ac_cv_lib_stdcpp_main+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lstdc++  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-int
-main ()
-{
-return main ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_stdcpp_main=yes
-else
-  ac_cv_lib_stdcpp_main=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_stdcpp_main" >&5
-$as_echo "$ac_cv_lib_stdcpp_main" >&6; }
-if test "x$ac_cv_lib_stdcpp_main" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBSTDC__ 1
-_ACEOF
-
-  LIBS="-lstdc++ $LIBS"
-
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -ldl" >&5
-$as_echo_n "checking for main in -ldl... " >&6; }
-if ${ac_cv_lib_dl_main+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-ldl  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-int
-main ()
-{
-return main ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_dl_main=yes
-else
-  ac_cv_lib_dl_main=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_dl_main" >&5
-$as_echo "$ac_cv_lib_dl_main" >&6; }
-if test "x$ac_cv_lib_dl_main" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBDL 1
-_ACEOF
-
-  LIBS="-ldl $LIBS"
 
 fi
 
@@ -4178,9 +3983,9 @@ fi
 
 done
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing jpeg_std_error" >&5
-$as_echo_n "checking for library containing jpeg_std_error... " >&6; }
-if ${ac_cv_search_jpeg_std_error+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing jpeg_set_defaults" >&5
+$as_echo_n "checking for library containing jpeg_set_defaults... " >&6; }
+if ${ac_cv_search_jpeg_set_defaults+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_func_search_save_LIBS=$LIBS
@@ -4193,11 +3998,11 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char jpeg_std_error ();
+char jpeg_set_defaults ();
 int
 main ()
 {
-return jpeg_std_error ();
+return jpeg_set_defaults ();
   ;
   return 0;
 }
@@ -4210,25 +4015,25 @@ for ac_lib in '' jpeg; do
     LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
   fi
   if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_search_jpeg_std_error=$ac_res
+  ac_cv_search_jpeg_set_defaults=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext
-  if ${ac_cv_search_jpeg_std_error+:} false; then :
+  if ${ac_cv_search_jpeg_set_defaults+:} false; then :
   break
 fi
 done
-if ${ac_cv_search_jpeg_std_error+:} false; then :
+if ${ac_cv_search_jpeg_set_defaults+:} false; then :
 
 else
-  ac_cv_search_jpeg_std_error=no
+  ac_cv_search_jpeg_set_defaults=no
 fi
 rm conftest.$ac_ext
 LIBS=$ac_func_search_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_jpeg_std_error" >&5
-$as_echo "$ac_cv_search_jpeg_std_error" >&6; }
-ac_res=$ac_cv_search_jpeg_std_error
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_jpeg_set_defaults" >&5
+$as_echo "$ac_cv_search_jpeg_set_defaults" >&6; }
+ac_res=$ac_cv_search_jpeg_set_defaults
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
