@@ -59,8 +59,13 @@ then
 	then 
 		AC_ERROR([no jpeg library found in ./]) 
 	fi
-	CPPFLAGS="$CPPFLAGS -I$JPEG"
-	LDFLAGS="$LDFLAGS -L$JPEG"
+	if test -d $JPEG
+	then
+		CPPFLAGS="$CPPFLAGS -I$JPEG"
+		LDFLAGS="$LDFLAGS -L$JPEG"
+	else
+		AC_ERROR([thing found is not a jpeg library in ./])
+	fi
 else
 	if test "$with_jpeg" != ""
 	then
@@ -80,8 +85,13 @@ then
 	then 
 		AC_ERROR([no tiff library found in ./]) 
 	fi
-	CPPFLAGS="$CPPFLAGS -I$TIFF/libtiff"
-	LDFLAGS="$LDFLAGS -L$TIFF/libtiff/.libs"
+	if test -d $TIFF
+	then
+		CPPFLAGS="$CPPFLAGS -I$TIFF/libtiff"
+		LDFLAGS="$LDFLAGS -L$TIFF/libtiff/.libs"
+	else
+		AC_ERROR([thing found is not a tiff library in ./])
+	fi
 else
 	if test "$with_tiff" != ""
 	then
@@ -101,8 +111,13 @@ then
 	then 
 		AC_ERROR([no tiff library found in ./]) 
 	fi
-	CPPFLAGS="$CPPFLAGS -I$LCMS2/include"
-	LDFLAGS="$LDFLAGS -L$LCMS2/src/.libs"
+	if test -d $LCMS2
+	then
+		CPPFLAGS="$CPPFLAGS -I$LCMS2/include"
+		LDFLAGS="$LDFLAGS -L$LCMS2/src/.libs"
+	else
+		AC_ERROR([thing found is not a lcms2 library in ./])
+	fi
 else
 	if test "$with_lcms2" != ""
 	then
@@ -122,8 +137,13 @@ then
 	then 
 		AC_ERROR([no LibRaw library found in ./]) 
 	fi
-	CPPFLAGS="$CPPFLAGS -I$LIBRAW"
-	LDFLAGS="$LDFLAGS -L$LIBRAW/lib/.libs"
+	if test -d $LIBRAW
+	then
+		CPPFLAGS="$CPPFLAGS -I$LIBRAW"
+		LDFLAGS="$LDFLAGS -L$LIBRAW/lib/.libs"
+	else
+		AC_ERROR([thing found is not a libraw library in ./])
+	fi
 else
 	if test "$with_libraw" != ""
 	then

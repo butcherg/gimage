@@ -3449,8 +3449,13 @@ then
 	then
 		as_fn_error $? "no jpeg library found in ./" "$LINENO" 5
 	fi
-	CPPFLAGS="$CPPFLAGS -I$JPEG"
-	LDFLAGS="$LDFLAGS -L$JPEG"
+	if test -d $JPEG
+	then
+		CPPFLAGS="$CPPFLAGS -I$JPEG"
+		LDFLAGS="$LDFLAGS -L$JPEG"
+	else
+		as_fn_error $? "thing found is not a jpeg library in ./" "$LINENO" 5
+	fi
 else
 	if test "$with_jpeg" != ""
 	then
@@ -3473,8 +3478,13 @@ then
 	then
 		as_fn_error $? "no tiff library found in ./" "$LINENO" 5
 	fi
-	CPPFLAGS="$CPPFLAGS -I$TIFF/libtiff"
-	LDFLAGS="$LDFLAGS -L$TIFF/libtiff/.libs"
+	if test -d $TIFF
+	then
+		CPPFLAGS="$CPPFLAGS -I$TIFF/libtiff"
+		LDFLAGS="$LDFLAGS -L$TIFF/libtiff/.libs"
+	else
+		as_fn_error $? "thing found is not a tiff library in ./" "$LINENO" 5
+	fi
 else
 	if test "$with_tiff" != ""
 	then
@@ -3497,8 +3507,13 @@ then
 	then
 		as_fn_error $? "no tiff library found in ./" "$LINENO" 5
 	fi
-	CPPFLAGS="$CPPFLAGS -I$LCMS2/include"
-	LDFLAGS="$LDFLAGS -L$LCMS2/src/.libs"
+	if test -d $LCMS2
+	then
+		CPPFLAGS="$CPPFLAGS -I$LCMS2/include"
+		LDFLAGS="$LDFLAGS -L$LCMS2/src/.libs"
+	else
+		as_fn_error $? "thing found is not a lcms2 library in ./" "$LINENO" 5
+	fi
 else
 	if test "$with_lcms2" != ""
 	then
@@ -3521,8 +3536,13 @@ then
 	then
 		as_fn_error $? "no LibRaw library found in ./" "$LINENO" 5
 	fi
-	CPPFLAGS="$CPPFLAGS -I$LIBRAW"
-	LDFLAGS="$LDFLAGS -L$LIBRAW/lib/.libs"
+	if test -d $LIBRAW
+	then
+		CPPFLAGS="$CPPFLAGS -I$LIBRAW"
+		LDFLAGS="$LDFLAGS -L$LIBRAW/lib/.libs"
+	else
+		as_fn_error $? "thing found is not a libraw library in ./" "$LINENO" 5
+	fi
 else
 	if test "$with_libraw" != ""
 	then
