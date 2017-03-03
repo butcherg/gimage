@@ -26,6 +26,12 @@ enum BPP {
 	BPP_16
 };
 
+enum GIMAGE_CHANNEL {
+	CHANNEL_RED,
+	CHANNEL_GREEN,
+	CHANNEL_BLUE
+};
+
 enum GIMAGE_FILETYPE {
 	FILETYPE_RAW,
 	FILETYPE_JPEG,
@@ -71,6 +77,7 @@ class gImage
 		unsigned getProfileLength();
 		std::string Stats();
 		std::vector<long> Histogram();
+		std::map<GIMAGE_CHANNEL,std::vector<long> > Histogram(unsigned channels, unsigned scale);
 
 		//Setters
 		void setInfo(std::string name, std::string value);

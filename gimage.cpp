@@ -1809,7 +1809,31 @@ std::vector<long> gImage::Histogram()
 	return histogram;
 }
 
-
+std::map<GIMAGE_CHANNEL,std::vector<long> > gImage::Histogram(unsigned channels, unsigned scale)
+{
+	std::map<GIMAGE_CHANNEL,std::vector<long> > histograms;
+	std::vector<long> hred(scale,0);
+	std::vector<long> hgreen(scale,0);
+	std::vector<long> hblue(scale,0);
+	
+	for(unsigned y = 0; y < h; y++) {
+		for(unsigned x = 0; x < w; x++) {
+			unsigned pos = x + y*w;
+			//double r = image[pos].r * scale; 
+			double r = fmin(fmax(image[pos].r*scale,0.0),scale);
+			double g = fmin(fmax(image[pos].g*scale,0.0),scale);
+			double b = fmin(fmax(image[pos].b*scale,0.0),scale);
+			if (channels & CHANNEL_RED == 0) hred[floor(r+0.5)]++;
+			if (channels & CHANNEL_GREEN == 0) hgreen[floor(g+0.5)]++;
+			if (channels & CHANNEL_BLUE == 0) hblue[floor(b+0.5)]++;
+		}
+	}
+	if (channels & CHANNEL_RED == 0) histograms[CHANNEL_RED] = hred;
+	if (channels & CHANNEL_GREEN == 0) histograms[CHANNEL_GREEN] = hgreen;
+	if (channels & CHANNEL_BLUE == 0) histograms[CHANNEL_BLUE] = hblue;
+	
+	return histograms;
+}
 
 
 //Loaders:
