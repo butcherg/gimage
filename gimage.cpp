@@ -1809,12 +1809,13 @@ std::vector<long> gImage::Histogram()
 	return histogram;
 }
 
-std::map<GIMAGE_CHANNEL,std::vector<long> > gImage::Histogram(unsigned channels, unsigned scale)
+
+std::map<GIMAGE_CHANNEL,std::vector<unsigned> > gImage::Histogram(unsigned channels, unsigned scale)
 {
-	std::map<GIMAGE_CHANNEL,std::vector<long> > histograms;
-	std::vector<long> hred(scale,0);
-	std::vector<long> hgreen(scale,0);
-	std::vector<long> hblue(scale,0);
+	std::map<GIMAGE_CHANNEL,std::vector<unsigned> > histograms;
+	std::vector<unsigned> hred(scale,0);
+	std::vector<unsigned> hgreen(scale,0);
+	std::vector<unsigned> hblue(scale,0);
 	
 	for(unsigned y = 0; y < h; y++) {
 		for(unsigned x = 0; x < w; x++) {
@@ -1833,6 +1834,24 @@ std::map<GIMAGE_CHANNEL,std::vector<long> > gImage::Histogram(unsigned channels,
 	if (channels & CHANNEL_BLUE == 0) histograms[CHANNEL_BLUE] = hblue;
 	
 	return histograms;
+}
+
+std::vector<unsigned> gImage::Histogram(unsigned channel, unsigned scale, unsigned &hmax)
+{
+	std::vector<unsigned> hdata(scale,0);
+	
+	for(unsigned y = 0; y < h; y++) {
+		for(unsigned x = 0; x < w; x++) {
+			unsigned pos = x + y*w;
+			double d; 
+			if (channel == CHANNEL_RED)   d = fmin(fmax(image[pos].r*scale,0.0),scale);
+			if (channel == CHANNEL_GREEN) d = fmin(fmax(image[pos].g*scale,0.0),scale);
+			if (channel == CHANNEL_BLUE)  d = fmin(fmax(image[pos].b*scale,0.0),scale);
+			hdata[floor(d+0.5)]++;
+		}
+	}
+	
+	return hdata;
 }
 
 

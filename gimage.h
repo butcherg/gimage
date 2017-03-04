@@ -77,7 +77,8 @@ class gImage
 		unsigned getProfileLength();
 		std::string Stats();
 		std::vector<long> Histogram();
-		std::map<GIMAGE_CHANNEL,std::vector<long> > Histogram(unsigned channels, unsigned scale);
+		std::map<GIMAGE_CHANNEL,std::vector<unsigned> > Histogram(unsigned channels, unsigned scale);
+		std::vector<unsigned> Histogram(unsigned channel, unsigned scale, unsigned &hmax);
 
 		//Setters
 		void setInfo(std::string name, std::string value);
