@@ -1809,7 +1809,7 @@ std::vector<long> gImage::Histogram()
 	return histogram;
 }
 
-
+/*
 std::map<GIMAGE_CHANNEL,std::vector<unsigned> > gImage::Histogram(unsigned channels, unsigned scale)
 {
 	std::map<GIMAGE_CHANNEL,std::vector<unsigned> > histograms;
@@ -1835,11 +1835,18 @@ std::map<GIMAGE_CHANNEL,std::vector<unsigned> > gImage::Histogram(unsigned chann
 	
 	return histograms;
 }
+*/
 
-std::vector<unsigned> gImage::Histogram(unsigned channel, unsigned scale, unsigned &hmax)
+std::vector<unsigned> gImage::Histogram(unsigned channel, unsigned &hmax)
 {
-	std::vector<unsigned> hdata(scale,0);
+	unsigned scale;
+	if (b == BPP_16) scale = 65536;
+	else scale = 256;
+	hmax = 0;
 	
+	std::vector<unsigned> hdata(scale,0);
+
+	#pragma omp parallel for
 	for(unsigned y = 0; y < h; y++) {
 		for(unsigned x = 0; x < w; x++) {
 			unsigned pos = x + y*w;
@@ -1848,6 +1855,7 @@ std::vector<unsigned> gImage::Histogram(unsigned channel, unsigned scale, unsign
 			if (channel == CHANNEL_GREEN) d = fmin(fmax(image[pos].g*scale,0.0),scale);
 			if (channel == CHANNEL_BLUE)  d = fmin(fmax(image[pos].b*scale,0.0),scale);
 			hdata[floor(d+0.5)]++;
+			if (hmax < hdata[floor(d+0.5)]) hmax = hdata[floor(d+0.5)];
 		}
 	}
 	
