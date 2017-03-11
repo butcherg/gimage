@@ -60,7 +60,8 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 {
 	char *img, *buf;
 	FILE * infile;
-	uint16 w, h, c, b;
+	uint32 w, h;
+	uint16 c, b;
 
 	TIFF* tif = TIFFOpen(filename, "r");
 	if (tif) {
@@ -166,7 +167,8 @@ void _writeTIFF(const char *filename, char *imagedata, unsigned width, unsigned 
 {
 	char *img;
 	unsigned char *buf;
-	uint16 w, h, c, b;
+	uint32 w, h;
+	uint16 c, b;
 
 	TIFF* tif = TIFFOpen(filename, "w");
 	if (tif) {
