@@ -1851,9 +1851,9 @@ std::vector<long> gImage::Histogram(unsigned channel, unsigned &hmax)
 		for(unsigned x = 0; x < w; x++) {
 			unsigned pos = x + y*w;
 			unsigned d; 
-			if (channel == CHANNEL_RED)   d = (unsigned) fmin(fmax(image[pos].r*scale,0.0),scale);
-			if (channel == CHANNEL_GREEN) d = (unsigned) fmin(fmax(image[pos].g*scale,0.0),scale);
-			if (channel == CHANNEL_BLUE)  d = (unsigned) fmin(fmax(image[pos].b*scale,0.0),scale);
+			if (channel == CHANNEL_RED)   d = (unsigned) fmin(fmax(image[pos].r*scale,0.0),scale-1);
+			if (channel == CHANNEL_GREEN) d = (unsigned) fmin(fmax(image[pos].g*scale,0.0),scale-1);
+			if (channel == CHANNEL_BLUE)  d = (unsigned) fmin(fmax(image[pos].b*scale,0.0),scale-1);
 			hdata[d]++;
 			if (hmax < hdata[d]) hmax = hdata[d];
 		}
