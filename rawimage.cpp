@@ -104,7 +104,9 @@ char * _loadRAW(const char *filename,
 	RawProcessor.imgdata.params.gamm[0] = 1/1.0;   //1/2.222;
 	RawProcessor.imgdata.params.gamm[1] = 1.0;     //4.5;
 
-	
+	//#
+	//# rawdata - Preempts all other parameters, loads unprocessed raw data as a one-color 16-bit grayscale.  Equivalent to dcraw -D.
+	//#
 	if (p.find("rawdata") != p.end()) rawdata = true;
 	
 	//#
