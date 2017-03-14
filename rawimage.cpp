@@ -110,7 +110,7 @@ char * _loadRAW(const char *filename,
 	if (p.find("rawdata") != p.end()) rawdata = true;
 	
 	//#
-	//# output_color=0|1|2|3|4|5 - Output color space, default=1
+	//# output_color=0|1|2|3|4|5 - Output color space, default=1 (srgb)
 	//# colorspace=raw|srgb|adobe|wide|prophoto|xyz - Alias of output_color, with mnemonic values. default=srgb
 	//#
 	if (p.find("colorspace") != p.end()) {
@@ -133,7 +133,7 @@ char * _loadRAW(const char *filename,
 
 	//#
 	//# user_qual=0|1|2|3|4 - Demosaic algorithm, default=3 (ahd)
-	//# demosaic=linear|vng|ppg|ahd|dcb - Alias of user_qual, with mnemonic values. Default=ahd
+	//# demosaic=linear|vng|ppg|ahd|dcb - Alias of user_qual, with mnemonic values. default=ahd
 	//#
 	if (p.find("demosaic") != p.end()) {
 		if (p["demosaic"].compare("linear") == 0) 
