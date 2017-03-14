@@ -78,6 +78,8 @@ char * _loadRAW(const char *filename,
 	LibRaw RawProcessor;
 	char * img;
 	char imgdata[4096];
+	
+	bool rawdata = false;
 
 	std::map<std::string,std::string> p = parseparams(params);
 
@@ -102,6 +104,9 @@ char * _loadRAW(const char *filename,
 	RawProcessor.imgdata.params.gamm[0] = 1/1.0;   //1/2.222;
 	RawProcessor.imgdata.params.gamm[1] = 1.0;     //4.5;
 
+	
+	if (p.find("rawdata") != p.end()) rawdata = true;
+	
 	//#
 	//# output_color=0|1|2|3|4|5 - Output color space, default=1
 	//# colorspace=raw|srgb|adobe|wide|prophoto|xyz - Alias of output_color, with mnemonic values. default=srgb
@@ -532,20 +537,7 @@ char * _loadRAW(const char *filename,
 
 	if (RawProcessor.open_file(filename) != LIBRAW_SUCCESS) return NULL;
 	RawProcessor.unpack();
-	RawProcessor.dcraw_process();
-	RawProcessor.get_mem_image_format(&w, &h, &c, &b);
-	*width = w;
-	*height = h;
-	*numcolors = c;
-	*numbits = b;
-
-	img = new char[w*h*c*(b/8)];
 	
-	libraw_processed_image_t *image = RawProcessor.dcraw_make_mem_image();
-	memcpy(img, image->data, image->data_size);
-	LibRaw::dcraw_clear_mem(image);
-
-	//icc_m = NULL;
 	*icclength = 0;
 
 	info["ISOSpeedRatings"] = tostr(P2.iso_speed);  
@@ -564,6 +556,36 @@ char * _loadRAW(const char *filename,
 	timeinfo = localtime (&rawtime);
 	strftime (buffer,80,"%Y:%m:%d %H:%M:%S",timeinfo);
 	info["DateTime"] = buffer;  
+	
+	if (rawdata) {
+		*width = S.raw_width;
+		*height = S.raw_height;
+		*numcolors = 1;
+		*numbits = 16;
+		unsigned imgsize = (*width) * (*height) * (*numcolors) * ((*numbits)/8);
+		img = new char[imgsize];
+		memcpy(img, RawProcessor.imgdata.rawdata.raw_image, imgsize);
+
+		RawProcessor.recycle();
+		return img;
+	}
+	
+	
+	RawProcessor.dcraw_process();
+	RawProcessor.get_mem_image_format(&w, &h, &c, &b);
+	*width = w;
+	*height = h;
+	*numcolors = c;
+	*numbits = b;
+
+	img = new char[w*h*c*(b/8)];
+	
+	libraw_processed_image_t *image = RawProcessor.dcraw_make_mem_image();
+	memcpy(img, image->data, image->data_size);
+	LibRaw::dcraw_clear_mem(image);
+
+	//icc_m = NULL;
+
 
 	if (C.profile) {
 		*icc_m = new char[C.profile_length];
