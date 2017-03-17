@@ -12,12 +12,13 @@
 #include <string>
 #include <iostream>
 #include <dirent.h>
+#include <glob.h>
 
 #include "gimage.h"
 #include "elapsedtime.h"
 #include "strutil.h"
 
-
+//matchspec: takes a file name and returns the variant part, specified by the file specification
 std::string matchspec(std::string fname, std::string fspec)
 {
 	if (fname.size() < fspec.size()) return "";
@@ -35,11 +36,12 @@ std::string matchspec(std::string fname, std::string fspec)
 	return "";
 }
 
-std::string makename(std::string variant, std::string endstr)
+//makename: returns a file name constructed using a file specification and the variant string to insert
+std::string makename(std::string variant, std::string fspec)
 {
 	char e[1024];
 	char *a, *b;
-	strncpy(e,endstr.c_str(), 1023);
+	strncpy(e,fspec.c_str(), 1023);
 	if (e[0] == '*') {
 		b = NULL;
 		a = e+1;
@@ -64,18 +66,33 @@ int countchar(std::string s, char c)
 	return count;
 }
 
-std::vector<std::string> filelist(std::string dspec)
+//gets the file out of a path/file string
+std::string getfile(std::string path)
 {
-	std::vector<std::string> flist;
-	DIR *dir;
-	struct dirent *ent;
-	if ((dir = opendir(dspec.c_str())) != NULL) {
-		while ((ent = readdir(dir)) != NULL) {
-			flist.push_back(ent->d_name);
-		}
-		closedir(dir);
+	std::size_t found = path.find_last_of("/\\");
+	if (found == std::string::npos) return path;
+	return path.substr(found+1);
+}
+
+//gets the path out of a path/file string
+std::string getpath(std::string path)
+{
+	std::size_t found = path.find_last_of("/\\");
+	if (found == std::string::npos) return ".";
+	return path.substr(0,found);
+}
+
+std::vector<std::string> fileglob(std::string dspec)
+{
+	glob_t glob_result;
+	glob(dspec.c_str(), 0, NULL, &glob_result);
+	std::vector<std::string> ret;
+	for(unsigned int i=0;i<glob_result.gl_pathc;++i){
+		ret.push_back(std::string(glob_result.gl_pathv[i]));
 	}
-	return flist;
+	globfree(&glob_result);
+	return ret;
+	
 }
 
 
@@ -101,6 +118,8 @@ void strappend(char* s, char c)
 
 int _CRT_glob = 0;
 
+//used to contain a list of corresponding input and output file names,
+//constructed from the input and output file specifications
 struct fnames {
 	std::string infile, outfile;
 };
@@ -108,7 +127,10 @@ struct fnames {
 int main (int argc, char **argv) 
 {
 	char * filename;
+	
+	//the corresponding input and output file names 
 	std::vector<fnames> files;
+	
 	int c;
 	int flags;
 	gImage dib;
@@ -148,6 +170,7 @@ int main (int argc, char **argv)
 		exit(1);
 	}
 
+	//separates the parameters from the input and output file strings
 	std::vector<std::string> infile = split(std::string(argv[1]),":");
 	if (infile.size() < 2) infile.push_back("");
 	std::vector<std::string> outfile = split(std::string(argv[argc-1]),":");
@@ -157,10 +180,9 @@ int main (int argc, char **argv)
 
 	if (countchar(infile[0],'*') == 1) {
 		if (countchar(outfile[0],'*') == 1) {
-			std::vector<std::string> flist = filelist(".");
+			std::vector<std::string> flist = fileglob(infile[0]);
 			for (int i=0; i<flist.size(); i++) {
 				std::string variant = matchspec(flist[i], infile[0]);
-				matchspec(flist[i], infile[0]);
 				if (variant == "") continue;
 				fnames f;
 				f.infile = flist[i];
@@ -183,21 +205,22 @@ int main (int argc, char **argv)
 	}
 	
 
+//list of commands to apply to each input file
 std::vector<std::string> commands;
 for (int i = 2; i<argc-1; i++) {
 	commands.push_back(std::string(argv[i]));
 }
 
-
+printf("start...\n");
 
 for (int f=0; f<files.size(); f++)
 {
-	char fname[256];
-	strncpy(fname, files[f].infile.c_str(), 255);
+	char iname[256];
+	strncpy(iname, files[f].infile.c_str(), 255);
 
-	printf("Loading file %s... ",fname);
+	printf("Loading file %s %s... ",iname, infile[1].c_str());
 	_mark();
-	dib = gImage::loadImageFile(fname, infile[1]);
+	dib = gImage::loadImageFile(iname, infile[1]);
 	printf("done. (%fsec)\nImage size: %dx%d\n",_duration(), dib.getWidth(),dib.getHeight());
 	
 	for (int i=0; i<commands.size(); i++) {
@@ -446,9 +469,10 @@ for (int f=0; f<files.size(); f++)
 
 
 	_mark();
-	printf("Saving file %s %s... ",outfile[0].c_str(), outfile[1].c_str());
+	//printf("Saving file %s %s... ",outfile[0].c_str(), outfile[1].c_str());
+	printf("Saving file %s %s... ",outfilename, outfile[1].c_str());
 	dib.setInfo("Software","gimg 0.1");
-	if (dib.saveImageFile(outfile[0].c_str(), outfile[1].c_str())) 
+	if (dib.saveImageFile(outfilename, outfile[1].c_str())) 
 		printf("done. (%fsec)\n\n",_duration());
 	else
 		printf("Error: bad output file specification: %s\n\n",outfile[0].c_str());
