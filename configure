@@ -682,6 +682,7 @@ enable_openmp
 enable_debug
 with_optimization
 with_pixtype
+with_localprefix
 with_jpeg
 with_tiff
 with_lcms2
@@ -1333,6 +1334,12 @@ Optional Packages:
 
   --with-pixtype          =half|float|double, specifies data type for pixel
                           structure, default is float
+
+  --with-localprefix      =PATH, specifies path to a non-standard location of
+                          lib and include directories. The lib and include
+                          paths are prepended to LDFLAGS and CPPFLAGS,
+                          respectively. Use this to make and use alternate
+                          combinations of the supporting libraries
 
   --with-jpeg             =PATH, specifies path to non-standard location of
                           jpeg library. Omitting the path looks for a jpeg-*
@@ -3435,6 +3442,19 @@ then
 	CPPFLAGS="$CPPFLAGS -DPIXTYPE=$with_pixtype"
 fi
 
+
+# Check whether --with-localprefix was given.
+if test "${with_localprefix+set}" = set; then :
+  withval=$with_localprefix;
+fi
+
+if test "$with_localprefix" != ""
+then
+	if test "$with_localprefix" != "yes"
+		CPPFLAGS="-I$with_localprefix/include $CPPFLAGS"
+		LDFLAGS="-L$with_localprefix/lib $LDFLAGS"
+	fi
+fi
 
 
 # Check whether --with-jpeg was given.

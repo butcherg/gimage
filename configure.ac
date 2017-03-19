@@ -48,6 +48,16 @@ then
 	CPPFLAGS="$CPPFLAGS -DPIXTYPE=$with_pixtype"
 fi
 
+AC_ARG_WITH([localprefix],
+	AS_HELP_STRING([--with-localprefix], [=PATH, specifies path to a non-standard location of lib and include directories.  The lib and include paths are prepended to LDFLAGS and CPPFLAGS, respectively.  Use this to make and use alternate combinations of the supporting libraries])
+)
+if test "$with_localprefix" != ""
+then
+	if test "$with_localprefix" != "yes"
+		CPPFLAGS="-I$with_localprefix/include $CPPFLAGS"
+		LDFLAGS="-L$with_localprefix/lib $LDFLAGS"
+	fi
+fi
 
 AC_ARG_WITH([jpeg],
 	AS_HELP_STRING([--with-jpeg], [=PATH, specifies path to non-standard location of jpeg library.  Omitting the path looks for a jpeg-* directory in the cwd.])
