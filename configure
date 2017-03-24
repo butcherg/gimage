@@ -3452,8 +3452,8 @@ if test "$with_localprefix" != ""
 then
 	if test "$with_localprefix" != "yes"
 	then
-		CPPFLAGS="-I$with_localprefix/include $CPPFLAGS"
-		LDFLAGS="-L$with_localprefix/lib $LDFLAGS"
+		CPPFLAGS="-I$with_localprefix/usr/local/include $CPPFLAGS"
+		LDFLAGS="-L$with_localprefix/usr/local/lib $LDFLAGS"
 	fi
 fi
 

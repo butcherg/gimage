@@ -60,7 +60,7 @@ curve.o: $(srcdir)/curve.cpp $(srcdir)/curve.h
 
 .PHONY: clean
 clean:
-	rm -rf *.o *.a *$(EXE)
+	rm -rf *.o *.a gimg$(EXE)
 
 .PHONY: install
 install:
