@@ -23,18 +23,12 @@ OBJECTS=gimg.o elapsedtime.o
 
 LIBOBJECTS=gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o strutil.o curve.o
 
-gimg: $(OBJECTS)  lib/libgimage.a
+gimg: $(OBJECTS)  libgimage.a
 	mkdir -p bin
-	$(CXX) $(LDFLAGS) $(STATIC) -o bin/gimg$(EXT)  $(OBJECTS) lib/libgimage.a  $(LIBS) 
+	$(CXX) $(LDFLAGS) $(STATIC) -o gimg$(EXT)  $(OBJECTS) libgimage.a  $(LIBS) 
 
-lib/libgimage.a: $(LIBOBJECTS)
-	mkdir -p lib
-	mkdir -p include
-	cp $(srcdir)/gimage.h include
-	cp $(srcdir)/curve.h include
-	cp $(srcdir)/strutil.h include
-	cp $(srcdir)/half.hpp include
-	rm -f lib/libgimage.a
+libgimage.a: $(LIBOBJECTS)
+	rm -f libgimage.a
 	ar rcs $@ $(LIBOBJECTS)
 	ranlib $@
 
@@ -67,13 +61,21 @@ curve.o: $(srcdir)/curve.cpp $(srcdir)/curve.h
 
 .PHONY: clean
 clean:
-	rm -rf *.o lib/ include/ bin/
+	rm -rf *.o *.a *$(EXE)
 
 .PHONY: install
 install:
 	test -d $(DESTDIR)/usr/local/bin || install -d $(DESTDIR)/usr/local/bin/
 	test -d $(DESTDIR)/usr/local/lib || install -d $(DESTDIR)/usr/local/lib/
 	test -d $(DESTDIR)/usr/local/include/gimage || install -d $(DESTDIR)/usr/local/include/gimage
-	install -m 755 bin/gimg$(EXT) $(DESTDIR)/usr/local/bin/gimg$(EXT)
-	install -m 644 lib/libgimage.a $(DESTDIR)/usr/local/lib/libgimage.a
-	install -m 644 include/* $(DESTDIR)/usr/local/include/gimage/
+	install -m 755 gimg$(EXT) $(DESTDIR)/usr/local/bin/gimg$(EXT)
+	install -m 644 libgimage.a $(DESTDIR)/usr/local/lib/libgimage.a
+	install -m 644 ../gimage.h $(DESTDIR)/usr/local/include/gimage/
+	install -m 644 ../curve.h $(DESTDIR)/usr/local/include/gimage/
+	install -m 644 ../half.h $(DESTDIR)/usr/local/include/gimage/
+	install -m 644 ../strutil.h $(DESTDIR)/usr/local/include/gimage/
+
+.PHONY uninstall
+	rm -rf $(DESTDIR)/usr/local/include/gimage
+	rm -f  $(DESTDIR)/usr/local/bin/gimg$(EXT)
+	rm -f  $(DESTDIR)/usr/local/lib/libgimage.a
