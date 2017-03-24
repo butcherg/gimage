@@ -24,7 +24,6 @@ OBJECTS=gimg.o elapsedtime.o
 LIBOBJECTS=gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o strutil.o curve.o
 
 gimg: $(OBJECTS)  libgimage.a
-	mkdir -p bin
 	$(CXX) $(LDFLAGS) $(STATIC) -o gimg$(EXT)  $(OBJECTS) libgimage.a  $(LIBS) 
 
 libgimage.a: $(LIBOBJECTS)
@@ -72,10 +71,11 @@ install:
 	install -m 644 libgimage.a $(DESTDIR)/usr/local/lib/libgimage.a
 	install -m 644 ../gimage.h $(DESTDIR)/usr/local/include/gimage/
 	install -m 644 ../curve.h $(DESTDIR)/usr/local/include/gimage/
-	install -m 644 ../half.h $(DESTDIR)/usr/local/include/gimage/
+	install -m 644 ../half.hpp $(DESTDIR)/usr/local/include/gimage/
 	install -m 644 ../strutil.h $(DESTDIR)/usr/local/include/gimage/
 
-.PHONY uninstall
+.PHONY: uninstall
+uninstall:
 	rm -rf $(DESTDIR)/usr/local/include/gimage
 	rm -f  $(DESTDIR)/usr/local/bin/gimg$(EXT)
 	rm -f  $(DESTDIR)/usr/local/lib/libgimage.a

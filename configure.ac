@@ -54,6 +54,7 @@ AC_ARG_WITH([localprefix],
 if test "$with_localprefix" != ""
 then
 	if test "$with_localprefix" != "yes"
+	then
 		CPPFLAGS="-I$with_localprefix/include $CPPFLAGS"
 		LDFLAGS="-L$with_localprefix/lib $LDFLAGS"
 	fi
