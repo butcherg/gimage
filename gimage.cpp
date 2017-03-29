@@ -32,6 +32,7 @@ gImage::gImage()
 {
 	w=0; 
 	h=0;
+	profile = NULL;
 }
 
 gImage::gImage(const gImage &o)
