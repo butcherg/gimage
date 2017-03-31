@@ -1,5 +1,4 @@
 
-#define NDEBUG
 
 #include <string>
 #include <cmath>
