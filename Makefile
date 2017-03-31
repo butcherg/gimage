@@ -22,10 +22,11 @@ $(OBJDIR)/gimg: $(OBJECTS)  $(OBJDIR)/lib/libgimage.a
 $(OBJDIR)/lib/libgimage.a: $(LIBOBJECTS)
 	mkdir -p $(OBJDIR)/lib
 	mkdir -p $(OBJDIR)/include
-	cp gimage.h $(OBJDIR)/include
-	cp curve.h $(OBJDIR)/include
-	cp strutil.h $(OBJDIR)/include
-	cp half.hpp $(OBJDIR)/include
+	mkdir -p $(OBJDIR)/include/gimage
+	cp gimage.h $(OBJDIR)/include/gimage
+	cp curve.h $(OBJDIR)/include/gimage
+	cp strutil.h $(OBJDIR)/include/gimage
+	cp half.hpp $(OBJDIR)/include/gimage
 	rm -f $(OBJDIR)/lib/libgimage.a
 	ar rcs $@ $(LIBOBJECTS)
 	ranlib $@
@@ -63,6 +64,7 @@ $(OBJDIR)/curve.o: curve.cpp curve.h
 
 clean:
 	rm -f $(OBJDIR)/gimg$(EXT) $(OBJDIR)/*.o $(OBJDIR)/lib/libgimage.a
+
 
 
 
