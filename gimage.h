@@ -100,6 +100,7 @@ class gImage
 		void ApplyRotate(double angle, bool crop, int threadcount=0);
 		void ApplyCrop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int threadcount=0);
 		void ApplySaturate(double saturate, int threadcount=0);
+		void ApplyExposureCompensation(double ev, int threadcount=0);
 		void ApplyTint(double red,double green,double blue, int threadcount=0);
 		void ApplyGray(double redpct, double greenpct, double bluepct, int threadcount=0);
 		void ApplyToneCurve(std::vector<cp> ctpts, int threadcount=0);

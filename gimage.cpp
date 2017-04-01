@@ -1267,21 +1267,18 @@ void gImage::ApplySaturate(double saturate, int threadcount)
 
 //Exposure Compensation
 //
-//Multiplies each R, G, and B value of each pixel by the multplier spedified in ev.
-//It should be noted that GUI sliders values cannot be applied directly; they must be
-//transformed into the delta from the last application in order to keep track of the 
-//total compensation applied.
+//Multiplies each R, G, and B value of each pixel by 2**ev
 //
 
-void ApplyExposureCompensation(double ev, int threadcount=0)
+void gImage::ApplyExposureCompensation(double ev, int threadcount)
 {
 	#pragma omp parallel for num_threads(threadcount)
 	for (unsigned x=0; x<w; x++) {
 		for (unsigned y=0; y<h; y++) {
 			unsigned pos = x + y*w;
-			image[pos].r *= ev;
-			image[pos].g *= ev;
-			image[pos].b *= ev;
+			image[pos].r *= pow(2,ev);
+			image[pos].g *= pow(2,ev);
+			image[pos].b *= pow(2,ev);
 		}
 	}
 }
