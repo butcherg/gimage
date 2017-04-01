@@ -1272,13 +1272,14 @@ void gImage::ApplySaturate(double saturate, int threadcount)
 
 void gImage::ApplyExposureCompensation(double ev, int threadcount)
 {
+	double mult = pow(2.0,ev);
 	#pragma omp parallel for num_threads(threadcount)
 	for (unsigned x=0; x<w; x++) {
 		for (unsigned y=0; y<h; y++) {
 			unsigned pos = x + y*w;
-			image[pos].r *= pow(2,ev);
-			image[pos].g *= pow(2,ev);
-			image[pos].b *= pow(2,ev);
+			image[pos].r *= mult;
+			image[pos].g *= mult;
+			image[pos].b *= mult;
 		}
 	}
 }
