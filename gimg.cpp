@@ -447,6 +447,31 @@ for (int f=0; f<files.size(); f++)
 			printf("done (%fsec).\n",_duration());
 
 		}
+		
+		else if (strcmp(cmd,"redeye") == 0) {  
+			int limit = 25;
+			char *sx = strtok(NULL,", ");
+			char *sy = strtok(NULL,", ");
+			char *sl = strtok(NULL,", ");
+			if (sx) {
+				int x = atoi(sx);
+				if (sy) {
+					if (sl) limit = atoi(sl);
+					int y = atoi(sy);
+					std::vector<coord> pts;
+					struct coord pt; pt.x = x; pt.y = y;
+					pts.push_back(pt);
+					int threadcount = gImage::ThreadCount();
+					printf("redeye (%d threads)... ", threadcount);
+					_mark();
+					dib.ApplyRedeye(pts, 1.5, limit, threadcount);
+					printf("done (%fsec).\n",_duration());
+				}
+				else printf("redeye: bad y coord\n");
+			}
+			else printf("redeye: bad x coord\n");
+		
+		}
 
 		else printf("Unrecognized command: %s.  Continuing...\n",cmd);
 

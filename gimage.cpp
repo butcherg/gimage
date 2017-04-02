@@ -1785,6 +1785,82 @@ void gImage::ApplyResize(unsigned width, unsigned height, RESIZE_FILTER filter, 
 }
 
 
+//Redeye
+//
+//Two routines: ApplyRedeye() takes a list of points and works each of them with 
+//doRedRing(), which works a rectangular ring of pixels around the point.  doRedRing 
+//is called with successively larger offsets until it returns a count <= 0, meaning 
+//a ring didn't have any pixels with dominant red intensity.
+//
+
+int gImage::doRedRing(unsigned px, unsigned py, unsigned offset, double threshold)
+{
+	int count = 0;
+	int boxsize = 2 * (offset+1) -1;
+	int cx=px, cy=py-offset;
+	
+	//start at top of box, work cx toward right:
+	for (unsigned i = 0; i < ((boxsize-1) /2); i++) {
+		unsigned pos = cx + cy*w;
+		double ri = image[pos].r / ((image[pos].g + image[pos].b) /2.0);
+		if (ri > threshold) {
+			image[pos].r = (image[pos].g + image[pos].b) / 2.0;
+			count++;
+		}
+		cx++;
+	}
+	//work cy top to bottom:
+	for (unsigned i = 0; i < boxsize-1; i++) {
+		cy++;
+		unsigned pos = cx + cy*w;
+		double ri = image[pos].r / ((image[pos].g + image[pos].b) /2.0);
+		if (ri > threshold) {
+			image[pos].r = (image[pos].g + image[pos].b) / 2.0;
+			count++;
+		}
+	}
+	//work cx right to left:
+	for (unsigned i = 0; i < boxsize-1; i++) {
+		cx--;
+		unsigned pos = cx + cy*w;
+		double ri = image[pos].r / ((image[pos].g + image[pos].b) /2.0);
+		if (ri > threshold) {
+			image[pos].r = (image[pos].g + image[pos].b) / 2.0;
+			count++;
+		}
+	}
+	//work cy bottom to top:
+	for (unsigned i = 0; i < boxsize-1; i++) {
+		cy--;
+		unsigned pos = cx + cy*w;
+		double ri = image[pos].r / ((image[pos].g + image[pos].b) /2.0);
+		if (ri > threshold) {
+			image[pos].r = (image[pos].g + image[pos].b) / 2.0;
+			count++;
+		}
+	}
+	//work cx left-to-right, back to start
+	for (unsigned i = 0; i < ((boxsize) /2); i++) {
+		cx++;
+		unsigned pos = cx + cy*w;
+		double ri = image[pos].r / ((image[pos].g + image[pos].b) /2.0);
+		if (ri > threshold) {
+			image[pos].r = (image[pos].g + image[pos].b) / 2.0;
+			count++;
+		}
+	}
+	return count;
+}
+
+void gImage::ApplyRedeye(std::vector<coord> points, double threshold, unsigned limit, int threadcount)
+{
+	for (std::vector<coord>::iterator it=points.begin(); it!=points.end(); ++it) {
+		for (unsigned offset=1; offset<limit; offset++) 
+			if (doRedRing(it->x, it->y, offset, threshold) == 0) break;
+	}
+}
+
+
 // End of Image Manipulations
 
 

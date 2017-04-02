@@ -20,6 +20,10 @@ struct pix {
 	PIXTYPE r, g, b;
 };
 
+struct coord {
+	unsigned x, y;
+};
+
 enum BPP {
 	BPP_FP,
 	BPP_8,
@@ -106,6 +110,7 @@ class gImage
 		void ApplyToneCurve(std::vector<cp> ctpts, int threadcount=0);
 		void ApplyToneLine(double low, double high, int threadcount=0);
 		void ApplyNLMeans(double sigma, int local, int patch, int threadcount=0);
+		void ApplyRedeye(std::vector<coord> points, double threshold, unsigned limit, int threadcount);
 		
 
 		//Image loaders.  Return a new gImage
@@ -128,6 +133,8 @@ class gImage
 		//void ImageBounds(unsigned *x1, unsigned *x2, unsigned *y1, unsigned *y2, bool cropbounds=false);
 		//void ApplyXShear(double rangle, int threadcount);
 		//void ApplyYShear(double rangle, int threadcount);
+		
+		int doRedRing(unsigned px, unsigned py, unsigned offset, double threshold);
 
 
 	private:
