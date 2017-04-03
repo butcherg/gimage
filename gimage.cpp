@@ -1800,14 +1800,14 @@ int gImage::doRedRing(unsigned px, unsigned py, unsigned offset, double threshol
 	int cx=px, cy=py-offset;
 	
 	//start at top of box, work cx toward right:
-	for (unsigned i = 0; i < ((boxsize-1) /2); i++) {
+	for (unsigned i = 0; i < ((boxsize) /2); i++) {
+		cx++;
 		unsigned pos = cx + cy*w;
 		double ri = image[pos].r / ((image[pos].g + image[pos].b) /2.0);
 		if (ri > threshold) {
 			image[pos].r = (image[pos].g + image[pos].b) / 2.0;
 			count++;
 		}
-		cx++;
 	}
 	//work cy top to bottom:
 	for (unsigned i = 0; i < boxsize-1; i++) {
