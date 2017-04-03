@@ -1810,11 +1810,14 @@ void gImage::ApplyRedeye(std::vector<coord> points, double threshold, unsigned l
 {
 	#pragma omp parallel for num_threads(threadcount)
 	for (int i=0; i< points.size(); i++) {
+		if (points[i].x > w) continue;
+		if (points[i].y > h) continue;
 		unsigned cx = points[i].x - limit;
 		unsigned cy = points[i].y - limit;
 		for (unsigned y=cy; y<cy+limit*2; y++) {
 			for (unsigned x=cx; x<cx+limit*2; x++) {
 				unsigned pos = x + y*w;
+				if (pos > w*h) continue;
 				unsigned d = sqrt(sqr(x - points[i].x) + sqr(y - points[i].y));
 				if (d > limit) continue;
 				double ri = image[pos].r / ((image[pos].g + image[pos].b) /2.0);
