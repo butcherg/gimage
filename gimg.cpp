@@ -449,13 +449,15 @@ for (int f=0; f<files.size(); f++)
 		}
 		
 		else if (strcmp(cmd,"redeye") == 0) {  
-			int limit = 25;
+			int limit = 25; double threshold = 1.5;
 			char *sx = strtok(NULL,", ");
 			char *sy = strtok(NULL,", ");
+			char *st = strtok(NULL,", ");
 			char *sl = strtok(NULL,", ");
 			if (sx) {
 				int x = atoi(sx);
 				if (sy) {
+					if (st) threshold = atof(st);
 					if (sl) limit = atoi(sl);
 					int y = atoi(sy);
 					std::vector<coord> pts;
@@ -464,7 +466,7 @@ for (int f=0; f<files.size(); f++)
 					int threadcount = gImage::ThreadCount();
 					printf("redeye (%d threads)... ", threadcount);
 					_mark();
-					dib.ApplyRedeye(pts, 1.5, limit, threadcount);
+					dib.ApplyRedeye(pts, threshold, limit, threadcount);
 					printf("done (%fsec).\n",_duration());
 				}
 				else printf("redeye: bad y coord\n");

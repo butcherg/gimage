@@ -1785,78 +1785,44 @@ void gImage::ApplyResize(unsigned width, unsigned height, RESIZE_FILTER filter, 
 }
 
 
+
+
 //Redeye
 //
-//Two routines: ApplyRedeye() takes a list of points and works each of them with 
-//doRedRing(), which works a rectangular ring of pixels around the point.  doRedRing 
-//is called with successively larger offsets until it returns a count <= 0, meaning 
-//a ring didn't have any pixels with dominant red intensity.
+//I started with an algorithm that walked concentric rings out from the specified center 
+//point of the red eye, but the rectangular corners were evident in a pixel-peep.  My second
+//try, below is a simple walk of the rectangular patch, doing a distance check of each
+//pixel to the center and moving on if it was farther than the limit.  I put the omp
+//pragma on the outside loop; each eye gets its own thread. The whole thing isn't very onerous,
+//but my max test has bee four eyes (two people...)
+
+//The essential algorithm is to calculate the red intensity proportionate to the averaged
+//green and blue intensities; if greater than the threshold, the red value is replaced 
+//with the average of the green and blue.  This means that things like light reflections
+//(white highlights) and other "non-red" pixels are not touched, leaving a well-formed eye.
+//If the center point is centered well and the limit is just larger than the red spot, it 
+//can be hard to tell the pixels were touched.
 //
 
-int gImage::doRedRing(unsigned px, unsigned py, unsigned offset, double threshold)
-{
-	int count = 0;
-	int boxsize = 2 * (offset+1) -1;
-	int cx=px, cy=py-offset;
-	
-	//start at top of box, work cx toward right:
-	for (unsigned i = 0; i < ((boxsize) /2); i++) {
-		cx++;
-		unsigned pos = cx + cy*w;
-		double ri = image[pos].r / ((image[pos].g + image[pos].b) /2.0);
-		if (ri > threshold) {
-			image[pos].r = (image[pos].g + image[pos].b) / 2.0;
-			count++;
-		}
-	}
-	//work cy top to bottom:
-	for (unsigned i = 0; i < boxsize-1; i++) {
-		cy++;
-		unsigned pos = cx + cy*w;
-		double ri = image[pos].r / ((image[pos].g + image[pos].b) /2.0);
-		if (ri > threshold) {
-			image[pos].r = (image[pos].g + image[pos].b) / 2.0;
-			count++;
-		}
-	}
-	//work cx right to left:
-	for (unsigned i = 0; i < boxsize-1; i++) {
-		cx--;
-		unsigned pos = cx + cy*w;
-		double ri = image[pos].r / ((image[pos].g + image[pos].b) /2.0);
-		if (ri > threshold) {
-			image[pos].r = (image[pos].g + image[pos].b) / 2.0;
-			count++;
-		}
-	}
-	//work cy bottom to top:
-	for (unsigned i = 0; i < boxsize-1; i++) {
-		cy--;
-		unsigned pos = cx + cy*w;
-		double ri = image[pos].r / ((image[pos].g + image[pos].b) /2.0);
-		if (ri > threshold) {
-			image[pos].r = (image[pos].g + image[pos].b) / 2.0;
-			count++;
-		}
-	}
-	//work cx left-to-right, back to start
-	for (unsigned i = 0; i < ((boxsize) /2); i++) {
-		cx++;
-		unsigned pos = cx + cy*w;
-		double ri = image[pos].r / ((image[pos].g + image[pos].b) /2.0);
-		if (ri > threshold) {
-			image[pos].r = (image[pos].g + image[pos].b) / 2.0;
-			count++;
-		}
-	}
-	return count;
-}
+inline unsigned sqr(const unsigned x) { return x*x; }
 
 void gImage::ApplyRedeye(std::vector<coord> points, double threshold, unsigned limit, int threadcount)
 {
-	for (std::vector<coord>::iterator it=points.begin(); it!=points.end(); ++it) {
-		for (unsigned offset=1; offset<limit; offset++) 
-			if (doRedRing(it->x, it->y, offset, threshold) == 0) break;
+	#pragma omp parallel for num_threads(threadcount)
+	for (int i=0; i< points.size(); i++) {
+		unsigned cx = points[i].x - limit;
+		unsigned cy = points[i].y - limit;
+		for (unsigned y=cy; y<cy+limit*2; y++) {
+			for (unsigned x=cx; x<cx+limit*2; x++) {
+				unsigned pos = x + y*w;
+				unsigned d = sqrt(sqr(x - points[i].x) + sqr(y - points[i].y));
+				if (d > limit) continue;
+				double ri = image[pos].r / ((image[pos].g + image[pos].b) /2.0);
+				if (ri > threshold) {
+					image[pos].r = (image[pos].g + image[pos].b) / 2.0;
+				}
+			}
+		}
 	}
 }
 
