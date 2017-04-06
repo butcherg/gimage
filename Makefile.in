@@ -60,7 +60,7 @@ curve.o: $(srcdir)/curve.cpp $(srcdir)/curve.h
 
 .PHONY: clean
 clean:
-	rm -rf *.o *.a gimg$(EXE)
+	rm -rf *.o *.a gimg$(EXT)
 
 .PHONY: install
 install:
@@ -69,10 +69,10 @@ install:
 	test -d $(DESTDIR)/usr/local/include/gimage || install -d $(DESTDIR)/usr/local/include/gimage
 	install -m 755 gimg$(EXT) $(DESTDIR)/usr/local/bin/gimg$(EXT)
 	install -m 644 libgimage.a $(DESTDIR)/usr/local/lib/libgimage.a
-	install -m 644 ../gimage.h $(DESTDIR)/usr/local/include/gimage/
-	install -m 644 ../curve.h $(DESTDIR)/usr/local/include/gimage/
-	install -m 644 ../half.hpp $(DESTDIR)/usr/local/include/gimage/
-	install -m 644 ../strutil.h $(DESTDIR)/usr/local/include/gimage/
+	install -m 644 $(srcdir)/gimage.h $(DESTDIR)/usr/local/include/gimage/
+	install -m 644 $(srcdir)/curve.h $(DESTDIR)/usr/local/include/gimage/
+	install -m 644 $(srcdir)/half.hpp $(DESTDIR)/usr/local/include/gimage/
+	install -m 644 $(srcdir)/strutil.h $(DESTDIR)/usr/local/include/gimage/
 
 .PHONY: uninstall
 uninstall:

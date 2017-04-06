@@ -1,11 +1,29 @@
 AC_PREREQ([2.68])
 AC_INIT(gimage, 0.2)
 
+
+
+# MINGW_AC_WIN32_NATIVE_HOST
+# --------------------------
+# Check if the runtime platform is a native Win32 host.
+#
+AC_DEFUN([MINGW_AC_WIN32_NATIVE_HOST],
+[AC_CACHE_CHECK([whether we are building for a Win32 host], 
+                [mingw_cv_win32_host],
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+#ifdef _WIN32
+choke me
+#endif
+])], [mingw_cv_win32_host=no], [mingw_cv_win32_host=yes]))])
+
+
 AC_LANG([C++])
 : ${CXXFLAGS=""}
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_RANLIB
+
+MINGW_AC_WIN32_NATIVE_HOST
 
 #Process enables:
 AC_ARG_ENABLE([openmp],
@@ -27,17 +45,17 @@ then
 fi
 
 
-#Process withs:
-
-AC_ARG_WITH([optimization],
-	AS_HELP_STRING([--with-optimization], [enables -O4 optimization, default is -O2])
+AC_ARG_ENABLE([optimization],
+	AS_HELP_STRING([--enable-optimization], [enables -O4 optimization, default is -O2])
 )
-if test "$with_optimization" == "yes"
+if test "$enable_optimization" == "yes"
 then
 	CXXFLAGS="$CXXFLAGS -O4"
 else
 	CXXFLAGS="$CXXFLAGS -O2"
 fi
+
+#Process withs:
 
 
 AC_ARG_WITH([pixtype],
@@ -60,126 +78,93 @@ then
 	fi
 fi
 
-AC_ARG_WITH([jpeg],
-	AS_HELP_STRING([--with-jpeg], [=PATH, specifies path to non-standard location of jpeg library.  Omitting the path looks for a jpeg-* directory in the cwd.])
-)
-if test "$with_jpeg" == "yes"  #look for unpacked jpeg library in ./
+#AC_SEARCH_LIBS(socket,ws2_32, [], [AC_ERROR([A working ws2_32 is required])])
+
+#if test "$IS_WIN32" == "yes" ;
+if test "$mingw_cv_win32_host" == "yes" ;
 then
-	JPEG=`stat --printf='%n' jpeg-* 2>/dev/null`
-	if test $JPEG == ""  
-	then 
-		AC_ERROR([no jpeg library found in ./]) 
-	fi
-	if test -d $JPEG
-	then
-		CPPFLAGS="$CPPFLAGS -I$JPEG"
-		LDFLAGS="$LDFLAGS -L$JPEG"
-	else
-		AC_ERROR([thing found is not a jpeg library in ./])
-	fi
-else
-	if test "$with_jpeg" != ""
-	then
-		CPPFLAGS="$CPPFLAGS -I$with_jpeg"
-		LDFLAGS="$LDFLAGS -L$with_jpeg"
-	fi
+#	AC_MSG_NOTICE ([adding win32 libs and flags])
+	AC_CHECK_LIB([ws2_32],[main])
+	CXXFLAGS="$CXXFLAGS -DLIBRAW_NODLL"
 fi
+
+MINGW_AC_WIN32_NATIVE_HOST
+
+AC_ARG_WITH([jpeg],
+	AS_HELP_STRING([--with-jpeg], [=PATH, specifies path to non-standard location of the jpeg library.]),
+	[
+		echo "libjpeg: using $with_jpeg"
+		if test -d $with_jpeg 
+		then
+			CPPFLAGS=" -I$with_jpeg $CPPFLAGS"
+			LIBS="$with_jpeg/libjpeg.a $LIBS"
+		else
+			AC_ERROR([no jpeg directory found.]) 
+		fi
+	],
+	[
+		AC_CHECK_HEADERS(jpeglib.h, [], [AC_ERROR([jpeglib.h not found.])])
+		AC_SEARCH_LIBS(jpeg_set_defaults,jpeg, [], [AC_ERROR([A working libjpeg is required.])])
+	]
+)
 
 
 AC_ARG_WITH([tiff],
-	AS_HELP_STRING([--with-tiff], [=PATH, specifies path to non-standard location of tiff library.  Omitting the path looks for a tiff* directory in the cwd.])
+	AS_HELP_STRING([--with-tiff], [=PATH, specifies path to non-standard location of the tiff library.]),
+	[
+		echo "libtiff: using $with_tiff"
+		if test -d $with_tiff 
+		then
+			CPPFLAGS="-I$with_tiff/libtiff $CPPFLAGS"
+			LIBS="$with_tiff/libtiff/.libs/libtiff.a $LIBS"
+		else
+			AC_ERROR([no tiff directory found.]) 
+		fi
+	],
+	[
+		AC_CHECK_HEADERS(tiffio.h, [], [AC_ERROR([tiffio.h not found.])])
+		AC_SEARCH_LIBS(TIFFSetErrorHandler,tiff, [], [AC_ERROR([A working libtiff is required.])])
+	]
 )
-if test "$with_tiff" == "yes"  #look for unpacked tiff library in ./
-then
-	TIFF=`stat --printf='%n' tiff-* 2>/dev/null`
-	if test $TIFF == ""  
-	then 
-		AC_ERROR([no tiff library found in ./]) 
-	fi
-	if test -d $TIFF
-	then
-		CPPFLAGS="$CPPFLAGS -I$TIFF/libtiff"
-		LDFLAGS="$LDFLAGS -L$TIFF/libtiff/.libs"
-	else
-		AC_ERROR([thing found is not a tiff library in ./])
-	fi
-else
-	if test "$with_tiff" != ""
-	then
-		CPPFLAGS="$CPPFLAGS -I$with_tiff/libtiff"
-		LDFLAGS="$LDFLAGS -L$with_tiff/libtiff/.libs"
-	fi
-fi
-
-
-AC_ARG_WITH([lcms2],
-	AS_HELP_STRING([--with-lcms2], [=PATH, specifies path to non-standard location of Little CMS2 library.  Omitting the path looks for a lcms2* directory in the cwd.])
-)
-if test "$with_lcms2" == "yes"  #look for unpacked tiff library in ./
-then
-	LCMS2=`stat --printf='%n' lcms2-* 2>/dev/null`
-	if test $LCMS2 == ""  
-	then 
-		AC_ERROR([no tiff library found in ./]) 
-	fi
-	if test -d $LCMS2
-	then
-		CPPFLAGS="$CPPFLAGS -I$LCMS2/include"
-		LDFLAGS="$LDFLAGS -L$LCMS2/src/.libs"
-	else
-		AC_ERROR([thing found is not a lcms2 library in ./])
-	fi
-else
-	if test "$with_lcms2" != ""
-	then
-		CPPFLAGS="$CPPFLAGS -I$with_lcms2/include"
-		LDFLAGS="$LDFLAGS -L$with_lcms2/src/.libs"
-	fi
-fi
 
 
 AC_ARG_WITH([libraw],
-	AS_HELP_STRING([--with-libraw], [=PATH, specifies path to non-standard location of LibRaw library. Omitting the path looks for a Libraw* directory in the cwd.])
+	AS_HELP_STRING([--with-libraw], [=PATH, specifies path to non-standard location of the LibRaw library.]),
+	[
+	echo "libraw: using $with_libraw"
+		if test -d $with_libraw 
+		then
+			CPPFLAGS="-I$with_libraw $CPPFLAGS"
+			LIBS="$with_libraw/lib/.libs/libraw.a $LIBS"
+		else
+			AC_ERROR([no libraw directory found.]) 
+		fi
+	],
+	[
+		AC_CHECK_HEADERS(libraw/libraw.h, [], [AC_ERROR([libraw.h not found])])
+		AC_SEARCH_LIBS(libraw_init,raw, [], [AC_ERROR([A working libraw is required])])
+	]
 )
-if test "$with_libraw" == "yes"  #look for unpacked tiff library in ./
-then
-	LIBRAW=`stat --printf='%n' LibRaw-* 2>/dev/null`
-	if test $LIBRAW == ""  
-	then 
-		AC_ERROR([no LibRaw library found in ./]) 
-	fi
-	if test -d $LIBRAW
-	then
-		CPPFLAGS="$CPPFLAGS -I$LIBRAW"
-		LDFLAGS="$LDFLAGS -L$LIBRAW/lib/.libs"
-	else
-		AC_ERROR([thing found is not a libraw library in ./])
-	fi
-else
-	if test "$with_libraw" != ""
-	then
-		CPPFLAGS="$CPPFLAGS -I$with_libraw"
-		LDFLAGS="$LDFLAGS -L$with_libraw/lib/.libs"
-	fi
-fi
 
 
-# Checks for libraries.
+AC_ARG_WITH([lcms2],
+	AS_HELP_STRING([--with-lcms2], [=PATH, specifies path to non-standard location of Little CMS2 library.]),
+	[
+	echo "libcms2: using $with_lcms2"
+		if test -d $with_lcms2 
+		then
+			CPPFLAGS="-I$with_lcms2/include $CPPFLAGS "
+			LIBS="$with_lcms2/src/.libs/liblcms2.a $LIBS "
+		else
+			AC_ERROR([no lcms2 directory found.]) 
+		fi
+	],
+	[
+		AC_CHECK_HEADERS(lcms2.h, [], [AC_ERROR([lcms2.h not found])])
+		AC_SEARCH_LIBS(cmsSetLogErrorHandler,lcms2, [], [AC_ERROR([A working libcms2 is required])])
+	]
+)
 
-#AC_SEARCH_LIBS(socket,ws2_32, [], [AC_ERROR([A working ws2_32 is required])])
-AC_CHECK_LIB([ws2_32],[main])
-
-AC_CHECK_HEADERS(jpeglib.h, [], [AC_ERROR([jpeglib.h not found])])
-AC_SEARCH_LIBS(jpeg_set_defaults,jpeg, [], [AC_ERROR([A working libjpeg is required])])
-
-AC_CHECK_HEADERS(tiffio.h, [], [AC_ERROR([tiffio.h not found])])
-AC_SEARCH_LIBS(TIFFSetErrorHandler,tiff, [], [AC_ERROR([A working libtiff is required])])
-
-AC_CHECK_HEADERS(lcms2.h, [], [AC_ERROR([lcms2.h not found])])
-AC_SEARCH_LIBS(cmsSetLogErrorHandler,lcms2, [], [AC_ERROR([A working libcms2 is required])])
-
-AC_CHECK_HEADERS(libraw/libraw.h, [], [AC_ERROR([libraw.h not found])])
-AC_SEARCH_LIBS(libraw_init,raw, [], [AC_ERROR([A working libraw is required])])
 
 # Checks for header files.
 AC_CHECK_HEADERS([limits.h stdint.h stdlib.h string.h unistd.h utime.h])
