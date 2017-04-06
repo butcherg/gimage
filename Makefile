@@ -5,9 +5,9 @@ CC=gcc
 CXX=g++
 
 #+= these in $(OBJDIR) for site-specific things
-LIBDIRS=-L$(OBJDIR)/lib
+LIBDIRS=-L$(OBJDIR)
 LIBS=-lgimage -lraw -ltiff -ljpeg -llcms2
-INCLUDEDIRS=
+INCLUDEDIRS=-I.
 CFLAGS=
 LFLAGS=
 
@@ -16,18 +16,11 @@ LFLAGS=
 OBJECTS := $(addprefix $(OBJDIR)/,gimg.o elapsedtime.o )
 LIBOBJECTS := $(addprefix $(OBJDIR)/,gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o strutil.o curve.o)
 
-$(OBJDIR)/gimg: $(OBJECTS)  $(OBJDIR)/lib/libgimage.a
+$(OBJDIR)/gimg: $(OBJECTS)  $(OBJDIR)/libgimage.a
 	$(CXX) $(LFLAGS) -o$@$(EXT)  $(LIBDIRS) $(OBJECTS) $(LIBS) 
 
-$(OBJDIR)/lib/libgimage.a: $(LIBOBJECTS)
-	mkdir -p $(OBJDIR)/lib
-	mkdir -p $(OBJDIR)/include
-	mkdir -p $(OBJDIR)/include/gimage
-	cp gimage.h $(OBJDIR)/include/gimage
-	cp curve.h $(OBJDIR)/include/gimage
-	cp strutil.h $(OBJDIR)/include/gimage
-	cp half.hpp $(OBJDIR)/include/gimage
-	rm -f $(OBJDIR)/lib/libgimage.a
+$(OBJDIR)/libgimage.a: $(LIBOBJECTS)
+	rm -f $(OBJDIR)/libgimage.a
 	ar rcs $@ $(LIBOBJECTS)
 	ranlib $@
 	echo "gimage:" > $(OBJDIR)/build.txt
@@ -41,25 +34,25 @@ $(OBJDIR)/gimg.o: gimg.cpp
 $(OBJDIR)/gimage.o: gimage.cpp
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c gimage.cpp -o$@
 
-$(OBJDIR)/tiffimage.o: tiffimage.cpp tiffimage.h
+$(OBJDIR)/tiffimage.o: tiffimage.cpp
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c tiffimage.cpp -o$@
 
-$(OBJDIR)/rawimage.o: rawimage.cpp rawimage.h
+$(OBJDIR)/rawimage.o: rawimage.cpp
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c rawimage.cpp -o$@
 
-$(OBJDIR)/jpegimage.o: jpegimage.cpp jpegimage.h
+$(OBJDIR)/jpegimage.o: jpegimage.cpp
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c jpegimage.cpp -o$@
 
-$(OBJDIR)/jpegexif.o: jpegexif.cpp jpegexif.h
+$(OBJDIR)/jpegexif.o: jpegexif.cpp
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c jpegexif.cpp -o$@
 
-$(OBJDIR)/elapsedtime.o: elapsedtime.cpp elapsedtime.h
+$(OBJDIR)/elapsedtime.o: elapsedtime.cpp
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c elapsedtime.cpp -o$@
 
-$(OBJDIR)/strutil.o: strutil.cpp strutil.h
+$(OBJDIR)/strutil.o: strutil.cpp
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c strutil.cpp -o$@
 
-$(OBJDIR)/curve.o: curve.cpp curve.h
+$(OBJDIR)/curve.o: curve.cpp
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c -w curve.cpp -o$@
 
 clean:
