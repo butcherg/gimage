@@ -6,7 +6,7 @@
 #include <string>
 #include <map>
 
-#include "strutil.h"
+#include <gimage/strutil.h>
 
 bool _checkTIFF(const char *filename)
 {

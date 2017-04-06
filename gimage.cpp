@@ -1,5 +1,5 @@
 ﻿
-#include "gimage.h"
+#include "gimage/gimage.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -11,7 +11,7 @@
 #include "rawimage.h"
 #include "jpegimage.h"
 #include "tiffimage.h"
-#include "strutil.h"
+#include "gimage/strutil.h"
 
 #define PI            3.14159265358979323846
 

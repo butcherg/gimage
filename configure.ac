@@ -18,7 +18,7 @@ choke me
 
 
 AC_LANG([C++])
-: ${CXXFLAGS=""}
+#: ${CXXFLAGS=""}
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_RANLIB
@@ -164,6 +164,8 @@ AC_ARG_WITH([lcms2],
 		AC_SEARCH_LIBS(cmsSetLogErrorHandler,lcms2, [], [AC_ERROR([A working libcms2 is required])])
 	]
 )
+
+CPPFLAGS="-I$with_lcms2/include $CPPFLAGS "
 
 
 # Checks for header files.

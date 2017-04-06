@@ -18,6 +18,8 @@ EXT=@EXEEXT@
 srcdir=@srcdir@
 VPATH=@srcdir@
 
+INCLUDEDIRS+=-I$(srcdir)
+
 
 OBJECTS=gimg.o elapsedtime.o
 
@@ -37,30 +39,30 @@ gimg.o: gimg.cpp
 gimage.o: gimage.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -DLIBRAW_NODLL -c $(srcdir)/gimage.cpp -o$@
 
-tiffimage.o: $(srcdir)/tiffimage.cpp $(srcdir)/tiffimage.h
+tiffimage.o: $(srcdir)/tiffimage.cpp 
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/tiffimage.cpp -o$@
 
-rawimage.o: $(srcdir)/rawimage.cpp $(srcdir)/rawimage.h
+rawimage.o: $(srcdir)/rawimage.cpp 
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -DLIBRAW_NODLL -c $(srcdir)/rawimage.cpp -o$@
 
-jpegimage.o: $(srcdir)/jpegimage.cpp $(srcdir)/jpegimage.h
+jpegimage.o: $(srcdir)/jpegimage.cpp 
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/jpegimage.cpp -o$@
 
-jpegexif.o: $(srcdir)/jpegexif.cpp $(srcdir)/jpegexif.h
+jpegexif.o: $(srcdir)/jpegexif.cpp 
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/jpegexif.cpp -o$@
 
-elapsedtime.o: $(srcdir)/elapsedtime.cpp $(srcdir)/elapsedtime.h
+elapsedtime.o: $(srcdir)/elapsedtime.cpp 
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/elapsedtime.cpp -o$@
 
-strutil.o: $(srcdir)/strutil.cpp $(srcdir)/strutil.h
+strutil.o: $(srcdir)/strutil.cpp 
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/strutil.cpp -o$@
 
-curve.o: $(srcdir)/curve.cpp $(srcdir)/curve.h
+curve.o: $(srcdir)/curve.cpp 
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c  $(srcdir)/curve.cpp -o$@
 
 .PHONY: clean
 clean:
-	rm -rf *.o *.a gimg$(EXT)
+	rm -rf *.o *.a gimg$(EXTupda)
 
 .PHONY: install
 install:
