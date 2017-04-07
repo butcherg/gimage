@@ -601,6 +601,10 @@ ac_includes_default="\
 ac_header_list=
 ac_func_list=
 ac_subst_vars='LTLIBOBJS
+APP_LIBS
+APP_LDFLAGS
+APP_CXXFLAGS
+APP_CPPFLAGS
 LIBOBJS
 EGREP
 GREP
@@ -3395,8 +3399,8 @@ fi
 
 if test "$enable_openmp" == "yes"
 then
-	CXXFLAGS="$CXXFLAGS -fopenmp"
-	LDFLAGS="$LDFLAGS -fopenmp"
+	APP_CXXFLAGS="$APP_CXXFLAGS -fopenmp"
+	APP_LDFLAGS="$APP_LDFLAGS -fopenmp"
 fi
 
 
@@ -3407,7 +3411,7 @@ fi
 
 if test "$enable_debug" == "yes"
 then
-	CXXFLAGS="$CXXFLAGS -g"
+	APP_CXXFLAGS="$APP_CXXFLAGS -g"
 fi
 
 
@@ -3418,9 +3422,9 @@ fi
 
 if test "$enable_optimization" == "yes"
 then
-	CXXFLAGS="$CXXFLAGS -O4"
+	APP_CXXFLAGS="$APP_CXXFLAGS -O4"
 else
-	CXXFLAGS="$CXXFLAGS -O2"
+	APP_CXXFLAGS="$APP_CXXFLAGS -O2"
 fi
 
 #Process withs:
@@ -3434,7 +3438,7 @@ fi
 
 if test "$with_pixtype" != ""
 then
-	CPPFLAGS="$CPPFLAGS -DPIXTYPE=$with_pixtype"
+	APP_CXXFLAGS="$APP_CXXFLAGS -DPIXTYPE=$with_pixtype"
 fi
 
 
@@ -3447,8 +3451,8 @@ if test "$with_localprefix" != ""
 then
 	if test "$with_localprefix" != "yes"
 	then
-		CPPFLAGS="-I$with_localprefix/usr/local/include $CPPFLAGS"
-		LDFLAGS="-L$with_localprefix/usr/local/lib $LDFLAGS"
+		APP_CPPFLAGS="-I$with_localprefix/usr/local/include $APP_CPPFLAGS"
+		APP_LDFLAGS="-L$with_localprefix/usr/local/lib $APP_LDFLAGS"
 	fi
 fi
 
@@ -3497,7 +3501,7 @@ _ACEOF
 
 fi
 
-	CXXFLAGS="$CXXFLAGS -DLIBRAW_NODLL"
+	APP_CXXFLAGS="$APP_CXXFLAGS -DLIBRAW_NODLL"
 fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether we are building for a Win32 host" >&5
@@ -3523,6 +3527,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $mingw_cv_win32_host" >&5
 $as_echo "$mingw_cv_win32_host" >&6; }
 
+#jpeg lib doesn't do cross-build, so it doesn't have a BUILDDIR option
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -3923,8 +3928,8 @@ if test "${with_jpeg+set}" = set; then :
 		echo "libjpeg: using $with_jpeg"
 		if test -d $with_jpeg
 		then
-			CPPFLAGS=" -I$with_jpeg $CPPFLAGS"
-			LIBS="$with_jpeg/libjpeg.a $LIBS"
+			APP_LIBS="$with_jpeg/libjpeg.a $APP_LIBS"
+			APP_CPPFLAGS=" -I$with_jpeg $APP_CPPFLAGS"
 		else
 			as_fn_error $? "no jpeg directory found." "$LINENO" 5
 		fi
@@ -4008,7 +4013,7 @@ fi
 fi
 
 
-
+#libtiff does cross-compile, uses BUILDDIR if declared
 
 # Check whether --with-tiff was given.
 if test "${with_tiff+set}" = set; then :
@@ -4016,8 +4021,14 @@ if test "${with_tiff+set}" = set; then :
 		echo "libtiff: using $with_tiff"
 		if test -d $with_tiff
 		then
-			CPPFLAGS="-I$with_tiff/libtiff $CPPFLAGS"
-			LIBS="$with_tiff/libtiff/.libs/libtiff.a $LIBS"
+			if test -z "${BUILDDIR+x}"
+			then
+				APP_LIBS="$with_tiff/libtiff/.libs/libtiff.a $APP_LIBS"
+			else
+				APP_LIBS="$with_tiff/$BUILDDIR/libtiff/.libs/libtiff.a $APP_LIBS"
+			fi
+			APP_CPPFLAGS="-I$with_tiff/libtiff $APP_CPPFLAGS"
+
 		else
 			as_fn_error $? "no tiff directory found." "$LINENO" 5
 		fi
@@ -4101,7 +4112,7 @@ fi
 fi
 
 
-
+#libraw does cross-compile, uses BUILDDIR if declared
 
 # Check whether --with-libraw was given.
 if test "${with_libraw+set}" = set; then :
@@ -4109,8 +4120,13 @@ if test "${with_libraw+set}" = set; then :
 	echo "libraw: using $with_libraw"
 		if test -d $with_libraw
 		then
-			CPPFLAGS="-I$with_libraw $CPPFLAGS"
-			LIBS="$with_libraw/lib/.libs/libraw.a $LIBS"
+			if test -z "${BUILDDIR+x}"
+			then
+				APP_LIBS="$with_libraw/lib/.libs/libraw.a $APP_LIBS"
+			else
+				APP_LIBS="$with_libraw/$BUILDDIR/lib/.libs/libraw.a $APP_LIBS"
+			fi
+			APP_CPPFLAGS="-I$with_libraw $APP_CPPFLAGS"
 		else
 			as_fn_error $? "no libraw directory found." "$LINENO" 5
 		fi
@@ -4194,7 +4210,7 @@ fi
 fi
 
 
-
+#lcms2 does cross-compile, uses BUILDDIR if declared
 
 # Check whether --with-lcms2 was given.
 if test "${with_lcms2+set}" = set; then :
@@ -4202,8 +4218,13 @@ if test "${with_lcms2+set}" = set; then :
 	echo "libcms2: using $with_lcms2"
 		if test -d $with_lcms2
 		then
-			CPPFLAGS="-I$with_lcms2/include $CPPFLAGS "
-			LIBS="$with_lcms2/src/.libs/liblcms2.a $LIBS "
+			if test -z "${BUILDDIR+x}"
+			then
+				APP_LIBS="$with_lcms2/src/.libs/liblcms2.a $APP_LIBS"
+			else
+				APP_LIBS="$with_lcms2/$BUILDDIR/src/.libs/liblcms2.a $APP_LIBS"
+			fi
+			APP_CPPFLAGS="-I$with_lcms2/include $APP_CPPFLAGS "
 		else
 			as_fn_error $? "no lcms2 directory found." "$LINENO" 5
 		fi
@@ -4286,8 +4307,6 @@ fi
 
 fi
 
-
-CPPFLAGS="-I$with_lcms2/include $CPPFLAGS "
 
 
 # Checks for header files.
@@ -4805,6 +4824,9 @@ _ACEOF
 
 fi
 done
+
+
+
 
 
 

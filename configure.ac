@@ -31,8 +31,8 @@ AC_ARG_ENABLE([openmp],
 )
 if test "$enable_openmp" == "yes"
 then
-	CXXFLAGS="$CXXFLAGS -fopenmp"
-	LDFLAGS="$LDFLAGS -fopenmp"
+	APP_CXXFLAGS="$APP_CXXFLAGS -fopenmp"
+	APP_LDFLAGS="$APP_LDFLAGS -fopenmp"
 fi
 
 
@@ -41,7 +41,7 @@ AC_ARG_ENABLE([debug],
 )
 if test "$enable_debug" == "yes"
 then
-	CXXFLAGS="$CXXFLAGS -g"
+	APP_CXXFLAGS="$APP_CXXFLAGS -g"
 fi
 
 
@@ -50,9 +50,9 @@ AC_ARG_ENABLE([optimization],
 )
 if test "$enable_optimization" == "yes"
 then
-	CXXFLAGS="$CXXFLAGS -O4"
+	APP_CXXFLAGS="$APP_CXXFLAGS -O4"
 else
-	CXXFLAGS="$CXXFLAGS -O2"
+	APP_CXXFLAGS="$APP_CXXFLAGS -O2"
 fi
 
 #Process withs:
@@ -63,7 +63,7 @@ AC_ARG_WITH([pixtype],
 )
 if test "$with_pixtype" != ""
 then
-	CPPFLAGS="$CPPFLAGS -DPIXTYPE=$with_pixtype"
+	APP_CXXFLAGS="$APP_CXXFLAGS -DPIXTYPE=$with_pixtype"
 fi
 
 AC_ARG_WITH([localprefix],
@@ -73,8 +73,8 @@ if test "$with_localprefix" != ""
 then
 	if test "$with_localprefix" != "yes"
 	then
-		CPPFLAGS="-I$with_localprefix/usr/local/include $CPPFLAGS"
-		LDFLAGS="-L$with_localprefix/usr/local/lib $LDFLAGS"
+		APP_CPPFLAGS="-I$with_localprefix/usr/local/include $APP_CPPFLAGS"
+		APP_LDFLAGS="-L$with_localprefix/usr/local/lib $APP_LDFLAGS"
 	fi
 fi
 
@@ -85,19 +85,20 @@ if test "$mingw_cv_win32_host" == "yes" ;
 then
 #	AC_MSG_NOTICE ([adding win32 libs and flags])
 	AC_CHECK_LIB([ws2_32],[main])
-	CXXFLAGS="$CXXFLAGS -DLIBRAW_NODLL"
+	APP_CXXFLAGS="$APP_CXXFLAGS -DLIBRAW_NODLL"
 fi
 
 MINGW_AC_WIN32_NATIVE_HOST
 
+#jpeg lib doesn't do cross-build, so it doesn't have a BUILDDIR option
 AC_ARG_WITH([jpeg],
 	AS_HELP_STRING([--with-jpeg], [=PATH, specifies path to non-standard location of the jpeg library.]),
 	[
 		echo "libjpeg: using $with_jpeg"
 		if test -d $with_jpeg 
 		then
-			CPPFLAGS=" -I$with_jpeg $CPPFLAGS"
-			LIBS="$with_jpeg/libjpeg.a $LIBS"
+			APP_LIBS="$with_jpeg/libjpeg.a $APP_LIBS" 
+			APP_CPPFLAGS=" -I$with_jpeg $APP_CPPFLAGS"
 		else
 			AC_ERROR([no jpeg directory found.]) 
 		fi
@@ -108,15 +109,21 @@ AC_ARG_WITH([jpeg],
 	]
 )
 
-
+#libtiff does cross-compile, uses BUILDDIR if declared
 AC_ARG_WITH([tiff],
 	AS_HELP_STRING([--with-tiff], [=PATH, specifies path to non-standard location of the tiff library.]),
 	[
 		echo "libtiff: using $with_tiff"
 		if test -d $with_tiff 
 		then
-			CPPFLAGS="-I$with_tiff/libtiff $CPPFLAGS"
-			LIBS="$with_tiff/libtiff/.libs/libtiff.a $LIBS"
+			if test -z "${BUILDDIR+x}" 
+			then 
+				APP_LIBS="$with_tiff/libtiff/.libs/libtiff.a $APP_LIBS"
+			else
+				APP_LIBS="$with_tiff/$BUILDDIR/libtiff/.libs/libtiff.a $APP_LIBS"
+			fi
+			APP_CPPFLAGS="-I$with_tiff/libtiff $APP_CPPFLAGS"
+			
 		else
 			AC_ERROR([no tiff directory found.]) 
 		fi
@@ -127,15 +134,20 @@ AC_ARG_WITH([tiff],
 	]
 )
 
-
+#libraw does cross-compile, uses BUILDDIR if declared
 AC_ARG_WITH([libraw],
 	AS_HELP_STRING([--with-libraw], [=PATH, specifies path to non-standard location of the LibRaw library.]),
 	[
 	echo "libraw: using $with_libraw"
 		if test -d $with_libraw 
 		then
-			CPPFLAGS="-I$with_libraw $CPPFLAGS"
-			LIBS="$with_libraw/lib/.libs/libraw.a $LIBS"
+			if test -z "${BUILDDIR+x}" 
+			then 
+				APP_LIBS="$with_libraw/lib/.libs/libraw.a $APP_LIBS"
+			else
+				APP_LIBS="$with_libraw/$BUILDDIR/lib/.libs/libraw.a $APP_LIBS"
+			fi
+			APP_CPPFLAGS="-I$with_libraw $APP_CPPFLAGS"
 		else
 			AC_ERROR([no libraw directory found.]) 
 		fi
@@ -146,15 +158,20 @@ AC_ARG_WITH([libraw],
 	]
 )
 
-
+#lcms2 does cross-compile, uses BUILDDIR if declared
 AC_ARG_WITH([lcms2],
 	AS_HELP_STRING([--with-lcms2], [=PATH, specifies path to non-standard location of Little CMS2 library.]),
 	[
 	echo "libcms2: using $with_lcms2"
 		if test -d $with_lcms2 
 		then
-			CPPFLAGS="-I$with_lcms2/include $CPPFLAGS "
-			LIBS="$with_lcms2/src/.libs/liblcms2.a $LIBS "
+			if test -z "${BUILDDIR+x}" 
+			then 
+				APP_LIBS="$with_lcms2/src/.libs/liblcms2.a $APP_LIBS"
+			else
+				APP_LIBS="$with_lcms2/$BUILDDIR/src/.libs/liblcms2.a $APP_LIBS"
+			fi
+			APP_CPPFLAGS="-I$with_lcms2/include $APP_CPPFLAGS "
 		else
 			AC_ERROR([no lcms2 directory found.]) 
 		fi
@@ -164,8 +181,6 @@ AC_ARG_WITH([lcms2],
 		AC_SEARCH_LIBS(cmsSetLogErrorHandler,lcms2, [], [AC_ERROR([A working libcms2 is required])])
 	]
 )
-
-CPPFLAGS="-I$with_lcms2/include $CPPFLAGS "
 
 
 # Checks for header files.
@@ -181,7 +196,10 @@ AC_FUNC_MALLOC
 AC_FUNC_MKTIME
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([clock_gettime floor memmove memset mkdir modf pow rint sqrt strchr strstr utime])
-
+AC_SUBST(APP_CPPFLAGS)
+AC_SUBST(APP_CXXFLAGS)
+AC_SUBST(APP_LDFLAGS)
+AC_SUBST(APP_LIBS)
 
 AC_OUTPUT(Makefile)
 

@@ -7,12 +7,21 @@ endif
 CXX=@CXX@
 LD=@CXX@
 
-LIBS=@LIBS@
-INCLUDEDIRS=
+LIBS=@APP_LIBS@
+LIBS+=@LIBS@
+
+
 CFLAGS=@CFLAGS@
+
 CXXFLAGS=@CXXFLAGS@
+CXXFLAGS+=@APP_CXXFLAGS@
+
 LDFLAGS=@LDFLAGS@
+LDFLAGS+=@APP_LDFLAGS@
+
 INCLUDEDIRS=@CPPFLAGS@
+INCLUDEDIRS+=@APP_CPPFLAGS@
+
 EXT=@EXEEXT@
 
 srcdir=@srcdir@
@@ -34,16 +43,16 @@ libgimage.a: $(LIBOBJECTS)
 	ranlib $@
 
 gimg.o: gimg.cpp
-	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -DLIBRAW_NODLL -c $(srcdir)/gimg.cpp -o$@
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/gimg.cpp -o$@
 
 gimage.o: gimage.cpp
-	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -DLIBRAW_NODLL -c $(srcdir)/gimage.cpp -o$@
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/gimage.cpp -o$@
 
 tiffimage.o: $(srcdir)/tiffimage.cpp 
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/tiffimage.cpp -o$@
 
 rawimage.o: $(srcdir)/rawimage.cpp 
-	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -DLIBRAW_NODLL -c $(srcdir)/rawimage.cpp -o$@
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/rawimage.cpp -o$@
 
 jpegimage.o: $(srcdir)/jpegimage.cpp 
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $(srcdir)/jpegimage.cpp -o$@
@@ -62,7 +71,7 @@ curve.o: $(srcdir)/curve.cpp
 
 .PHONY: clean
 clean:
-	rm -rf *.o *.a gimg$(EXTupda)
+	rm -rf *.o *.a gimg$(EXT)
 
 .PHONY: install
 install:
