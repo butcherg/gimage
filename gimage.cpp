@@ -1822,10 +1822,10 @@ void gImage::ApplyRedeye(std::vector<coord> points, double threshold, unsigned l
 				if (d > limit) continue;
 				double ri = image[pos].r / ((image[pos].g + image[pos].b) /2.0);
 				if (ri > threshold) {
-					image[pos].r *= redpercent;
-					image[pos].g *= greenpercent;
-					image[pos].b *= bluepercent;
 					image[pos].r = (image[pos].g + image[pos].b) / 2.0;
+					image[pos].r = image[pos].r * redpercent;
+					image[pos].g = image[pos].g * greenpercent;
+					image[pos].b = image[pos].b * bluepercent; 
 				}
 			}
 		}
