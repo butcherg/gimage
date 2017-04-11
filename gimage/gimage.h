@@ -110,7 +110,7 @@ class gImage
 		void ApplyToneCurve(std::vector<cp> ctpts, int threadcount=0);
 		void ApplyToneLine(double low, double high, int threadcount=0);
 		void ApplyNLMeans(double sigma, int local, int patch, int threadcount=0);
-		void ApplyRedeye(std::vector<coord> points, double threshold, unsigned limit, double redpercent=1.0, double bluepercent=1.0 , double greenpercent=1.0, int threadcount=0);
+		void ApplyRedeye(std::vector<coord> points, double threshold, unsigned limit, bool desaturate=false, int threadcount=0);
 		
 
 		//Image loaders.  Return a new gImage
