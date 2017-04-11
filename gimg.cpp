@@ -466,7 +466,7 @@ for (int f=0; f<files.size(); f++)
 					int threadcount = gImage::ThreadCount();
 					printf("redeye (%d threads)... ", threadcount);
 					_mark();
-					dib.ApplyRedeye(pts, threshold, limit, false,  threadcount);
+					dib.ApplyRedeye(pts, threshold, limit, false, 1.0,  threadcount);
 					printf("done (%fsec).\n",_duration());
 				}
 				else printf("redeye: bad y coord\n");

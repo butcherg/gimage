@@ -1806,7 +1806,7 @@ void gImage::ApplyResize(unsigned width, unsigned height, RESIZE_FILTER filter, 
 
 inline unsigned sqr(const unsigned x) { return x*x; }
 
-void gImage::ApplyRedeye(std::vector<coord> points, double threshold, unsigned limit, bool desaturate, int threadcount)
+void gImage::ApplyRedeye(std::vector<coord> points, double threshold, unsigned limit, bool desaturate, double desaturatepercent, int threadcount)
 {
 	#pragma omp parallel for num_threads(threadcount)
 	for (int i=0; i< points.size(); i++) {
@@ -1824,7 +1824,7 @@ void gImage::ApplyRedeye(std::vector<coord> points, double threshold, unsigned l
 				if (ri > threshold) {
 					image[pos].r = (image[pos].g + image[pos].b) / 2.0;
 					if (desaturate) {
-						double d = (image[pos].r +image[pos].g +image[pos].b)/3;
+						double d = ((image[pos].r +image[pos].g +image[pos].b)/3) * desaturatepercent;
 						image[pos].r = d;
 						image[pos].g = d;
 						image[pos].b = d;
