@@ -100,12 +100,12 @@ AC_ARG_WITH([jpeg],
 			APP_LIBS="$with_jpeg/libjpeg.a $APP_LIBS" 
 			APP_CPPFLAGS=" -I$with_jpeg $APP_CPPFLAGS"
 		else
-			AC_ERROR([no jpeg directory found.]) 
+			AC_MSG_ERROR([no jpeg directory found.]) 
 		fi
 	],
 	[
-		AC_CHECK_HEADERS(jpeglib.h, [], [AC_ERROR([jpeglib.h not found.])])
-		AC_SEARCH_LIBS(jpeg_set_defaults,jpeg, [], [AC_ERROR([A working libjpeg is required.])])
+		AC_CHECK_HEADERS(jpeglib.h, [], [AC_MSG_ERROR([jpeglib.h not found.])])
+		AC_SEARCH_LIBS(jpeg_set_defaults,jpeg, [], [AC_MSG_ERROR([A working libjpeg is required.])])
 	]
 )
 
@@ -125,12 +125,12 @@ AC_ARG_WITH([tiff],
 			APP_CPPFLAGS="-I$with_tiff/libtiff $APP_CPPFLAGS"
 			
 		else
-			AC_ERROR([no tiff directory found.]) 
+			AC_MSG_ERROR([no tiff directory found.]) 
 		fi
 	],
 	[
-		AC_CHECK_HEADERS(tiffio.h, [], [AC_ERROR([tiffio.h not found.])])
-		AC_SEARCH_LIBS(TIFFSetErrorHandler,tiff, [], [AC_ERROR([A working libtiff is required.])])
+		AC_CHECK_HEADERS(tiffio.h, [], [AC_MSG_ERROR([tiffio.h not found.])])
+		AC_SEARCH_LIBS(TIFFSetErrorHandler,tiff, [], [AC_MSG_ERROR([A working libtiff is required.])])
 	]
 )
 
@@ -149,12 +149,12 @@ AC_ARG_WITH([libraw],
 			fi
 			APP_CPPFLAGS="-I$with_libraw $APP_CPPFLAGS"
 		else
-			AC_ERROR([no libraw directory found.]) 
+			AC_MSG_ERROR([no libraw directory found.]) 
 		fi
 	],
 	[
-		AC_CHECK_HEADERS(libraw/libraw.h, [], [AC_ERROR([libraw.h not found])])
-		AC_SEARCH_LIBS(libraw_init,raw, [], [AC_ERROR([A working libraw is required])])
+		AC_CHECK_HEADERS(libraw/libraw.h, [], [AC_MSG_ERROR([libraw.h not found])])
+		AC_SEARCH_LIBS(libraw_init,raw, [], [AC_MSG_ERROR([A working libraw is required])])
 	]
 )
 
@@ -173,12 +173,12 @@ AC_ARG_WITH([lcms2],
 			fi
 			APP_CPPFLAGS="-I$with_lcms2/include $APP_CPPFLAGS "
 		else
-			AC_ERROR([no lcms2 directory found.]) 
+			AC_MSG_ERROR([no lcms2 directory found.]) 
 		fi
 	],
 	[
-		AC_CHECK_HEADERS(lcms2.h, [], [AC_ERROR([lcms2.h not found])])
-		AC_SEARCH_LIBS(cmsSetLogErrorHandler,lcms2, [], [AC_ERROR([A working libcms2 is required])])
+		AC_CHECK_HEADERS(lcms2.h, [], [AC_MSG_ERROR([lcms2.h not found])])
+		AC_SEARCH_LIBS(cmsSetLogErrorHandler,lcms2, [], [AC_MSG_ERROR([A working libcms2 is required])])
 	]
 )
 
