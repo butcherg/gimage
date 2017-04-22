@@ -144,13 +144,16 @@ int main (int argc, char **argv)
 		printf("\tbright:[-100 - 100, default=0]\n");
 		printf("\tblackwhitepoint[:0-127,128-255 default=auto]\n");
 		printf("\tcontrast:[-100 - 100, default=0]\n");
+		printf("\tcrop:x,y,w,h\n");
+		printf("\tdenoise:[0 - 100.0],[1-10],[1-10], default=0.0,1,3\n");
 		printf("\tgamma:[0.0 - 5.0, default=1.0]\n");
+		printf("\tgray:r,g,b - values are the fractional (0.x) proportions with which to calculate the neutral value.\n");
 		printf("\tresize:[width],[height],[box|bilinear|bspline|bicubic|catmullrom|\n");
 		printf("\t\tlanczos3 (default)]\n");
 		printf("\trotate:[0 - 45, default=0]\n");
 		printf("\tsharpen:[0 - 10, default=0]\n");
 		printf("\tsaturation:[0 - 5.0, default=1.0, no change]\n");
-		printf("\tgray (no parameters ,uses the saturate algorithm to desaturate, 0.0)\n\n");
+		printf("\ttint:r,g,b - add/subtract value from each channel\n\n");
 		exit(1);
 	}
 
@@ -324,17 +327,7 @@ for (int f=0; f<files.size(); f++)
 			printf("done (%fsec).\n",_duration());
 		}
 
-		else if (strcmp(cmd,"sharpen") == 0) {  //#sharpen:[0 - 10, default=0]      //add in else when other commands are uncommented
-			double sharp=0.0;
-			char *s = strtok(NULL," ");
-			if (s) sharp = atof(s);
-			int threadcount=gImage::ThreadCount();
-			printf("sharp: %0.2f (%d threads)... ",sharp, threadcount);
 
-			_mark();
-			dib.ApplySharpen(sharp, threadcount);
-			printf("done (%fsec).\n",_duration());
-		}
 
 		else if (strcmp(cmd,"resize") == 0) {  //#resize:x,y      
 			unsigned w, h;
@@ -364,6 +357,18 @@ for (int f=0; f<files.size(); f++)
 
 			_mark();
 			dib.ApplyRotate(angle, false, threadcount);
+			printf("done (%fsec).\n",_duration());
+		}
+		
+		else if (strcmp(cmd,"sharpen") == 0) {  //#sharpen:[0 - 10, default=0]      //add in else when other commands are uncommented
+			double sharp=0.0;
+			char *s = strtok(NULL," ");
+			if (s) sharp = atof(s);
+			int threadcount=gImage::ThreadCount();
+			printf("sharp: %0.2f (%d threads)... ",sharp, threadcount);
+
+			_mark();
+			dib.ApplySharpen(sharp, threadcount);
 			printf("done (%fsec).\n",_duration());
 		}
 
@@ -400,7 +405,7 @@ for (int f=0; f<files.size(); f++)
 			printf("done (%fsec).\n",_duration());
 		}
 
-		else if (strcmp(cmd,"denoise") == 0) {  //#saturation:[0 - 5.0, default=1.0, no change]
+		else if (strcmp(cmd,"denoise") == 0) {  //#denoise:[0 - 100.0],[1-10],[1-10], default=0.0,1,3
 			double sigma=0.0;
 			char *s = strtok(NULL," ");
 			if (s) sigma = atof(s);
@@ -448,7 +453,7 @@ for (int f=0; f<files.size(); f++)
 
 		}
 		
-		else if (strcmp(cmd,"redeye") == 0) {  
+		else if (strcmp(cmd,"redeye") == 0) {  //not documented, for testing only
 			int limit = 25; double threshold = 1.5;
 			char *sx = strtok(NULL,", ");
 			char *sy = strtok(NULL,", ");
