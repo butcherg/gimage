@@ -80,10 +80,10 @@ install:
 	test -d $(DESTDIR)/usr/local/include/gimage || install -d $(DESTDIR)/usr/local/include/gimage
 	install -m 755 gimg$(EXT) $(DESTDIR)/usr/local/bin/gimg$(EXT)
 	install -m 644 libgimage.a $(DESTDIR)/usr/local/lib/libgimage.a
-	install -m 644 $(srcdir)/gimage.h $(DESTDIR)/usr/local/include/gimage/
-	install -m 644 $(srcdir)/curve.h $(DESTDIR)/usr/local/include/gimage/
-	install -m 644 $(srcdir)/half.hpp $(DESTDIR)/usr/local/include/gimage/
-	install -m 644 $(srcdir)/strutil.h $(DESTDIR)/usr/local/include/gimage/
+	install -m 644 $(srcdir)/gimage/gimage.h $(DESTDIR)/usr/local/include/gimage/
+	install -m 644 $(srcdir)/gimage/curve.h $(DESTDIR)/usr/local/include/gimage/
+	install -m 644 $(srcdir)/gimage/half.hpp $(DESTDIR)/usr/local/include/gimage/
+	install -m 644 $(srcdir)/gimage/strutil.h $(DESTDIR)/usr/local/include/gimage/
 
 .PHONY: uninstall
 uninstall:
