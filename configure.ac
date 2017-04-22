@@ -18,7 +18,7 @@ choke me
 
 
 AC_LANG([C++])
-#: ${CXXFLAGS=""}
+: ${CXXFLAGS=""}
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_RANLIB
