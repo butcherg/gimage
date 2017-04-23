@@ -38,21 +38,25 @@ required libraries in standard locations, you can do a simple ./configure && mak
 The above said, here's how I organize my building.  Note that, in addition to a native Linux build, I also cross-compile win32 and win64
 images with mingw-w64, so this may be overkill for you.  Anyway...
 
-  a. Make a top-level directory.
-  b. In that directory, unpack or clone those of the four prerequisite library sources you choose, as well as gimage.
-  c. In each, make a build/ directory, cd to it, and run ../configure, and make.
-  
+<UL>
+<LI>Make a top-level directory.</LI>
+<LI>In that directory, unpack or clone those of the four prerequisite library sources you choose, as well as gimage.</LI>
+<LI>In each, make a build/ directory, cd to it, and run ../configure, and make.</LI>
+ </UL>
+ 
 For guidance, here are my ../configures for each, noting that I am using the distro libjpeg and libtiff in their standard places:
 
+<pre>
 #LitteCMS2:
 ../configure --disable-shared
 
 #LibRaw:
-../configure --enable-openmp --enable-jpeg --enable-lcms --enable-demosaic-pack-gpl2 --enable-demosaic-pack-gpl3 --disable-jasper /
+../configure --enable-openmp --enable-jpeg --enable-lcms --enable-demosaic-pack-gpl2 --enable-demosaic-pack-gpl3 --disable-jasper
 --disable-examples --disable-shared LCMS2_CFLAGS=-I../../lcms2-2.8/include LCMS2_LIBS=../../lcms2-2.8/build/src/.libs
 
 #gimage:
 ../configure --enable-openmp --enable-optimization --with-lcms2=../../lcms2-2.8 --with-libraw=../../LibRaw-0.18.2 BUILDDIR=build
+</pre>
 
 Note that I used LibRaw's environment variables to pluck the lcms2 .h and .a files from its source directory.  Also, gimage has
 --withs for all four libraries to do the same thing.  Also note the BUILDDIR variable; gimage's configure uses that to reference
