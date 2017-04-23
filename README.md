@@ -36,7 +36,7 @@ required libraries in standard locations, you can do a simple ./configure && mak
 2. Organization:
 
 The above said, here's how I organize my building.  Note that, in addition to a native Linux build, I also cross-compile win32 and win64
-images with mingw-w64, so this may be overkill for you.  Anyway...
+images with mingw-w64, so I use out-if-tree build directories. This may be overkill for you.  Anyway...
 
 <UL>
 <LI>Make a top-level directory.</LI>
