@@ -352,6 +352,14 @@ std::map<std::string,std::string> gImage::getInfo()
 	return imginfo;
 }
 
+std::string gImage::getInfoValue(std::string name)
+{
+	if (imginfo.find(name) != imginfo.end())
+		return imginfo[name];
+	else
+		return "";
+}
+
 char * gImage::getProfile()
 {
 	return profile;
@@ -578,6 +586,7 @@ remains intact.
 //you are...
 
 
+
 #define ROTATE_BILINEAR_INTERPOLATION
 
 // sin-cos rotate, with bilnear interpolation adapted from
@@ -756,6 +765,79 @@ void gImage::ApplyRotate(double angle, bool crop, int threadcount)
 			ApplyCrop(x1+dw/2, y2+dh/2, x4+dw/2,  y3+dh/2, threadcount);
 	}
 }
+
+
+//Trivial Rotate, 90, 180, and 270 degrees
+//
+//I was only going to implement the interpolation-based +/-45 degree rotate,
+//but it turns out the 'cardinal' rotations are needed to accommodate the silliness
+//of the EXIF Orientation tag.  When you turn your camera off-axis to shoot portrait
+//or somesuch, the camera probably doesn't rotate the image.  Instead, it sets the Orientation
+//tag to a corresponding code, thinking that all downstream software will use it to 
+//properly orient your image for display.  Well, no, not all do that, and further, 
+//some programs that actually modify your image with the appropriate rotation neglect
+//to set the Orientation tag accordingly, which further confuses software that wants
+//to use it.  Geesh.
+//
+//So, here are the needed transforms for 'really intelligent' software to modify-rotate
+//the image to the intended orientation, and pray that the Orientation flag will be 
+//set to 0 to make the world right...
+//
+
+
+void gImage::ApplyRotate180(int threadcount)
+{
+	std::vector<pix> src = image;
+	
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned y=0; y<h; y++) {
+		for (unsigned x=0; x<w; x++) {
+			unsigned spos = x + y*w;
+			unsigned dpos = (w-x-1) + (h-y-1)*w;
+			image[dpos] = src[spos];
+		}
+	}
+}
+
+void gImage::ApplyRotate90(int threadcount)
+{
+	std::vector<pix> src = image;
+	
+	unsigned dw = h;
+	unsigned dh = w;
+	
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned y=0; y<h; y++) {
+		for (unsigned x=0; x<w; x++) {
+			unsigned spos = x + y*w;
+			unsigned dpos = (dw-y-1) + (dh-x-1)*dw;
+			image[dpos] = src[spos];
+		}
+	}
+	w = dw;
+	h = dh;
+}
+
+void gImage::ApplyRotate270(int threadcount)
+{
+	std::vector<pix> src = image;
+	
+	unsigned dw = h;
+	unsigned dh = w;
+	
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned y=0; y<h; y++) {
+		for (unsigned x=0; x<w; x++) {
+			unsigned spos = x + y*w;
+			unsigned dpos = y + (dh-x-1)*dw;
+			image[dpos] = src[spos];
+		}
+	}
+	w = dw;
+	h = dh;
+}
+
+
 
 
 

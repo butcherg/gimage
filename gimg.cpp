@@ -212,8 +212,6 @@ for (int i = 2; i<argc-1; i++) {
 	commands.push_back(std::string(argv[i]));
 }
 
-printf("start...\n");
-
 for (int f=0; f<files.size(); f++)
 {
 	char iname[256];
@@ -486,6 +484,30 @@ for (int f=0; f<files.size(); f++)
 			}
 			else printf("redeye: bad x coord\n");
 		
+		}
+		
+		else if (strcmp(cmd,"rotate90") == 0) {
+			int threadcount = gImage::ThreadCount();
+			printf("rotate90 (%d threads)... ", threadcount);
+			_mark();
+			dib.ApplyRotate90(threadcount);
+			printf("done (%fsec).\n",_duration());
+		}
+		
+		else if (strcmp(cmd,"rotate180") == 0) {
+			int threadcount = gImage::ThreadCount();
+			printf("rotate180 (%d threads)... ", threadcount);
+			_mark();
+			dib.ApplyRotate180(threadcount);
+			printf("done (%fsec).\n",_duration());
+		}
+		
+		else if (strcmp(cmd,"rotate270") == 0) {
+			int threadcount = gImage::ThreadCount();
+			printf("rotate270 (%d threads)... ", threadcount);
+			_mark();
+			dib.ApplyRotate270(threadcount);
+			printf("done (%fsec).\n",_duration());
 		}
 
 		else printf("Unrecognized command: %s.  Continuing...\n",cmd);

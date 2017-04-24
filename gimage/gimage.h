@@ -77,6 +77,7 @@ class gImage
 		BPP getBits();
 		std::string getBitsStr();
 		std::map<std::string,std::string> getInfo();
+		std::string getInfoValue(std::string name);
 		char * getProfile();
 		unsigned getProfileLength();
 		std::string Stats();
@@ -102,6 +103,9 @@ class gImage
 		void ApplySharpen(int strength, int threadcount=0);
 		void ApplyResize(unsigned width, unsigned height, RESIZE_FILTER filter, int threadcount=0);
 		void ApplyRotate(double angle, bool crop, int threadcount=0);
+		void ApplyRotate180(int threadcount=0);
+		void ApplyRotate90(int threadcount=0);
+		void ApplyRotate270(int threadcount=0);
 		void ApplyCrop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int threadcount=0);
 		void ApplySaturate(double saturate, int threadcount=0);
 		void ApplyExposureCompensation(double ev, int threadcount=0);
