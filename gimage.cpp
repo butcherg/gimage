@@ -1948,9 +1948,11 @@ std::string gImage::Stats()
 	return string_format("rmin: %f\trmax: %f\ngmin: %f\tgmax: %f\nbmin: %f\tbmax: %f\n\ntonemin: %f\ttonemax: %f\n", rmin, rmax, gmin, gmax, bmin, bmax, tmin, tmax);
 }
 
+//simple grayscale histogram:
 std::vector<long> gImage::Histogram()
 {
 	std::vector<long> histogram(256, 0);
+
 	for(unsigned y = 0; y < h; y++) {
 		for(unsigned x = 0; x < w; x++) {
 			unsigned pos = x + y*w;
@@ -1963,34 +1965,42 @@ std::vector<long> gImage::Histogram()
 	return histogram;
 }
 
-/*
-std::map<GIMAGE_CHANNEL,std::vector<unsigned> > gImage::Histogram(unsigned channels, unsigned scale)
+//rgb histogram, scale=number of buckets, 256 or 65536...
+std::vector<histogramdata> gImage::Histogram(unsigned scale)
 {
-	std::map<GIMAGE_CHANNEL,std::vector<unsigned> > histograms;
-	std::vector<unsigned> hred(scale,0);
-	std::vector<unsigned> hgreen(scale,0);
-	std::vector<unsigned> hblue(scale,0);
+	histogramdata zerodat = {0,0,0};
+	std::vector<histogramdata> histogram(scale, zerodat);
 	
-	for(unsigned y = 0; y < h; y++) {
-		for(unsigned x = 0; x < w; x++) {
-			unsigned pos = x + y*w;
-			//double r = image[pos].r * scale; 
-			double r = fmin(fmax(image[pos].r*scale,0.0),scale);
-			double g = fmin(fmax(image[pos].g*scale,0.0),scale);
-			double b = fmin(fmax(image[pos].b*scale,0.0),scale);
-			if (channels & CHANNEL_RED == 0) hred[floor(r+0.5)]++;
-			if (channels & CHANNEL_GREEN == 0) hgreen[floor(g+0.5)]++;
-			if (channels & CHANNEL_BLUE == 0) hblue[floor(b+0.5)]++;
+	#pragma omp parallel
+	{
+		std::vector<unsigned> pr(scale,0);
+		std::vector<unsigned> pg(scale,0);
+		std::vector<unsigned> pb(scale,0);
+		
+		#pragma omp for
+		for(unsigned y = 0; y < h; y++) {
+			for(unsigned x = 0; x < w; x++) {
+				unsigned pos = x + y*w;
+				pr[(unsigned) lrint(fmin(fmax(image[pos].r*scale,0.0),scale-1))]++;
+				pg[(unsigned) lrint(fmin(fmax(image[pos].g*scale,0.0),scale-1))]++;
+				pb[(unsigned) lrint(fmin(fmax(image[pos].b*scale,0.0),scale-1))]++;
+			}
+		}
+		
+		#pragma omp critical 
+		{
+			for (unsigned i=0; i<scale; i++) {
+				histogram[i].r += pr[i];
+				histogram[i].g += pg[i];
+				histogram[i].b += pb[i];
+			}
 		}
 	}
-	if (channels & CHANNEL_RED == 0) histograms[CHANNEL_RED] = hred;
-	if (channels & CHANNEL_GREEN == 0) histograms[CHANNEL_GREEN] = hgreen;
-	if (channels & CHANNEL_BLUE == 0) histograms[CHANNEL_BLUE] = hblue;
-	
-	return histograms;
+	return histogram;
 }
-*/
 
+
+//single-channel histogram, OBE...
 std::vector<long> gImage::Histogram(unsigned channel, unsigned &hmax)
 {
 	unsigned scale;

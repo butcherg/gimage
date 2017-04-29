@@ -20,6 +20,10 @@ struct pix {
 	PIXTYPE r, g, b;
 };
 
+struct histogramdata {
+	long r, g, b;
+};
+
 struct coord {
 	unsigned x, y;
 };
@@ -82,6 +86,7 @@ class gImage
 		unsigned getProfileLength();
 		std::string Stats();
 		std::vector<long> Histogram();
+		std::vector<histogramdata> Histogram(unsigned scale);
 		//std::map<GIMAGE_CHANNEL,std::vector<unsigned> > Histogram(unsigned channels, unsigned scale);
 		std::vector<long> Histogram(unsigned channel, unsigned &hmax);
 
