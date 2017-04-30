@@ -1,7 +1,9 @@
 #ifndef _curve_h
 #define _curve_h
 
+#ifndef NDEBUG
 #define NDEBUG
+#endif
 
 #include <cstdio>
 #include <cassert>
