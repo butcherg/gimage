@@ -2,7 +2,6 @@ AC_PREREQ([2.68])
 AC_INIT(gimage, 0.2)
 
 
-
 # MINGW_AC_WIN32_NATIVE_HOST
 # --------------------------
 # Check if the runtime platform is a native Win32 host.
@@ -55,8 +54,8 @@ else
 	APP_CXXFLAGS="$APP_CXXFLAGS -O2"
 fi
 
-#Process withs:
 
+#Process withs:
 
 AC_ARG_WITH([pixtype],
 	AS_HELP_STRING([--with-pixtype], [=half|float|double, specifies data type for pixel structure, default is float])
@@ -97,7 +96,7 @@ AC_ARG_WITH([jpeg],
 		echo "libjpeg: using $with_jpeg"
 		if test -d $with_jpeg 
 		then
-			APP_LIBS="$with_jpeg/libjpeg.a $APP_LIBS" 
+			LIBS="$with_jpeg/libjpeg.a $LIBS" 
 			APP_CPPFLAGS=" -I$with_jpeg $APP_CPPFLAGS"
 		else
 			AC_MSG_ERROR([no jpeg directory found.]) 
@@ -118,9 +117,9 @@ AC_ARG_WITH([tiff],
 		then
 			if test -z "${BUILDDIR+x}" 
 			then 
-				APP_LIBS="$with_tiff/libtiff/.libs/libtiff.a $APP_LIBS"
+				LIBS="$with_tiff/libtiff/.libs/libtiff.a $LIBS"
 			else
-				APP_LIBS="$with_tiff/$BUILDDIR/libtiff/.libs/libtiff.a $APP_LIBS"
+				LIBS="$with_tiff/$BUILDDIR/libtiff/.libs/libtiff.a $LIBS"
 			fi
 			APP_CPPFLAGS="-I$with_tiff/libtiff $APP_CPPFLAGS"
 			
@@ -143,9 +142,9 @@ AC_ARG_WITH([libraw],
 		then
 			if test -z "${BUILDDIR+x}" 
 			then 
-				APP_LIBS="$with_libraw/lib/.libs/libraw.a $APP_LIBS"
+				LIBS="$with_libraw/lib/.libs/libraw.a $LIBS"
 			else
-				APP_LIBS="$with_libraw/$BUILDDIR/lib/.libs/libraw.a $APP_LIBS"
+				LIBS="$with_libraw/$BUILDDIR/lib/.libs/libraw.a $LIBS"
 			fi
 			APP_CPPFLAGS="-I$with_libraw $APP_CPPFLAGS"
 		else
@@ -167,7 +166,7 @@ AC_ARG_WITH([lcms2],
 		then
 			if test -z "${BUILDDIR+x}" 
 			then 
-				APP_LIBS="$with_lcms2/src/.libs/liblcms2.a $APP_LIBS"
+				LIBS="$with_lcms2/src/.libs/liblcms2.a $LIBS"
 			else
 				APP_LIBS="$with_lcms2/$BUILDDIR/src/.libs/liblcms2.a $APP_LIBS"
 			fi
