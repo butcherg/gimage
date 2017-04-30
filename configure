@@ -3526,7 +3526,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $mingw_cv_win32_host" >&5
 $as_echo "$mingw_cv_win32_host" >&6; }
 
-#jpeg lib doesn't do cross-build, so it doesn't have a BUILDDIR option
+#jpeg lib doesn't do cross-build, but it still has a BUILDDIR option; you have to copy stuff by hand
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -3927,7 +3927,12 @@ if test "${with_jpeg+set}" = set; then :
 		echo "libjpeg: using $with_jpeg"
 		if test -d $with_jpeg
 		then
-			LIBS="$with_jpeg/libjpeg.a $LIBS"
+			if test -z "${BUILDDIR+x}"
+			then
+				LIBS="$with_jpeg/libjpeg.a $LIBS"
+			else
+				LIBS="$with_jpeg/$BUILDDIR/libjpeg.a $LIBS"
+			fi
 			APP_CPPFLAGS=" -I$with_jpeg -I$with_jpeg/$BUILDDIR $APP_CPPFLAGS"
 		else
 			as_fn_error $? "no jpeg directory found." "$LINENO" 5
