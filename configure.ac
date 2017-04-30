@@ -97,7 +97,7 @@ AC_ARG_WITH([jpeg],
 		if test -d $with_jpeg 
 		then
 			LIBS="$with_jpeg/libjpeg.a $LIBS" 
-			APP_CPPFLAGS=" -I$with_jpeg $APP_CPPFLAGS"
+			APP_CPPFLAGS=" -I$with_jpeg -I$with_jpeg/$BUILDDIR $APP_CPPFLAGS"
 		else
 			AC_MSG_ERROR([no jpeg directory found.]) 
 		fi
@@ -121,7 +121,7 @@ AC_ARG_WITH([tiff],
 			else
 				LIBS="$with_tiff/$BUILDDIR/libtiff/.libs/libtiff.a $LIBS"
 			fi
-			APP_CPPFLAGS="-I$with_tiff/libtiff $APP_CPPFLAGS"
+			APP_CPPFLAGS="-I$with_tiff/libtiff -I$with_tiff/$BUILDDIR/libtiff $APP_CPPFLAGS"
 			
 		else
 			AC_MSG_ERROR([no tiff directory found.]) 
