@@ -378,6 +378,8 @@ char * _loadJPEG(const char *filename,
 	*numcolors = cinfo.output_components;
 
 	jpeg_destroy_decompress(&cinfo);
+
+	fclose(infile);
 	
 	return img;
 
@@ -454,6 +456,8 @@ void _writeJPEG(const char *filename,
 	jpeg_finish_compress(&cinfo);
 
 	jpeg_destroy_compress(&cinfo);
+
+	fclose(outfile);
 
 }
 
