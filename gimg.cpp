@@ -212,12 +212,15 @@ for (int i = 2; i<argc-1; i++) {
 	commands.push_back(std::string(argv[i]));
 }
 
+int count = 0;
+
 for (int f=0; f<files.size(); f++)
 {
+	count++;
 	char iname[256];
 	strncpy(iname, files[f].infile.c_str(), 255);
 
-	printf("Loading file %s %s... ",iname, infile[1].c_str());
+	printf("%d: Loading file %s %s... ",count, iname, infile[1].c_str());
 	_mark();
 	gImage dib = gImage::loadImageFile(iname, infile[1]);
 	printf("done. (%fsec)\nImage size: %dx%d\n",_duration(), dib.getWidth(),dib.getHeight());
