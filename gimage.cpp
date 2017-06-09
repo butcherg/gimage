@@ -1293,6 +1293,52 @@ void gImage::ApplyToneCurve(std::vector<cp> ctpts, int threadcount)
 	}
 }
 
+void gImage::ApplyToneCurve(std::vector<cp> ctpts, GIMAGE_CHANNEL channel, int threadcount)
+{
+	Curve c;
+	c.setControlPoints(ctpts);
+	c.scalepoints(1.0/SCALE_CURVE);
+
+	if (channel == CHANNEL_RGB) {
+		#pragma omp parallel for num_threads(threadcount)
+		for (int x=0; x<w; x++) {
+			for (int y=0; y<h; y++) {
+				int pos = x + y*w;;
+				image[pos].r = c.getpoint(image[pos].r);
+				image[pos].g = c.getpoint(image[pos].g);
+				image[pos].b = c.getpoint(image[pos].b);
+			}
+		}
+	}
+	else if (channel == CHANNEL_RED) {
+		#pragma omp parallel for num_threads(threadcount)
+		for (int x=0; x<w; x++) {
+			for (int y=0; y<h; y++) {
+				int pos = x + y*w;;
+				image[pos].r = c.getpoint(image[pos].r);
+			}
+		}
+	}
+	else if (channel == CHANNEL_GREEN) {
+		#pragma omp parallel for num_threads(threadcount)
+		for (int x=0; x<w; x++) {
+			for (int y=0; y<h; y++) {
+				int pos = x + y*w;;
+				image[pos].g = c.getpoint(image[pos].g);
+			}
+		}
+	}
+	else if (channel == CHANNEL_BLUE) {
+		#pragma omp parallel for num_threads(threadcount)
+		for (int x=0; x<w; x++) {
+			for (int y=0; y<h; y++) {
+				int pos = x + y*w;;
+				image[pos].b = c.getpoint(image[pos].b);
+			}
+		}
+	}
+}
+
 void gImage::ApplyToneLine(double low, double high, int threadcount)
 {
 	double slope = 255.0 / (high-low);
