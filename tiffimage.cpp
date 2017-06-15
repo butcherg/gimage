@@ -8,6 +8,12 @@
 
 #include <gimage/strutil.h>
 
+
+const char * tiffVersion()
+{
+	return TIFFGetVersion();
+}
+
 bool _checkTIFF(const char *filename)
 {
 	if (TIFFOpen(filename, "r") != NULL) return true;

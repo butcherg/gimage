@@ -102,6 +102,7 @@ class gImage
 		static GIMAGE_FILETYPE getFileNameType(const char * filename);
 		static int ThreadCount();
 		static std::string Version();
+		static std::string LibraryVersions();
 
 		//Image operations.  
 		//threadcount=0 uses all available CPUs, n uses precisely n CPUs, and -n uses available-n CPUs

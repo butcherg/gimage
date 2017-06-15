@@ -4,6 +4,8 @@
 #include <string>
 #include <map>
 
+const char * librawVersion();
+
 bool _checkRAW(const char *filename);
 
 bool _loadRAWInfo(const char *filename, 

@@ -10,6 +10,11 @@
 #include <lcms2.h>
 #include <gimage/gimage.h>
 
+const char * librawVersion()
+{
+	return LibRaw::version();
+}
+
 bool _checkRAW(const char *filename)
 {
 	LibRaw RawProcessor;

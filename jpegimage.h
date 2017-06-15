@@ -1,6 +1,8 @@
 #ifndef _jpegimage_h
 #define _jpegimage_h
 
+const char * jpegVersion();
+
 bool _checkJPEG(const char *filename);
 
 bool _loadJPEGInfo(const char *filename, 
@@ -30,6 +32,7 @@ void _writeJPEG(const char *filename,
 			std::string params="",
 			char * iccprofile=NULL, 
 			unsigned iccprofilelength=0);
+
 
 
 #endif

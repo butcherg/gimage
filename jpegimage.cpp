@@ -24,6 +24,13 @@ extern "C" {
 #define MAX_BYTES_IN_MARKER  65533	/* maximum data len of a JPEG marker */
 #define MAX_DATA_BYTES_IN_MARKER  (MAX_BYTES_IN_MARKER - ICC_OVERHEAD_LEN)
 
+char jpegversion[] = "jpeg6B";
+
+const char * jpegVersion()
+{
+	return jpegversion;
+}
+
 
 /*
  * This routine writes the given ICC profile data into a JPEG file.

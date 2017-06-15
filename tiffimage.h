@@ -1,6 +1,8 @@
 #ifndef _tiffimage_h
 #define _tiffimage_h
 
+const char * tiffVersion();
+
 bool _checkTIFF(const char *filename);
 
 bool _loadTIFFInfo(const char *filename, 

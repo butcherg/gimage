@@ -414,6 +414,14 @@ std::string gImage::Version()
 	return VERSION;
 }
 
+std::string gImage::LibraryVersions()
+{
+	std::string verstring;
+	//cmsGetEncodedCMMversion()
+	//librawVersion()
+	//tiffVersion()
+}
+
 
 
 int gImage::ThreadCount()
