@@ -6,6 +6,7 @@
 #include <math.h>
 #include <exception>
 #include <algorithm> 
+#include <sstream>
 #include <omp.h>
 
 #include "rawimage.h"
@@ -417,9 +418,20 @@ std::string gImage::Version()
 std::string gImage::LibraryVersions()
 {
 	std::string verstring;
-	//cmsGetEncodedCMMversion()
-	//librawVersion()
-	//tiffVersion()
+	verstring.append("JPEG: ");
+	verstring.append(jpegVersion());
+	verstring.append("\nTIFF: ");
+	std::string tiffver(tiffVersion());
+	verstring.append(tiffver.substr(0,tiffver.find_first_of("\n")));
+	verstring.append("\nLibRaw: ");
+	verstring.append(librawVersion());
+	verstring.append("\nLittleCMS2: ");
+	std::ostringstream s;
+	s << (int) cmsGetEncodedCMMversion();
+	verstring.append(s.str());
+	//verstring.append("\n");
+	return verstring;
+
 }
 
 
