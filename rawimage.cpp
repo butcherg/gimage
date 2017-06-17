@@ -84,7 +84,7 @@ char * _loadRAW(const char *filename,
 	char * img;
 	char imgdata[4096];
 	
-	bool rawdata = false;
+	int rawdata = 0;
 
 	std::map<std::string,std::string> p = parseparams(params);
 
@@ -110,9 +110,10 @@ char * _loadRAW(const char *filename,
 	RawProcessor.imgdata.params.gamm[1] = 1.0;     //4.5;
 
 	//#
-	//# rawdata - Preempts all other parameters, loads unprocessed raw data as a one-color 16-bit grayscale.  Equivalent to dcraw -D.
+	//# rawdata=0|1 - Preempts all other parameters, if 1 loads unprocessed raw data as a one-color 16-bit grayscale.  Default=0.
 	//#
-	if (p.find("rawdata") != p.end()) rawdata = true;
+	if (p.find("rawdata") != p.end()) 
+		rawdata = atoi(p["rawdata"].c_str());
 	
 	//#
 	//# output_color=0|1|2|3|4|5 - Output color space, default=1 (srgb)
