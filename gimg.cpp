@@ -94,7 +94,7 @@ std::vector<std::string> fileglob(std::string dspec)
 }
 
 
-int file_exists (char *filename)
+int file_exists (const char *filename)
 {
 	struct stat   buffer;   
 	return (stat (filename, &buffer) == 0);
@@ -128,6 +128,8 @@ int main (int argc, char **argv)
 	
 	//the corresponding input and output file names 
 	std::vector<fnames> files;
+	
+	std::string commandstring;
 	
 	int c;
 	int flags;
@@ -210,6 +212,7 @@ int main (int argc, char **argv)
 std::vector<std::string> commands;
 for (int i = 2; i<argc-1; i++) {
 	commands.push_back(std::string(argv[i]));
+	//commandstring.append(" "+std::string(argv[i]));
 }
 
 int count = 0;
@@ -219,6 +222,11 @@ for (int f=0; f<files.size(); f++)
 	count++;
 	char iname[256];
 	strncpy(iname, files[f].infile.c_str(), 255);
+	
+	if (file_exists(files[f].outfile.c_str())) {
+		printf("Output file %s exists, skipping %s...\n",files[f].outfile.c_str(), iname);
+		continue;
+	}
 
 	printf("%d: Loading file %s %s... ",count, iname, infile[1].c_str());
 	_mark();
@@ -289,6 +297,8 @@ for (int f=0; f<files.size(); f++)
 			dib.ApplyToneCurve(ctrlpts.getControlPoints(), threadcount);
 			//dib.ApplyToneLine(blk, wht, threadcount);
 			printf("done (%fsec).\n",_duration());
+			char cs[256];
+			sprintf(cs, "%s:%0.0f,%0.0f ",cmd, blk, wht);
 		}
 
 		else if (strcmp(cmd,"contrast") == 0) {  //#contrast:[-100 - 100, default=0]
@@ -459,7 +469,6 @@ for (int f=0; f<files.size(); f++)
 			_mark();
 			dib.ApplyGray(red,green,blue, threadcount);
 			printf("done (%fsec).\n",_duration());
-
 		}
 		
 		else if (strcmp(cmd,"redeye") == 0) {  //not documented, for testing only
