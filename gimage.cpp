@@ -516,9 +516,7 @@ void gImage::setProfile(char * prof, unsigned proflength)
 
 void gImage::ApplyConvolutionKernel(double kernel[3][3], int threadcount)
 {
-	std::vector<pix>& dst = getImageData();
-	std::vector<pix> *s = new std::vector<pix>(image);
-	std::vector<pix> &src = *s;
+	std::vector<pix> src = image;
 
 	#pragma omp parallel for num_threads(threadcount)
 	for(int y = 1; y < h-1; y++) {
@@ -534,12 +532,11 @@ void gImage::ApplyConvolutionKernel(double kernel[3][3], int threadcount)
 				}
 			}
 
-			dst[pos].r = R;
-			dst[pos].g = G;
-			dst[pos].b = B;
+			image[pos].r = R;
+			image[pos].g = G;
+			image[pos].b = B;
 		}
 	} 
-	delete s;
 }
 
 void gImage::ApplySharpen(int strength, int threadcount)
@@ -1235,10 +1232,12 @@ void gImage::ApplyCrop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int t
 {
 	if (x1>w | y1>h | x2>w | y2>h) return;
 	if (x1>=x2 | y1>=y2) return;
+	
+	unsigned dw = x2-x1;
+	unsigned dh = y2-y1;
 
-	std::vector<pix> *s = new std::vector<pix>(image);
-	std::vector<pix> &src = *s;
-	image.resize((x2-x1) * (y2-y1));
+	std::vector<pix> src = image;
+	image.resize(dw * dh);
 
 	#pragma omp parallel for num_threads(threadcount)
 	for (unsigned i = 0; i<image.size(); i++) {
@@ -1246,9 +1245,6 @@ void gImage::ApplyCrop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int t
 		image[i].g = 0.0;
 		image[i].b = 0.0;
 	}
-
-	unsigned dw = x2-x1;
-	unsigned dh = y2-y1;
 
 	#pragma omp parallel for num_threads(threadcount)
 	for (unsigned x=0; x<dw; x++) {
@@ -1262,7 +1258,6 @@ void gImage::ApplyCrop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int t
 	}
 	w=dw;
 	h=dh;
-	delete s;
 }
 
 
@@ -1288,6 +1283,9 @@ void gImage::ApplyCrop(unsigned x1, unsigned y1, unsigned x2, unsigned y2, int t
 //is not a table lookup but instead the actual spline coordinate computation.  This makes
 //the curve application computationally-intensive, and correspondingly slower than its
 //lookup equivalent.
+//
+//I added the selection of an individual channel to facilitate playing with such things 
+//as manual white balance correction and grayscale tinting.
 //
 //Also presented with ApplyCurve is an ApplyLine method, presented in the notion that
 //a number of useful 'curves' are really just straight lines, such as those used for
@@ -1942,7 +1940,7 @@ void gImage::ApplyResize(unsigned width, unsigned height, RESIZE_FILTER filter, 
 //try, below is a simple walk of the rectangular patch, doing a distance check of each
 //pixel to the center and moving on if it was farther than the limit.  I put the omp
 //pragma on the outside loop; each eye gets its own thread. The whole thing isn't very onerous,
-//but my max test has bee four eyes (two people...)
+//but my max test has been four eyes (two people...)
 
 //The essential algorithm is to calculate the red intensity proportionate to the averaged
 //green and blue intensities; if greater than the threshold, the red value is replaced 
@@ -1950,6 +1948,10 @@ void gImage::ApplyResize(unsigned width, unsigned height, RESIZE_FILTER filter, 
 //(white highlights) and other "non-red" pixels are not touched, leaving a well-formed eye.
 //If the center point is centered well and the limit is just larger than the red spot, it 
 //can be hard to tell the pixels were touched.
+//
+//I also added a desaturate option, converts each pixel to it's grayscale equivalent.  This
+//seemed necessary to handle non-symmetric color spaces like ProPhoto, in which the original 
+//treatment rendered a green cast.
 //
 
 inline unsigned sqr(const unsigned x) { return x*x; }
