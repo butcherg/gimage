@@ -1372,6 +1372,36 @@ void gImage::ApplyToneLine(double low, double high, int threadcount)
 	}
 }
 
+//White Balance
+//
+//Credit: Guillermo Luijk, dcraw Tutorial,
+//http://www.guillermoluijk.com/tutorial/dcraw/index_en.htm
+//
+//Guillermo demonstrates using single channel curves to manually apply white balance 
+//multipliers, and this is automatically implemented below using a tone line
+//akin to ApplyToneLine() above.  The multipliers should be percentages of the 
+//largest channel value of a selected neutral pixel, e,g, for a RGB triplet of 
+//165,172,204, the RGB multipliers should be 0.8088,0.8431,1.00
+//
+
+void gImage::ApplyWhiteBalance(double redmult, double greenmult, double bluemult, int threadcount)
+{
+	double rslope = 255.0 / (255.0*redmult);
+	double gslope = 255.0 / (255.0*greenmult);
+	double bslope = 255.0 / (255.0*bluemult);
+	
+	
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned x=0; x<w; x++) {
+		for (unsigned y=0; y<h; y++) {
+			unsigned pos = x + y*w;
+			image[pos].r = image[pos].r * rslope;
+			image[pos].g = image[pos].g * gslope;
+			image[pos].b = image[pos].b * bslope;
+		}
+	}
+}
+
 
 
 //Saturation
