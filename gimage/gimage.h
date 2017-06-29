@@ -121,6 +121,7 @@ class gImage
 		void ApplyToneCurve(std::vector<cp> ctpts, int threadcount=0);
 		void ApplyToneCurve(std::vector<cp> ctpts, GIMAGE_CHANNEL channel, int threadcount=0);
 		void ApplyToneLine(double low, double high, int threadcount=0);
+		void ApplyWhiteBalance(double redmult, double greenmult, double bluemult, int threadcount);
 		void ApplyNLMeans(double sigma, int local, int patch, int threadcount=0);
 		void ApplyRedeye(std::vector<coord> points, double threshold, unsigned limit, bool desaturate=false, double desaturatepercent=1.0, int threadcount=0);
 		
