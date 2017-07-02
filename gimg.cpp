@@ -156,6 +156,8 @@ int main (int argc, char **argv)
 		printf("\tsharpen:[0 - 10, default=0]\n");
 		printf("\tsaturation:[0 - 5.0, default=1.0, no change]\n");
 		printf("\ttint:r,g,b - add/subtract value from each channel\n\n");
+		printf("\twhitebalance:rmult,gmult,bmult\n");
+		
 		exit(1);
 	}
 
@@ -451,6 +453,23 @@ for (int f=0; f<files.size(); f++)
 
 			_mark();
 			dib.ApplyTint(red,green,blue, threadcount);
+			printf("done (%fsec).\n",_duration());
+		}
+		
+		else if (strcmp(cmd,"whitebalance") == 0) {  //#whitebalance:rmult,gmult,bmult
+			double redmult=1.0; double greenmult = 1.0; double bluemult = 1.0;
+			char *rm = strtok(NULL,", ");
+			char *gm = strtok(NULL,", ");
+			char *bm = strtok(NULL," ");
+			if (rm) redmult = atof(rm);
+			if (gm) greenmult = atof(gm);
+			if (bm) bluemult = atof(bm);
+
+			int threadcount=gImage::ThreadCount();
+			printf("whitebalance: %0.2f,%0.2f,%0.2f (%d threads)... ",redmult,greenmult,bluemult,threadcount);
+
+			_mark();
+			dib.ApplyWhiteBalance(redmult,greenmult,bluemult, threadcount);
 			printf("done (%fsec).\n",_duration());
 		}
 
