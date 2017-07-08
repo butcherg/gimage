@@ -2232,7 +2232,10 @@ void gImage::saveJPEG(const char * filename, std::string params, cmsHPROFILE pro
 		delete iccprofile;
 	}
 	else
-		_writeJPEG(filename, getImageData(BPP_8),  w, h, c, imginfo, params);
+		if (this->profile)
+			_writeJPEG(filename, getImageData(BPP_8),  w, h, c, imginfo, params, this->profile, profile_length);
+		else
+			_writeJPEG(filename, getImageData(BPP_8),  w, h, c, imginfo, params);
 }
 
 void gImage::saveTIFF(const char * filename, BPP bits, cmsHPROFILE profile, cmsUInt32Number intent)
@@ -2253,7 +2256,10 @@ void gImage::saveTIFF(const char * filename, BPP bits, cmsHPROFILE profile, cmsU
 		delete iccprofile;
 	}
 	else
-		_writeTIFF(filename, getImageData(bits),  w, h, c, b, imginfo);		
+		if (this->profile)
+			_writeTIFF(filename, getImageData(bits),  w, h, c, b, imginfo, this->profile, profile_length);	
+		else
+			_writeTIFF(filename, getImageData(bits),  w, h, c, b, imginfo);		
 }
 
 
