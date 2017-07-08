@@ -106,8 +106,8 @@ char * _loadRAW(const char *filename,
 
 	RawProcessor.imgdata.params.output_bps = 16;
 
-	RawProcessor.imgdata.params.gamm[0] = 1/1.0;   //1/2.222;
-	RawProcessor.imgdata.params.gamm[1] = 1.0;     //4.5;
+	RawProcessor.imgdata.params.gamm[0] = 1/2.4;  //1/1.0
+	RawProcessor.imgdata.params.gamm[1] = 12.92; //1.0
 
 	//#
 	//# rawdata=0|1 - Preempts all other parameters, if 1 loads unprocessed raw data as a one-color 16-bit grayscale.  Default=0.
