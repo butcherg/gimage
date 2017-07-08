@@ -2340,6 +2340,113 @@ cmsHPROFILE gImage::makeLCMSProfile(const std::string name, float gamma)
 	
 }
 
+struct icc_entry {
+	cmsCIExyY white;
+	cmsCIExyY black;
+	cmsCIExyYTRIPLE primaries;
+};
+
+
+
+icc_entry dcraw_icc_table[5] = {
+	//adobe:*/
+	{
+		{0.950455,1.000000,1.089050},
+		{0.000000,0.000000,0.000000},
+		{
+			{0.609787,0.311142,0.019485},
+			{0.205246,0.625656,0.060898},
+			{0.149200,0.063217,0.744675}
+		}
+	},
+
+	//prophoto:
+	{
+		{0.950455,1.000000,1.089050},
+		{0.000000,0.000000,0.000000},
+		{
+			{0.797745,0.288071,0.000000},
+			{0.135178,0.711868,0.000031},
+			{0.031311,0.000061,0.825027}
+		}
+	},
+
+	//srgb:
+	{
+		{0.950455,1.000000,1.089050},
+		{0.000000,0.000000,0.000000},
+		{
+			{0.436081,0.222504,0.013931},
+			{0.385086,0.716888,0.097092},
+			{0.143051,0.060608,0.714020}
+		}
+	},
+
+	//wide:
+	{
+		{0.950455,1.000000,1.089050},
+		{0.000000,0.000000,0.000000},
+		{
+			{0.716156,0.258209,0.000000},
+			{0.100906,0.724930,0.051788},
+			{0.147156,0.016861,0.773254}
+		}
+	},
+
+	//xyz:
+	{
+		{0.950455,1.000000,1.089050},
+		{0.000000,0.000000,0.000000},
+		{
+			{1.047836,0.029556,-0.009216},
+			{0.022903,0.990479,0.015045},
+			{-0.050125,-0.017044,0.752029}
+		}
+	}
+
+};
+
+cmsHPROFILE gImage::makeLCMSdcrawProfile(const std::string name, float gamma)
+{
+	cmsHPROFILE profile;
+	cmsCIExyYTRIPLE c;
+
+	int profileid;
+
+	if (name == "adobe")         profileid = 0;
+	else if (name == "prophoto") profileid = 1;
+	else if (name == "srgb")     profileid = 2;
+	else if (name == "wide")     profileid = 3;
+	else if (name == "xyz")      profileid = 4;
+	else return NULL;
+
+	c = dcraw_icc_table[profileid].primaries;
+
+	cmsToneCurve *curve[3], *tonecurve;
+	tonecurve = cmsBuildGamma (NULL, gamma);
+	curve[0] = curve[1] = curve[2] = tonecurve;
+
+	profile =  cmsCreateRGBProfile ( &d65_srgb_adobe_specs, &c, curve);
+
+	std::string descr = "dcraw D65-"+name+", gamma "+tostr((double) gamma)+", extracted for use in rawproc";
+	cmsMLU *description;
+	description = cmsMLUalloc(NULL, 1);
+	cmsMLUsetASCII(description, "en", "US", descr.c_str());
+	cmsWriteTag(profile, cmsSigProfileDescriptionTag, description);
+	cmsMLUfree(description);
+
+	std::string copyrt = "GPL V2";
+	cmsMLU *copyright;
+	copyright = cmsMLUalloc(NULL, 1);
+	cmsMLUsetASCII(copyright, "en", "US", copyrt.c_str());
+	cmsWriteTag(profile, cmsSigCopyrightTag, copyright);
+	cmsMLUfree(copyright);
+
+	return profile;
+}
+
+
+
 void gImage::makeICCProfile(cmsHPROFILE hProfile, char *& profile, cmsUInt32Number  &profilesize)
 {
 	cmsSaveProfileToMem(hProfile, NULL, &profilesize);
