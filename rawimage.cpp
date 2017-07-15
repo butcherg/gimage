@@ -557,7 +557,7 @@ char * _loadRAW(const char *filename,
 	info["Make"] = P1.make;  
 	info["Model"] = P1.model;  
 	if (RawProcessor.imgdata.params.user_flip == 0) 
-		info["Orientation"] = S.flip; //dcraw left the image alone, so set to what the raw file specified
+		info["Orientation"] = tostr(S.flip); //dcraw left the orientation alone, use the metadata
 	else
 		info["Orientation"] = "0"; //dcraw flipped the image per the user's instruction (3, 5, 6) or the raw file specification (-1), so don't specify an orientation transform
 
