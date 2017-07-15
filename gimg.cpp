@@ -234,6 +234,23 @@ for (int f=0; f<files.size(); f++)
 	_mark();
 	gImage dib = gImage::loadImageFile(iname, infile[1]);
 	printf("done. (%fsec)\nImage size: %dx%d\n",_duration(), dib.getWidth(),dib.getHeight());
+
+	int orientation = atoi(dib.getInfoValue("Orientation").c_str());
+	printf("Orientation: %d\n", orientation);
+	if (orientation != 0) {
+		printf("Normalizing image orientation from %d...",orientation);
+		_mark();
+		if (orientation == 2) dib.ApplyHorizontalMirror();
+		if (orientation == 3) dib.ApplyRotate180();
+		if (orientation == 4) dib.ApplyVerticalMirror();
+		if (orientation == 5) {dib.ApplyHorizontalMirror(); dib.ApplyRotate270();}
+		if (orientation == 6) dib.ApplyRotate90();
+		if (orientation == 7) {dib.ApplyHorizontalMirror(); dib.ApplyRotate90();}
+		if (orientation == 8) dib.ApplyRotate270();
+		dib.setInfo("Orientation","0");
+		printf("done. (%fsec)\n",_duration());
+	}
+	
 	
 	for (int i=0; i<commands.size(); i++) {
 		char c[256];
@@ -538,6 +555,22 @@ for (int f=0; f<files.size(); f++)
 			printf("rotate270 (%d threads)... ", threadcount);
 			_mark();
 			dib.ApplyRotate270(threadcount);
+			printf("done (%fsec).\n",_duration());
+		}
+		
+		else if (strcmp(cmd,"hmirror") == 0) {
+			int threadcount = gImage::ThreadCount();
+			printf("mirror horizontal (%d threads)... ", threadcount);
+			_mark();
+			dib.ApplyHorizontalMirror(threadcount);
+			printf("done (%fsec).\n",_duration());
+		}
+		
+		else if (strcmp(cmd,"vmirror") == 0) {
+			int threadcount = gImage::ThreadCount();
+			printf("mirror vertical (%d threads)... ", threadcount);
+			_mark();
+			dib.ApplyVerticalMirror(threadcount);
 			printf("done (%fsec).\n",_duration());
 		}
 
