@@ -854,7 +854,33 @@ void gImage::ApplyRotate270(int threadcount)
 	h = dh;
 }
 
+void gImage::ApplyHorizontalMirror(int threadcount)
+{
+	std::vector<pix> src = image;
+	
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned y=0; y<h; y++) {
+		for (unsigned x=0; x<w; x++) {
+			unsigned spos = x + y*w;
+			unsigned dpos = (w-x-1) + y*w;
+			image[dpos] = src[spos];
+		}
+	}
+}
 
+void gImage::ApplyVerticalMirror(int threadcount)
+{
+	std::vector<pix> src = image;
+	
+	#pragma omp parallel for num_threads(threadcount)
+	for (unsigned y=0; y<h; y++) {
+		for (unsigned x=0; x<w; x++) {
+			unsigned spos = x + y*w;
+			unsigned dpos = x + (h-y-1)*w;
+			image[dpos] = src[spos];
+		}
+	}
+}
 
 
 
