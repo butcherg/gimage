@@ -591,6 +591,7 @@ for (int f=0; f<files.size(); f++)
 		exit(0);
 	}
 
+	dib.deleteProfile();  //NOT color managed...
 
 	_mark();
 	//printf("Saving file %s %s... ",outfile[0].c_str(), outfile[1].c_str());
