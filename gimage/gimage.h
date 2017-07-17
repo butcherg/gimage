@@ -94,6 +94,7 @@ class gImage
 		//Setters
 		void setInfo(std::string name, std::string value);
 		void setProfile(char * prof, unsigned proflength);
+		void deleteProfile();
 
 		//Static methods
 		static std::string getRGBCharacteristics();

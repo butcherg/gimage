@@ -458,6 +458,13 @@ void gImage::setProfile(char * prof, unsigned proflength)
 	profile_length = proflength;
 }
 
+void gImage::deleteProfile()
+{
+	if (profile) delete [] profile;
+	profile = NULL;
+	profile_length = 0;
+}
+
 
 
 
