@@ -13,11 +13,18 @@ LFLAGS=
 
 -include $(OBJDIR)/localmake.txt
 
-OBJECTS := $(addprefix $(OBJDIR)/,gimg.o elapsedtime.o )
+GOBJECTS := $(addprefix $(OBJDIR)/,gimg.o elapsedtime.o )
+EOBJECTS := $(addprefix $(OBJDIR)/,exif.o elapsedtime.o )
 LIBOBJECTS := $(addprefix $(OBJDIR)/,gimage.o jpegimage.o jpegexif.o rawimage.o tiffimage.o strutil.o curve.o)
 
-$(OBJDIR)/gimg: $(OBJECTS)  $(OBJDIR)/libgimage.a
-	$(CXX) $(LFLAGS) -o$@$(EXT)  $(LIBDIRS) $(OBJECTS) $(LIBS) 
+all: $(OBJDIR)/exif $(OBJDIR)/gimg $(OBJDIR)/libgimage.a
+
+$(OBJDIR)/exif: $(EOBJECTS)  $(OBJDIR)/libgimage.a
+	$(CXX) $(LFLAGS) -o$@$(EXT)  $(LIBDIRS) $(EOBJECTS) $(LIBS) 
+
+$(OBJDIR)/gimg: $(GOBJECTS)  $(OBJDIR)/libgimage.a
+	$(CXX) $(LFLAGS) -o$@$(EXT)  $(LIBDIRS) $(GOBJECTS) $(LIBS) 
+
 
 $(OBJDIR)/libgimage.a: $(LIBOBJECTS)
 	rm -f $(OBJDIR)/libgimage.a
@@ -27,6 +34,9 @@ $(OBJDIR)/libgimage.a: $(LIBOBJECTS)
 	#git status |grep "On branch" >> $(OBJDIR)/build.txt
 	echo "CFLAGS=$(CFLAGS)" >> $(OBJDIR)/build.txt
 	echo "LFLAGS=$(LFLAGS)" >> $(OBJDIR)/build.txt
+
+$(OBJDIR)/exif.o: exif.cpp
+	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c exif.cpp -o$@
 
 $(OBJDIR)/gimg.o: gimg.cpp
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c gimg.cpp -o$@
@@ -56,7 +66,7 @@ $(OBJDIR)/curve.o: curve.cpp
 	$(CXX) $(CFLAGS) $(INCLUDEDIRS) -c -w curve.cpp -o$@
 
 clean:
-	rm -f $(OBJDIR)/gimg$(EXT) $(OBJDIR)/*.o $(OBJDIR)/lib/libgimage.a
+	rm -f $(OBJDIR)/gimg$(EXT) $(OBJDIR)/exif$(EXT) $(OBJDIR)/*.o $(OBJDIR)/lib/libgimage.a
 
 
 
