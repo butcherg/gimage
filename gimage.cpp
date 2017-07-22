@@ -2165,8 +2165,29 @@ gImage gImage::loadImageFile(const char * filename, std::string params)
 	GIMAGE_FILETYPE ext = gImage::getFileType(filename);
 
 	if (ext == FILETYPE_TIFF) return gImage::loadTIFF(filename, params);
-	if (ext == FILETYPE_JPEG) return gImage::loadJPEG(filename, params);
+	else if (ext == FILETYPE_JPEG) return gImage::loadJPEG(filename, params);
 	else return gImage::loadRAW(filename, params);
+}
+
+std::map<std::string,std::string> gImage::loadImageFileInfo(const char * filename)
+{
+	unsigned width, height, bpp, colors, icclength;
+	BPP bits;
+	char * iccprofile;
+	std::map<std::string,std::string> imgdata;
+	std::string params = "";
+	GIMAGE_FILETYPE ext = gImage::getFileType(filename);
+
+	if (ext == FILETYPE_TIFF) {
+		_loadTIFF(filename, &width, &height, &colors, &bpp, imgdata, params, &iccprofile, &icclength);
+	}
+	else if (ext == FILETYPE_JPEG) {
+		_loadJPEG(filename, &width, &height, &colors, imgdata, "", &iccprofile, &icclength);
+	}
+	else {
+		_loadRAW(filename, &width, &height, &colors, &bpp, imgdata, params, &iccprofile, &icclength);
+	}
+	return imgdata;
 }
 
 gImage gImage::loadRAW(const char * filename, std::string params)

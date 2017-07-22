@@ -134,6 +134,7 @@ class gImage
 		static gImage loadJPEG(const char * filename, std::string params);
 		static gImage loadTIFF(const char * filename, std::string params);
 		static gImage loadImageFile(const char * filename, std::string params);
+		static std::map<std::string,std::string> loadImageFileInfo(const char * filename);
 
 		//Image savers. 
 		bool saveImageFile(const char * filename, std::string params="", cmsHPROFILE profile=NULL, cmsUInt32Number intent=INTENT_PERCEPTUAL);
