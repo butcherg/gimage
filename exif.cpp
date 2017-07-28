@@ -31,6 +31,8 @@ int main(int argc, char * argv[])
 	
 	char *tags, *tag;
 
+	const char *shottags = "ExposureTime,FNumber,FocalLength,ISOSpeedRatings";
+
 	while ((c = getopt (argc, argv, "fst:")) != -1) { 
 		switch (c)
 		{
@@ -42,7 +44,7 @@ int main(int argc, char * argv[])
 				alltags = false;
 				break;
 			case 's':
-				tags = "ExposureTime,FNumber,FocalLength,ISOSpeedRatings";
+				tags = (char *) shottags;
 				alltags = false;
 				break;
 		}
