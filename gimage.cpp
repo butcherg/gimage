@@ -2048,6 +2048,30 @@ void gImage::ApplyRedeye(std::vector<coord> points, double threshold, unsigned l
 	}
 }
 
+void gImage::ApplyColorspace(std::string iccfile, cmsUInt32Number intent)
+{
+	cmsUInt32Number format;
+	cmsHTRANSFORM hTransform;
+
+	if (profile == NULL) return;
+
+	if (sizeof(PIXTYPE) == 2) format = TYPE_RGB_HALF_FLT; 
+	if (sizeof(PIXTYPE) == 4) format = TYPE_RGB_FLT;
+	if (sizeof(PIXTYPE) == 8) format = TYPE_RGB_DBL;
+
+	cmsHPROFILE gImgProf = cmsOpenProfileFromMem(profile, profile_length);
+	cmsHPROFILE hImgProf = cmsOpenProfileFromFile(iccfile.c_str(), "r");
+	if (gImgProf) {
+		if (hImgProf) {
+			hTransform = cmsCreateTransform(gImgProf, format, hImgProf, format, intent, 0);
+			cmsDoTransform(hTransform, image.data(), image.data(), w*h);
+			char * prof; cmsUInt32Number proflen;	
+			gImage::makeICCProfile(hImgProf, prof, proflen);
+			setProfile(prof, proflen);
+		}
+	}
+}
+
 
 // End of Image Manipulations
 
