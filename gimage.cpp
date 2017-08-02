@@ -454,6 +454,7 @@ void gImage::setInfo(std::string name, std::string value)
 
 void gImage::setProfile(char * prof, unsigned proflength)
 {
+	if (profile) delete [] profile;
 	profile = prof;
 	profile_length = proflength;
 }
@@ -2071,6 +2072,17 @@ void gImage::ApplyColorspace(std::string iccfile, cmsUInt32Number intent)
 		}
 	}
 }
+
+void gImage::AssignColorspace(std::string iccfile)
+{
+	cmsHPROFILE hImgProf = cmsOpenProfileFromFile(iccfile.c_str(), "r");
+	if (hImgProf) {
+		char * prof; cmsUInt32Number proflen;	
+		gImage::makeICCProfile(hImgProf, prof, proflen);
+		setProfile(prof, proflen);
+	}
+}
+
 
 
 // End of Image Manipulations
