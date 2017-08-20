@@ -276,10 +276,15 @@ char * _loadRAW(const char *filename,
 		RawProcessor.imgdata.params.bright = atof(p["bright"].c_str());
 
 	//#
-	//# threshold=1.0 - wavelet denoising threshold
+	//# threshold=100-1000 - wavelet denoising threshold
+	//# wavelet_denoise - alias for threshold
+	//# From the dcraw manpage: "Use wavelets to erase noise while preserving real detail. The best threshold should be somewhere between 100 and 1000."
 	//#
 	if (p.find("threshold") != p.end()) 
 		RawProcessor.imgdata.params.threshold = atof(p["threshold"].c_str());
+
+	if (p.find("wavelet_denoise") != p.end()) 
+		RawProcessor.imgdata.params.threshold = atof(p["wavelet_denoise"].c_str());
 
 	//#
 	//# half_size=0|1 - output image in half-size
@@ -434,9 +439,13 @@ char * _loadRAW(const char *filename,
 
 	//#
 	//# fbdd_noiserd=n - FBDD noise reduction, before demosaic
+	//# fbdd_denoise - alias for fbdd_noiserd
 	//#
 	if (p.find("fbdd_noiserd") != p.end()) 
 		RawProcessor.imgdata.params.fbdd_noiserd = atoi(p["fbdd_noiserd"].c_str());
+
+	if (p.find("fbdd_denoise") != p.end()) 
+		RawProcessor.imgdata.params.fbdd_noiserd = atoi(p["fbdd_denoise"].c_str());
 
 	//#
 	//# eeci_refine=n - non-zero for ECCI refine for VCD interpolation
