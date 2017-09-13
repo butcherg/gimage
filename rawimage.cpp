@@ -616,6 +616,17 @@ char * _loadRAW(const char *filename,
 		cmsHPROFILE profile;
 		cmsUInt32Number size;
 		float gamma = 1.0/RawProcessor.imgdata.params.gamm[0];
+		if (RawProcessor.imgdata.params.output_color == 0) {  //raw image, check for cameraprofile and assign if found
+		if (p.find("cameraprofile") != p.end()) {
+				profile = cmsOpenProfileFromFile((gImage::getProfilePath()+p["cameraprofile"]).c_str(), "r");
+				if (profile) {
+					cmsSaveProfileToMem(profile, NULL, &size);
+					*icclength = size;
+					*icc_m = new char[size];
+					cmsSaveProfileToMem(profile, *icc_m, &size);
+				}
+			}
+		}
 		if (RawProcessor.imgdata.params.output_color == 1) {
 			profile = gImage::makeLCMSdcrawProfile("srgb", gamma);
 			cmsSaveProfileToMem(profile, NULL, &size);

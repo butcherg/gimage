@@ -85,6 +85,8 @@ class gImage
 		std::string getInfoValue(std::string name);
 		char * getProfile();
 		unsigned getProfileLength();
+		static std::string getProfilePath();
+		static void setProfilePath(std::string ppath);
 		std::string Stats();
 		std::vector<long> Histogram();
 		std::vector<histogramdata> Histogram(unsigned scale);
@@ -165,7 +167,8 @@ class gImage
 
 		char *profile;
 		unsigned profile_length;
-		std::string profilepath;
+		
+		static std::string profilepath;
 		
 
 };

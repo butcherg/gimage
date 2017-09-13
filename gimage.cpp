@@ -26,6 +26,8 @@
 #define SCALE_8BIT 256.0
 #define SCALE_CURVE 256.0
 
+std::string gImage::profilepath = "bar";
+
 
 //Constructors/Destructor:
 
