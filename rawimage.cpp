@@ -618,7 +618,7 @@ char * _loadRAW(const char *filename,
 		float gamma = 1.0/RawProcessor.imgdata.params.gamm[0];
 		if (RawProcessor.imgdata.params.output_color == 0) {  //raw image, check for cameraprofile and assign if found
 		//#
-		//# cameraprofile=iccfile - If colorspace=raw, this parameter allows assignment of a camera profile. If the parameter is blank in Properties, it will be ignored.
+		//# cameraprofile=iccfile - If colorspace=raw, this parameter allows assignment of a camera profile.  Unlike input.raw.cms.profile in rawproc, this parameter will provide a record of its application in the command string, so it is the preferred method for assigning camera profiles.  If the parameter is present but blank in Properties, it will be ignored.
 		//#
 		if (p.find("cameraprofile") != p.end()) {
 				if (p["cameraprofile"] != "") {
