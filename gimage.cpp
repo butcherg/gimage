@@ -34,6 +34,7 @@ gImage::gImage()
 	w=0; 
 	h=0;
 	profile = NULL;
+	profilepath = "";
 }
 
 gImage::gImage(const gImage &o)
@@ -52,6 +53,7 @@ gImage::gImage(const gImage &o)
 		profile_length = o.profile_length;
 	}
 	else profile = NULL;
+	profilepath = "";
 }
 
 gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, BPP bits, std::map<std::string,std::string> imageinfo, char * icc_profile, unsigned icc_profile_length)
@@ -138,6 +140,7 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 		profile = NULL;
 		profile_length = 0;
 	}
+	profilepath = "";
 
 }
 
@@ -161,6 +164,7 @@ gImage::gImage(unsigned width, unsigned height, unsigned colors, std::map<std::s
 	imginfo = imageinfo;
 	profile =  NULL;
 	profile_length = 0;
+	profilepath = "";
 }
 
 
@@ -371,6 +375,11 @@ unsigned gImage::getProfileLength()
 	return profile_length;
 }
 
+std::string gImage::getProfilePath()
+{
+	return profilepath;
+}
+
 std::map<std::string,std::string> gImage::getInfo(const char * filename)
 {
 	unsigned width, height, colors, bpp, icclength;
@@ -464,6 +473,11 @@ void gImage::deleteProfile()
 	if (profile) delete [] profile;
 	profile = NULL;
 	profile_length = 0;
+}
+
+void gImage::setProfilePath(std::string ppath)
+{
+	profilepath = ppath;
 }
 
 

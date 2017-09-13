@@ -165,6 +165,7 @@ class gImage
 
 		char *profile;
 		unsigned profile_length;
+		std::string profilepath;
 		
 
 };
