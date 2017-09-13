@@ -26,7 +26,7 @@
 #define SCALE_8BIT 256.0
 #define SCALE_CURVE 256.0
 
-std::string gImage::profilepath = "bar";
+std::string gImage::profilepath = "";
 
 
 //Constructors/Destructor:
@@ -36,7 +36,6 @@ gImage::gImage()
 	w=0; 
 	h=0;
 	profile = NULL;
-	profilepath = "";
 }
 
 gImage::gImage(const gImage &o)
@@ -55,7 +54,6 @@ gImage::gImage(const gImage &o)
 		profile_length = o.profile_length;
 	}
 	else profile = NULL;
-	profilepath = "";
 }
 
 gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors, BPP bits, std::map<std::string,std::string> imageinfo, char * icc_profile, unsigned icc_profile_length)
@@ -142,8 +140,6 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 		profile = NULL;
 		profile_length = 0;
 	}
-	profilepath = "";
-
 }
 
 gImage::gImage(unsigned width, unsigned height, unsigned colors, std::map<std::string,std::string> imageinfo)
@@ -166,7 +162,6 @@ gImage::gImage(unsigned width, unsigned height, unsigned colors, std::map<std::s
 	imginfo = imageinfo;
 	profile =  NULL;
 	profile_length = 0;
-	profilepath = "";
 }
 
 
