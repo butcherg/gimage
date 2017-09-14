@@ -257,10 +257,10 @@ bool _loadJPEGInfo(const char *filename,
 			unsigned *width, 
 			unsigned *height, 
 			unsigned *numcolors, 
-			std::map<std::string,std::string> &info,
-			std::string params="",
-			char ** iccprofile=NULL, 
-			unsigned  *icclength=0)
+			std::map<std::string,std::string> &info)
+//			std::string params="",
+//			char ** iccprofile=NULL, 
+//			unsigned  *icclength=0)
 {
 	struct jpeg_decompress_struct cinfo;
 	struct jpeg_error_mgr jerr;
@@ -292,6 +292,7 @@ bool _loadJPEGInfo(const char *filename,
 		marker = marker->next;
 	}
 
+	/*
 	if (read_icc_profile (&cinfo, &buffer, &len)) {
 		*iccprofile = new char[len];
 		memcpy(*iccprofile, buffer, len);
@@ -302,6 +303,7 @@ bool _loadJPEGInfo(const char *filename,
 		*iccprofile = NULL;
 		*icclength = 0;
 	}
+	*/
 
 	*width = cinfo.image_width;
 	*height = cinfo.image_height;

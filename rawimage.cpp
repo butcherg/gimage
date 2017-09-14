@@ -41,7 +41,7 @@ bool _loadRAWInfo(const char *filename,
 // #define OUT RawProcessor.imgdata.params
 
 	if (RawProcessor.open_file(filename) == LIBRAW_SUCCESS) {
-		RawProcessor.unpack();
+		//RawProcessor.unpack();
 
 		info["ISOSpeedRatings"] = tostr(P2.iso_speed);  
 		info["ExposureTime"] = tostr(P2.shutter);  

@@ -386,7 +386,7 @@ std::map<std::string,std::string> gImage::getInfo(const char * filename)
 	
 	if (ftype == FILETYPE_TIFF) _loadTIFFInfo(filename, &width, &height, &colors, &bpp, imgdata);
 	if (ftype == FILETYPE_RAW) _loadRAWInfo(filename, &width, &height, &colors, &bpp, imgdata);
-	if (ftype == FILETYPE_JPEG) _loadJPEGInfo(filename, &width, &height, &colors, imgdata, "", &iccprofile, &icclength);
+	if (ftype == FILETYPE_JPEG) _loadJPEGInfo(filename, &width, &height, &colors, imgdata);
 	return imgdata;
 }
 
@@ -2226,13 +2226,13 @@ std::map<std::string,std::string> gImage::loadImageFileInfo(const char * filenam
 	GIMAGE_FILETYPE ext = gImage::getFileType(filename);
 
 	if (ext == FILETYPE_TIFF) {
-		_loadTIFF(filename, &width, &height, &colors, &bpp, imgdata, params, &iccprofile, &icclength);
+		_loadTIFFInfo(filename, &width, &height, &colors, &bpp, imgdata); 
 	}
 	else if (ext == FILETYPE_JPEG) {
-		_loadJPEG(filename, &width, &height, &colors, imgdata, "", &iccprofile, &icclength);
+		_loadJPEGInfo(filename, &width, &height, &colors, imgdata); 
 	}
 	else {
-		_loadRAW(filename, &width, &height, &colors, &bpp, imgdata, params, &iccprofile, &icclength);
+		_loadRAWInfo(filename, &width, &height, &colors, &bpp, imgdata); 
 	}
 	return imgdata;
 }
