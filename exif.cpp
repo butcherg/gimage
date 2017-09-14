@@ -32,6 +32,11 @@ int main(int argc, char * argv[])
 	char *tags, *tag;
 
 	const char *shottags = "ExposureTime,FNumber,FocalLength,ISOSpeedRatings";
+	
+	if (argc == 1) {
+		printf("Usage: exif [-f] [-t tag1,tag2,...] [-s]\n\n\t-f: Show filename\n\t-t taglist: Show specific tags\n\t-s: Show predefined shot tags - %s\n",shottags);
+		exit(0);
+	}
 
 	while ((c = getopt (argc, argv, "fst:")) != -1) { 
 		switch (c)
