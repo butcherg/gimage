@@ -161,10 +161,12 @@ char * _loadRAW(const char *filename,
 	if (p.find("output_bps") != p.end()) 
 		RawProcessor.imgdata.params.gamm[0] = atoi(p["bps"].c_str());
 
-	//# Gamma:  three ways to set it:
-	//#       1. gamma=preset
-	//#       2. gammaval=2.222;gammatoe=4.5
-	//#       3. gamm=2.222,4.5
+	//#
+	//# Gamma:  three ways to set it:<ol>
+	//#       <li>gamma=preset
+	//#       <li>gammaval=2.222;gammatoe=4.5
+	//#       <li>gamm=2.222,4.5</ol>
+	//#
 	//#
 	//#    gamma=bt709|srgb|linear|prophoto - Gamma presets
 	//#
@@ -197,6 +199,7 @@ char * _loadRAW(const char *filename,
 	if (p.find("gammatoe") != p.end()) 
 		RawProcessor.imgdata.params.gamm[0] = atof(p["gammatoe"].c_str());
 
+	//#
 	//#    gamm=2.222,4.5 - Set gamm[0] and gamm[1]
 	//#
 	if (p.find("gamm") != p.end()) {
@@ -276,8 +279,8 @@ char * _loadRAW(const char *filename,
 		RawProcessor.imgdata.params.bright = atof(p["bright"].c_str());
 
 	//#
-	//# threshold=100-1000 - wavelet denoising threshold
-	//# wavelet_denoise - alias for threshold
+	//# threshold=100-1000 - wavelet denoising threshold<br>
+	//# wavelet_denoise - alias for threshold<br>
 	//# From the dcraw manpage: "Use wavelets to erase noise while preserving real detail. The best threshold should be somewhere between 100 and 1000."
 	//#
 	if (p.find("threshold") != p.end()) 
@@ -438,7 +441,7 @@ char * _loadRAW(const char *filename,
 		RawProcessor.imgdata.params.dcb_enhance_fl = atoi(p["dcb_enhance_fl"].c_str());
 
 	//#
-	//# fbdd_noiserd=n - FBDD noise reduction, before demosaic
+	//# fbdd_noiserd=n - FBDD noise reduction, before demosaic<br>
 	//# fbdd_denoise - alias for fbdd_noiserd
 	//#
 	if (p.find("fbdd_noiserd") != p.end()) 
@@ -490,8 +493,8 @@ char * _loadRAW(const char *filename,
 		RawProcessor.imgdata.params.linenoise = atof(p["linenoise"].c_str());
 
 	//#
-	//# cfa_clean=0|1 - Turns on impulse noise and Gaussian high frequency reduction
-	//# lclean=0.005 to 0.05 - Amount of luminance reduction, 0.01 is a common value
+	//# cfa_clean=0|1 - Turns on impulse noise and Gaussian high frequency reduction<br>
+	//# lclean=0.005 to 0.05 - Amount of luminance reduction, 0.01 is a common value<br>
 	//# cclean=0.005 to 0.05 - Amount of color reduction, 0.01 is a common value
 	//#
 	if (p.find("cfa_clean") != p.end()) 
@@ -502,7 +505,7 @@ char * _loadRAW(const char *filename,
 		RawProcessor.imgdata.params.cclean = atof(p["cclean"].c_str());
 
 	//#
-	//# cfa_green=0|1 - Turns on reduction of maze artifacts produced by bad balance of green channels
+	//# cfa_green=0|1 - Turns on reduction of maze artifacts produced by bad balance of green channels<br>
 	//# green_thresh=0.01 to 0.1 - Max difference between channels allowed for equalization 
 	//#
 	if (p.find("cfa_green") != p.end()) 
@@ -511,9 +514,9 @@ char * _loadRAW(const char *filename,
 		RawProcessor.imgdata.params.green_thresh = atof(p["green_thresh"].c_str());
 
 	//#
-	//# exp_correc=0|1 - Turns on exposure correction before demosaic
-	//# exp_shift=0.25 (2 stops darken) to 8.0 (3 stops lighten), default 1.0=no shift
-	//# exp_preser=0.0 to 1.0 Preserve hightlights when lightening the image
+	//# exp_correc=0|1 - Turns on exposure correction before demosaic<br>
+	//# exp_shift=1.0 - From 0.25 (2 stops darken) to 8.0 (3 stops lighten), default 1.0=no shift<br>
+	//# exp_preser=0.0 to 1.0 - Preserve hightlights when lightening the image
 	//#
 	if (p.find("exp_correc") != p.end()) 
 		RawProcessor.imgdata.params.exp_correc = atoi(p["exp_correc"].c_str());
@@ -523,7 +526,7 @@ char * _loadRAW(const char *filename,
 		RawProcessor.imgdata.params.exp_preser = atof(p["exp_preser"].c_str());
 
 	//#
-	//# wf_debanding=0|1 - Turns on banding suppression
+	//# wf_debanding=0|1 - Turns on banding suppression<br>
 	//# wf_deband_threshold=tr,tg,tb,tg - Per-channel debanding thresholds
 	//#
 	if (p.find("wf_debanding") != p.end()) 
@@ -618,7 +621,7 @@ char * _loadRAW(const char *filename,
 		float gamma = 1.0/RawProcessor.imgdata.params.gamm[0];
 		if (RawProcessor.imgdata.params.output_color == 0) {  //raw image, check for cameraprofile and assign if found
 		//#
-		//# cameraprofile=iccfile - If colorspace=raw, this parameter allows assignment of a camera profile.  Unlike input.raw.cms.profile in rawproc, this parameter will provide a record of its application in the command string, so it is the preferred method for assigning camera profiles.  If the parameter is present but blank in Properties, it will be ignored.
+		//# cameraprofile=iccfile - If colorspace=raw, this parameter assigns the camera profile to the image.  Unlike input.raw.cms.profile in rawproc, this parameter will provide a record of its application in the command string, so it is the preferred method for assigning camera profiles.  If the parameter is present but blank in Properties, it will be ignored.
 		//#
 		if (p.find("cameraprofile") != p.end()) {
 				if (p["cameraprofile"] != "") {
