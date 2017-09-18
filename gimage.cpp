@@ -2060,12 +2060,12 @@ void gImage::ApplyRedeye(std::vector<coord> points, double threshold, unsigned l
 	}
 }
 
-void gImage::ApplyColorspace(std::string iccfile, cmsUInt32Number intent)
+int gImage::ApplyColorspace(std::string iccfile, cmsUInt32Number intent)
 {
 	cmsUInt32Number format;
 	cmsHTRANSFORM hTransform;
 
-	if (profile == NULL) return;
+	if (profile == NULL) return 1;
 
 	if (sizeof(PIXTYPE) == 2) format = TYPE_RGB_HALF_FLT; 
 	if (sizeof(PIXTYPE) == 4) format = TYPE_RGB_FLT;
@@ -2073,25 +2073,33 @@ void gImage::ApplyColorspace(std::string iccfile, cmsUInt32Number intent)
 
 	cmsHPROFILE gImgProf = cmsOpenProfileFromMem(profile, profile_length);
 	cmsHPROFILE hImgProf = cmsOpenProfileFromFile(iccfile.c_str(), "r");
+
+	if (!cmsIsIntentSupported(gImgProf, intent, LCMS_USED_AS_INPUT))  return 2;
+	if (!cmsIsIntentSupported(hImgProf, intent, LCMS_USED_AS_OUTPUT)) return 3;
+
 	if (gImgProf) {
 		if (hImgProf) {
 			hTransform = cmsCreateTransform(gImgProf, format, hImgProf, format, intent, 0);
+			if (hTransform == NULL) return 4;
 			cmsDoTransform(hTransform, image.data(), image.data(), w*h);
 			char * prof; cmsUInt32Number proflen;	
 			gImage::makeICCProfile(hImgProf, prof, proflen);
 			setProfile(prof, proflen);
 		}
 	}
+	return 0;
 }
 
-void gImage::AssignColorspace(std::string iccfile)
+bool gImage::AssignColorspace(std::string iccfile)
 {
 	cmsHPROFILE hImgProf = cmsOpenProfileFromFile(iccfile.c_str(), "r");
 	if (hImgProf) {
 		char * prof; cmsUInt32Number proflen;	
 		gImage::makeICCProfile(hImgProf, prof, proflen);
 		setProfile(prof, proflen);
+		return true;
 	}
+	else return false;
 }
 
 

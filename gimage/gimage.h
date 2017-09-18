@@ -129,8 +129,8 @@ class gImage
 		void ApplyWhiteBalance(double redmult, double greenmult, double bluemult, int threadcount);
 		void ApplyNLMeans(double sigma, int local, int patch, int threadcount=0);
 		void ApplyRedeye(std::vector<coord> points, double threshold, unsigned limit, bool desaturate=false, double desaturatepercent=1.0, int threadcount=0);
-		void ApplyColorspace(std::string iccfile, cmsUInt32Number intent);
-		void AssignColorspace(std::string iccfile);
+		int ApplyColorspace(std::string iccfile, cmsUInt32Number intent);
+		bool AssignColorspace(std::string iccfile);
 		
 
 		//Image loaders.  Return a new gImage
