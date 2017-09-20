@@ -103,6 +103,7 @@ char * _loadRAW(const char *filename,
 	RawProcessor.imgdata.params.use_camera_wb = 1;
 	RawProcessor.imgdata.params.output_color = 1;	//sRGB
 	RawProcessor.imgdata.params.user_qual = 3;	//AHD
+	RawProcessor.imgdata.params.no_auto_bright = 1;
 
 	RawProcessor.imgdata.params.output_bps = 16;
 
@@ -214,11 +215,7 @@ char * _loadRAW(const char *filename,
 	//# autobright=0|1 - Use dcraw automatic brightness (note the difference from libraw's no_auto_bright). Default=0, don't brighten image.  This is a scaling operation, expands the image histogram to the black/white limits. dcraw: the opposite of -W
 	//#
 	if (p.find("autobright") != p.end()) {
-		if (p["autobright"] == "")
-			RawProcessor.imgdata.params.no_auto_bright = 1; 
-		else if (p["autobright"] == "0")
-			RawProcessor.imgdata.params.no_auto_bright = 1; 
-		else if (p["autobright"] == "1")
+		if (p["autobright"] == "1")
 			RawProcessor.imgdata.params.no_auto_bright = 0; 
 	}
 
