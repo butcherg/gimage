@@ -317,7 +317,7 @@ char * _loadRAW(const char *filename,
 		RawProcessor.imgdata.params.use_auto_wb = atoi(p["use_auto_wb"].c_str());
 
 	//#
-	//# use_camera_wb=0|1 - use camera white balance, if available. dcraw: -w
+	//# use_camera_wb=0|1 - use camera white balance, if available. dcraw: -w.  Note: If no white balance option is specified, this is the default.  Further, you need to set it to 0 to use any of the others.
 	//#
 	if (p.find("use_camera_wb") != p.end()) 
 		RawProcessor.imgdata.params.use_camera_wb = atoi(p["use_camera_wb"].c_str());
