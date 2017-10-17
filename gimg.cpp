@@ -282,6 +282,8 @@ for (int f=0; f<files.size(); f++)
 
 		else if (strcmp(cmd,"blackwhitepoint") == 0) {  //#blackwhitepoint[:0-127,128-255 default=auto]
 			double blk=0.0, wht=255.0;
+			double blkthresh= 0.05, whtthresh=0.05;
+			int blklimit = 32, whtlimit = 32;
 			char *b = strtok(NULL,",");
 			char *w = strtok(NULL,", ");
 			wht = 255; blk = 0;
@@ -289,6 +291,28 @@ for (int f=0; f<files.size(); f++)
 				int i;
 				std::vector<long> hdata = dib.Histogram();
 				long hmax=0;
+				long htotal = 0;
+				
+				for (i=0; i<256; i++) htotal += hdata[i];
+
+				//find black threshold:
+				long hblack = 0;
+				for (i=1; i<blklimit; i++) {
+					hblack += hdata[i];
+					if ((double) hblack / (double) htotal > blkthresh) break;
+				}
+				blk = (double) i;
+
+
+				//find white threshold:
+				long hwhite = 0;
+				for (i=255; i>whtlimit; i--) {
+					hwhite += hdata[i];
+					if ((double) hwhite / (double) htotal > whtthresh) break;
+				}
+				wht = (double) i;
+				
+/*
 				for (i=0; i<256; i++) if (hdata[i] > hmax) hmax = hdata[i];
 				
 				//find the lower threshold, the black point
@@ -302,6 +326,7 @@ for (int f=0; f<files.size(); f++)
 				//start looking for the white point threshold right after the location of the local max:
 				for (i=l-1; i>=128; i--) if ((double)hdata[i]/(double)hmax > 0.05) break;
 				wht = (double) i;
+*/
 			}
 			else {
 				if (w) wht = atof(w);
