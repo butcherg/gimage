@@ -2060,7 +2060,7 @@ void gImage::ApplyRedeye(std::vector<coord> points, double threshold, unsigned l
 	}
 }
 
-int gImage::ApplyColorspace(std::string iccfile, cmsUInt32Number intent)
+int gImage::ApplyColorspace(std::string iccfile, cmsUInt32Number intent, int threadcount)
 {
 	cmsUInt32Number format;
 	cmsHTRANSFORM hTransform;
