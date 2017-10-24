@@ -2081,7 +2081,15 @@ int gImage::ApplyColorspace(std::string iccfile, cmsUInt32Number intent, int thr
 		if (hImgProf) {
 			hTransform = cmsCreateTransform(gImgProf, format, hImgProf, format, intent, 0);
 			if (hTransform == NULL) return 4;
-			cmsDoTransform(hTransform, image.data(), image.data(), w*h);
+			
+			pix* img = image.data();
+			#pragma omp parallel for num_threads(threadcount)
+			for (unsigned y=0; y<h; y++) {
+				unsigned pos = y*w;
+				cmsDoTransform(hTransform, &img[pos], &img[pos], w);
+
+			}
+			
 			char * prof; cmsUInt32Number proflen;	
 			gImage::makeICCProfile(hImgProf, prof, proflen);
 			setProfile(prof, proflen);
