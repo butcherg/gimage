@@ -117,7 +117,7 @@ char * _loadRAW(const char *filename,
 		rawdata = atoi(p["rawdata"].c_str());
 	
 	//#
-	//# output_color=0|1|2|3|4|5 - Output color space, dcraw: -o [0-6].  Default=1 (srgb)
+	//# output_color=0|1|2|3|4|5 - Output color space, dcraw: -o [0-6].  Default=1 (srgb)<br>
 	//# colorspace=raw|srgb|adobe|wide|prophoto|xyz - Alias of output_color, with mnemonic values. default=srgb
 	//#
 	if (p.find("colorspace") != p.end()) {
@@ -139,7 +139,7 @@ char * _loadRAW(const char *filename,
 		RawProcessor.imgdata.params.output_color = atoi(p["output_color"].c_str());
 
 	//#
-	//# user_qual=0|1|2|3|4 - Demosaic algorithm, dcraw: -q [0-3].  Default=3 (ahd)
+	//# user_qual=0|1|2|3|4 - Demosaic algorithm, dcraw: -q [0-3].  Default=3 (ahd)<br>
 	//# demosaic=linear|vng|ppg|ahd|dcb - Alias of user_qual, with mnemonic values. default=ahd
 	//#
 	if (p.find("demosaic") != p.end()) {
@@ -193,7 +193,7 @@ char * _loadRAW(const char *filename,
 	}
 
 	//#
-	//#    gammaval=2.222 - Set specific power gamma value, overrides preset, default=1.0 (linear)
+	//#    gammaval=2.222 - Set specific power gamma value, overrides preset, default=1.0 (linear)<br>
 	//#    gammatoe=4.5 - Set specific gamma toe, overrides preset, default=1.0 (linear)
 	// gamm1=4.5 - LIbRaw alias
 	//#
