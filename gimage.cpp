@@ -229,26 +229,39 @@ char * gImage::getTransformedImageData(BPP bits, cmsHPROFILE profile, cmsUInt32N
 	cmsUInt32Number informat, outformat;
 	cmsHTRANSFORM hTransform;
 	char * imagedata;
-	if (bits == BPP_16) {
-		imagedata = new char[w*h*c*2];
-		outformat = TYPE_RGB_16;
-	}
-	else if (bits == BPP_8) {
-		imagedata = new char[w*h*c];
-		outformat = TYPE_RGB_8;
-	}
-	else
-		return NULL;
+	pix* img = image.data();
 
 	if (sizeof(PIXTYPE) == 2) informat = TYPE_RGB_HALF_FLT; 
 	if (sizeof(PIXTYPE) == 4) informat = TYPE_RGB_FLT;
 	if (sizeof(PIXTYPE) == 8) informat = TYPE_RGB_DBL;
-
+	
 	hImgProfile = cmsOpenProfileFromMem(getProfile(), getProfileLength());
-
+	
 	if (hImgProfile != NULL & profile != NULL) {
-		hTransform = cmsCreateTransform(hImgProfile, informat, profile, outformat, intent, 0);
-		cmsDoTransform(hTransform, image.data(), imagedata, w*h);
+		if (bits == BPP_16) {
+			imagedata = new char[w*h*c*2];
+			outformat = TYPE_RGB_16;
+			uspix * imgdata = (uspix *) imagedata;
+			hTransform = cmsCreateTransform(hImgProfile, informat, profile, outformat, intent, 0);
+			#pragma omp parallel for
+			for (unsigned y=0; y<h; y++) {
+				unsigned pos = y*w;
+				cmsDoTransform(hTransform, &img[pos], &imgdata[pos], w);
+			}
+		}
+		else if (bits == BPP_8) {
+			imagedata = new char[w*h*c];
+			outformat = TYPE_RGB_8;
+			cpix * imgdata = (cpix *) imagedata;
+			hTransform = cmsCreateTransform(hImgProfile, informat, profile, outformat, intent, 0);
+			#pragma omp parallel for
+			for (unsigned y=0; y<h; y++) {
+				unsigned pos = y*w;
+				cmsDoTransform(hTransform, &img[pos], &imgdata[pos], w);
+			}
+		}
+		else
+			return NULL;
 	}
 
 	return imagedata;
