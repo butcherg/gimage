@@ -2073,12 +2073,15 @@ void gImage::ApplyRedeye(std::vector<coord> points, double threshold, unsigned l
 	}
 }
 
-int gImage::ApplyColorspace(std::string iccfile, cmsUInt32Number intent, int threadcount)
+int gImage::ApplyColorspace(std::string iccfile, cmsUInt32Number intent, bool blackpointcomp, int threadcount)
 {
 	cmsUInt32Number format;
 	cmsHTRANSFORM hTransform;
+	cmsUInt32Number dwFlags = 0;
 
 	if (profile == NULL) return 1;
+	
+	if (blackpointcomp) dwFlags = cmsFLAGS_BLACKPOINTCOMPENSATION;
 
 	if (sizeof(PIXTYPE) == 2) format = TYPE_RGB_HALF_FLT; 
 	if (sizeof(PIXTYPE) == 4) format = TYPE_RGB_FLT;
@@ -2092,7 +2095,7 @@ int gImage::ApplyColorspace(std::string iccfile, cmsUInt32Number intent, int thr
 
 	if (gImgProf) {
 		if (hImgProf) {
-			hTransform = cmsCreateTransform(gImgProf, format, hImgProf, format, intent, 0);
+			hTransform = cmsCreateTransform(gImgProf, format, hImgProf, format, intent, dwFlags);
 			if (hTransform == NULL) return 4;
 			
 			pix* img = image.data();
