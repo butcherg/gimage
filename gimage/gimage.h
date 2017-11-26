@@ -57,6 +57,11 @@ enum RESIZE_FILTER {
 	FILTER_LANCZOS3
 };
 
+enum GIMAGE_ERROR {
+	GIMAGE_OK,
+	GIMAGE_UNSUPPORTED_PIXELFORMAT
+};
+
 
 class gImage 
 {
@@ -87,6 +92,7 @@ class gImage
 		unsigned getProfileLength();
 		static std::string getProfilePath();
 		static void setProfilePath(std::string ppath);
+		GIMAGE_ERROR getLastError();
 		std::string Stats();
 		std::vector<long> Histogram();
 		std::vector<histogramdata> Histogram(unsigned scale);
@@ -169,6 +175,8 @@ class gImage
 		unsigned profile_length;
 		
 		static std::string profilepath;
+		
+		GIMAGE_ERROR lasterror;
 		
 
 };

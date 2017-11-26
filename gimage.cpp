@@ -36,6 +36,7 @@ gImage::gImage()
 	w=0; 
 	h=0;
 	profile = NULL;
+	lasterror = GIMAGE_OK;
 }
 
 gImage::gImage(const gImage &o)
@@ -47,6 +48,8 @@ gImage::gImage(const gImage &o)
 	
 	imginfo = o.imginfo;
 	image = o.image;
+	
+	lasterror = GIMAGE_OK;
 
 	if (o.profile) {
 		profile = new char[o.profile_length];
@@ -63,6 +66,7 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 	h=height;
 	c=colors;
 	b=bits;
+	lasterror = GIMAGE_OK;
 
 	if (bits ==BPP_16) {
 		unsigned short * src = (unsigned short *) imagedata;
@@ -149,6 +153,7 @@ gImage::gImage(unsigned width, unsigned height, unsigned colors, std::map<std::s
 	h=height;
 	c=colors;
 	b=BPP_FP;
+	lasterror = GIMAGE_OK;
 
 	for (unsigned y=0; y<height; y++) {
 		for (unsigned x=0; x<width; x++) {
@@ -359,6 +364,11 @@ std::string gImage::getBitsStr()
 		case BPP_8: return "8";
 		case BPP_16: return "16";
 	}
+}
+
+GIMAGE_ERROR gImage::getLastError()
+{
+	return lasterror;
 }
 
 
