@@ -22,7 +22,7 @@ char * _loadTIFF(const char *filename,
 			char ** icc_m=NULL, 
 			unsigned  *icclength=0);
 
-void _writeTIFF(const char *filename, 
+bool _writeTIFF(const char *filename, 
 			char *imagedata, 
 			unsigned width, 
 			unsigned height, 

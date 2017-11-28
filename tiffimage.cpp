@@ -169,7 +169,7 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 	else return NULL;
 }
 
-void _writeTIFF(const char *filename, char *imagedata, unsigned width, unsigned height, unsigned numcolors, unsigned numbits, std::map<std::string,std::string> info, char *iccprofile, unsigned iccprofilelength)
+bool _writeTIFF(const char *filename, char *imagedata, unsigned width, unsigned height, unsigned numcolors, unsigned numbits, std::map<std::string,std::string> info, char *iccprofile, unsigned iccprofilelength)
 {
 	char *img;
 	unsigned char *buf;
@@ -182,7 +182,13 @@ void _writeTIFF(const char *filename, char *imagedata, unsigned width, unsigned 
 		TIFFSetField(tif, TIFFTAG_IMAGEWIDTH, width);  
 		TIFFSetField(tif, TIFFTAG_IMAGELENGTH, height);    
 		TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, numcolors);   
-		TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, numbits);   
+		TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, numbits);
+		if (numbits == 8 | numbits == 16)
+			TIFFSetField(tif, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_UINT);
+		else if (numbits == 32)
+			TIFFSetField(tif, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP);
+		else
+			return false;
 		TIFFSetField(tif, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);   
 
 		TIFFSetField(tif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
@@ -220,5 +226,6 @@ void _writeTIFF(const char *filename, char *imagedata, unsigned width, unsigned 
 
 	(void) TIFFClose(tif);
 	if (buf) _TIFFfree(buf);
+	return true;
 }
 

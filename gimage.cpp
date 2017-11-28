@@ -226,6 +226,7 @@ std::vector<float> gImage::getPixelArray(unsigned x,  unsigned y)
 //structs for making raw images
 struct cpix { char r, g, b; };
 struct uspix { unsigned short r, g, b; };
+struct fpix { float r, g, b; };
 
 //Lets LittleCMS do both the profile transform and data type conversion:
 char * gImage::getTransformedImageData(BPP bits, cmsHPROFILE profile, cmsUInt32Number intent)
@@ -272,6 +273,45 @@ char * gImage::getTransformedImageData(BPP bits, cmsHPROFILE profile, cmsUInt32N
 	return imagedata;
 }
 
+float * gImage::getImageDataFloat(bool unbounded, cmsHPROFILE profile, cmsUInt32Number intent)
+{
+	cmsHPROFILE hImgProfile;
+	cmsUInt32Number format;
+	cmsHTRANSFORM hTransform;
+	//float * imagedata;
+	unsigned imagesize = w*h;
+	fpix * imagedata = new fpix[imagesize];
+	pix * img = image.data();
+
+	if (unbounded)
+		#pragma omp parallel for
+		for (unsigned i=0; i<imagesize; i++) {
+			imagedata[i].r = (float) img[i].r;
+			imagedata[i].g = (float) img[i].g;
+			imagedata[i].b = (float) img[i].b;
+		}
+	else
+		#pragma omp parallel for
+		for (unsigned i=0; i<imagesize; i++) {
+			imagedata[i].r = fmin(fmax(img[i].r,0.0),1.0); 
+			imagedata[i].g = fmin(fmax(img[i].g,0.0),1.0); 
+			imagedata[i].b = fmin(fmax(img[i].b,0.0),1.0); 
+		}
+
+	if (profile) {
+		hImgProfile = cmsOpenProfileFromMem(getProfile(), getProfileLength());
+		if (hImgProfile != NULL & profile != NULL) {
+			hTransform = cmsCreateTransform(hImgProfile, TYPE_RGB_FLT, profile, TYPE_RGB_FLT, intent, 0);
+			cmsCloseProfile(hImgProfile);
+			cmsDoTransform(hTransform, imagedata, imagedata, imagesize);
+		}
+	}
+
+	return (float *) imagedata;
+}
+
+
+
 //Converts the data to the specified BPP integer format, then performs the profile transform:
 char * gImage::getImageData(BPP bits, cmsHPROFILE profile, cmsUInt32Number intent)
 {
@@ -281,6 +321,8 @@ char * gImage::getImageData(BPP bits, cmsHPROFILE profile, cmsUInt32Number inten
 	char * imagedata;
 	if (bits == BPP_16)
 		imagedata = new char[w*h*c*2];
+	if (bits == BPP_FP)
+		imagedata = new char[w*h*c*sizeof(float)];
 	else if (bits == BPP_8)
 		imagedata = new char[w*h*c];
 	else
@@ -312,6 +354,20 @@ char * gImage::getImageData(BPP bits, cmsHPROFILE profile, cmsUInt32Number inten
 			}
 		}
 		format = TYPE_RGB_8;
+	}
+	
+	if (bits == BPP_FP) {
+		fpix * dst = (fpix *) imagedata;
+		#pragma omp parallel for
+		for (unsigned y=0; y<h; y++) {
+			for (unsigned x=0; x<w; x++) {
+				unsigned pos = x + y*w;
+				dst[pos].r = fmin(fmax(image[pos].r,0.0),1.0); 
+				dst[pos].g = fmin(fmax(image[pos].g,0.0),1.0); 
+				dst[pos].b = fmin(fmax(image[pos].b,0.0),1.0); 
+			}
+		}
+		format = TYPE_RGB_FLT;
 	}
 
 	if (profile) {
@@ -2083,13 +2139,13 @@ void gImage::ApplyRedeye(std::vector<coord> points, double threshold, unsigned l
 	}
 }
 
-int gImage::ApplyColorspace(std::string iccfile, cmsUInt32Number intent, bool blackpointcomp, int threadcount)
+GIMAGE_ERROR gImage::ApplyColorspace(std::string iccfile, cmsUInt32Number intent, bool blackpointcomp, int threadcount)
 {
 	cmsUInt32Number format;
 	cmsHTRANSFORM hTransform;
 	cmsUInt32Number dwFlags = 0;
 
-	if (profile == NULL) return 1;
+	if (profile == NULL) {lasterror = GIMAGE_APPLYCOLORSPACE_BADPROFILE; return lasterror;}
 	
 	if (blackpointcomp) dwFlags = cmsFLAGS_BLACKPOINTCOMPENSATION;
 
@@ -2100,13 +2156,13 @@ int gImage::ApplyColorspace(std::string iccfile, cmsUInt32Number intent, bool bl
 	cmsHPROFILE gImgProf = cmsOpenProfileFromMem(profile, profile_length);
 	cmsHPROFILE hImgProf = cmsOpenProfileFromFile(iccfile.c_str(), "r");
 
-	if (!cmsIsIntentSupported(gImgProf, intent, LCMS_USED_AS_INPUT))  return 2;
-	if (!cmsIsIntentSupported(hImgProf, intent, LCMS_USED_AS_OUTPUT)) return 3;
+	if (!cmsIsIntentSupported(gImgProf, intent, LCMS_USED_AS_INPUT))  {lasterror = GIMAGE_APPLYCOLORSPACE_BADINTENT; return lasterror;}
+	if (!cmsIsIntentSupported(hImgProf, intent, LCMS_USED_AS_OUTPUT)) {lasterror = GIMAGE_APPLYCOLORSPACE_BADINTENT; return lasterror;}
 
 	if (gImgProf) {
 		if (hImgProf) {
 			hTransform = cmsCreateTransform(gImgProf, format, hImgProf, format, intent, dwFlags);
-			if (hTransform == NULL) return 4;
+			if (hTransform == NULL) {lasterror = GIMAGE_APPLYCOLORSPACE_BADTRANSFORM; return lasterror;}
 			
 			pix* img = image.data();
 			#pragma omp parallel for num_threads(threadcount)
@@ -2121,7 +2177,7 @@ int gImage::ApplyColorspace(std::string iccfile, cmsUInt32Number intent, bool bl
 			setProfile(prof, proflen);
 		}
 	}
-	return 0;
+	{lasterror = GIMAGE_OK; return lasterror;}
 }
 
 bool gImage::AssignColorspace(std::string iccfile)
@@ -2131,9 +2187,13 @@ bool gImage::AssignColorspace(std::string iccfile)
 		char * prof; cmsUInt32Number proflen;	
 		gImage::makeICCProfile(hImgProf, prof, proflen);
 		setProfile(prof, proflen);
-		return true;
+		lasterror = GIMAGE_OK; 
+		return lasterror;
 	}
-	else return false;
+	else {
+		lasterror = GIMAGE_ASSIGNCOLORSPACE_BADTRANSFORM; 
+		return lasterror;
+	}
 }
 
 
@@ -2339,6 +2399,24 @@ gImage gImage::loadTIFF(const char * filename, std::string params)
 
 //Savers:
 
+GIMAGE_ERROR gImage::saveImageFile(const char * filename, BPP bits, std::string params, cmsHPROFILE profile, cmsUInt32Number intent)
+{
+	char ext[5];
+	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
+	if (strcmp(ext,"tif") == 0) {
+		if (profile)
+			return saveTIFF(filename, bits, profile, intent);
+		else
+			return saveTIFF(filename, bits);
+	}
+	if (strcmp(ext,"jpg") == 0) {
+		if (profile)
+			return saveJPEG(filename, bits, params, profile, intent);
+		else
+			return saveJPEG(filename, bits, params);
+	}
+}
+
 bool gImage::saveImageFile(const char * filename, std::string params, cmsHPROFILE profile, cmsUInt32Number intent)
 {
 	char ext[5];
@@ -2352,40 +2430,49 @@ bool gImage::saveImageFile(const char * filename, std::string params, cmsHPROFIL
 	}
 	if (strcmp(ext,"jpg") == 0) {
 		if (profile)
-			saveJPEG(filename, params, profile, intent);
+			saveJPEG(filename, BPP_8, params, profile, intent);
 		else
-			saveJPEG(filename, params);
+			saveJPEG(filename, BPP_8, params);
 		return true;
 	}
 	return false;
 }
 
 
-void gImage::saveJPEG(const char * filename, std::string params, cmsHPROFILE profile, cmsUInt32Number intent)
+GIMAGE_ERROR gImage::saveJPEG(const char * filename, BPP bits, std::string params, cmsHPROFILE profile, cmsUInt32Number intent)
 {
+	unsigned b = 8;
+	if (bits == BPP_8)  b = 8;
+	else {lasterror = GIMAGE_UNSUPPORTED_PIXELFORMAT; return lasterror;}
+	
 	if (profile) {
 		char * iccprofile;
 		cmsUInt32Number iccprofilesize;
 		makeICCProfile(profile, iccprofile, iccprofilesize);
 
 		//Pick one, getTransformedImageData() seems to produce less noise, but is slower:
-		_writeJPEG(filename, getTransformedImageData(BPP_8, profile, intent),  w, h, c, imginfo, params, iccprofile, iccprofilesize); 
+		_writeJPEG(filename, getTransformedImageData(BPP_8, profile, intent),  w, h, c, b, imginfo, params, iccprofile, iccprofilesize); 
 		//_writeJPEG(filename, getImageData(BPP_8, profile),  w, h, c, imginfo, params); 
 
 		delete iccprofile;
 	}
-	else
+	else {
 		if (this->profile)
-			_writeJPEG(filename, getImageData(BPP_8),  w, h, c, imginfo, params, this->profile, profile_length);
+			_writeJPEG(filename, getImageData(BPP_8),  w, h, c, b, imginfo, params, this->profile, profile_length);
 		else
-			_writeJPEG(filename, getImageData(BPP_8),  w, h, c, imginfo, params);
+			_writeJPEG(filename, getImageData(BPP_8),  w, h, c, b, imginfo, params);
+	}
+	lasterror = GIMAGE_OK; 
+	return lasterror;
 }
 
-void gImage::saveTIFF(const char * filename, BPP bits, cmsHPROFILE profile, cmsUInt32Number intent)
+GIMAGE_ERROR gImage::saveTIFF(const char * filename, BPP bits, cmsHPROFILE profile, cmsUInt32Number intent)
 {
 	unsigned b = 16;
 	if (bits == BPP_16) b = 16;
-	if (bits == BPP_8)  b = 8;
+	else if (bits == BPP_8)  b = 8;
+	else if (bits == BPP_FP) b = 32;
+	else {lasterror = GIMAGE_UNSUPPORTED_PIXELFORMAT; return lasterror;}
 
 	if (profile) {
 		char * iccprofile;
@@ -2398,11 +2485,14 @@ void gImage::saveTIFF(const char * filename, BPP bits, cmsHPROFILE profile, cmsU
 
 		delete iccprofile;
 	}
-	else
+	else {
 		if (this->profile)
 			_writeTIFF(filename, getImageData(bits),  w, h, c, b, imginfo, this->profile, profile_length);	
 		else
-			_writeTIFF(filename, getImageData(bits),  w, h, c, b, imginfo);		
+			_writeTIFF(filename, getImageData(bits),  w, h, c, b, imginfo);	
+	}
+	lasterror = GIMAGE_OK; 
+	return lasterror;
 }
 
 
