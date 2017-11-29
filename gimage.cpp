@@ -305,6 +305,17 @@ char * gImage::getTransformedImageData(BPP bits, cmsHPROFILE profile, cmsUInt32N
 				cmsDoTransform(hTransform, &img[pos], &imgdata[pos], w);
 			}
 		}
+		else if (bits == BPP_FP) {
+			imagedata = new char[w*h*c*sizeof(float)];
+			outformat = TYPE_RGB_FLT;
+			fpix * imgdata = (fpix *) imagedata;
+			hTransform = cmsCreateTransform(hImgProfile, informat, profile, outformat, intent, 0);
+			#pragma omp parallel for
+			for (unsigned y=0; y<h; y++) {
+				unsigned pos = y*w;
+				cmsDoTransform(hTransform, &img[pos], &imgdata[pos], w);
+			}
+		}
 		else
 			return NULL;
 	}
