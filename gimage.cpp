@@ -100,7 +100,7 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 		}
 	}					
 
-	if (bits == BPP_8) {
+	else if (bits == BPP_8) {
 		char * src = (char *) imagedata;
 		if (colors == 1) {  //turn into a three-color grayscale
 			for (unsigned y=0; y<h; y++) {
@@ -130,6 +130,45 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 			h = 0;
 			return;
 		}
+	}
+
+	else if (bits == BPP_FP) {
+		float * src = (float *) imagedata;
+		if (colors == 1) {  //turn into a three-color grayscale
+			for (unsigned y=0; y<h; y++) {
+				for (unsigned x=0; x<w; x++) {
+					unsigned pos = x + y*w;
+					image[pos].r = src[0];
+					image[pos].g = src[0];
+					image[pos].b = src[0];
+					src += 1;
+				}
+			}
+			c = 3;
+		}
+		else if (colors == 3) {
+			for (unsigned y=0; y<height; y++) {
+				for (unsigned x=0; x<width; x++) {
+					unsigned pos = x + y*w;
+					image[pos].r = src[0];
+					image[pos].g = src[1];
+					image[pos].b = src[2];
+					src += 3;
+				}
+			}
+		}
+		else {
+			w = 0;
+			h = 0;
+			return;
+		}
+
+	}
+
+	else {
+		w = 0;
+		h = 0;
+		return;
 	}
 
 	imginfo = imageinfo;
@@ -2403,6 +2442,11 @@ gImage gImage::loadTIFF(const char * filename, std::string params)
 		case 16:
 			bits = BPP_16;
 			break;
+		case 32:
+			bits = BPP_FP;
+			break;
+		default: 
+			return gImage();
 	}
 	gImage I(image, width, height, colors, bits, imgdata, iccprofile, icclength);
 	delete [] image;

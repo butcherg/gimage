@@ -76,7 +76,7 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 		uint32* raster;
 
 		uint32 imagelength, imagewidth;
-		uint16 config, nsamples;
+		uint16 config, nsamples, sampleformat;
 
 		unsigned len;
 		char * buffer;
@@ -96,6 +96,12 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 		if (TIFFGetField(tif, TIFFTAG_LENSINFO, &infobuf))  info["LensInfo"]=infobuf; 
 		if (TIFFGetField(tif, TIFFTAG_IMAGEDESCRIPTION, &infobuf))  info["ImageDescription"]=infobuf; 
 		if (TIFFGetField(tif, TIFFTAG_DATETIME, &infobuf)) info["DateTime"]=infobuf;
+		if (TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &sampleformat)) {
+			if (sampleformat == SAMPLEFORMAT_UINT) info["SampleFormat"]="uint";
+			if (sampleformat == SAMPLEFORMAT_INT) info["SampleFormat"]="int";
+			if (sampleformat == SAMPLEFORMAT_IEEEFP) info["SampleFormat"]="float";
+			if (sampleformat == SAMPLEFORMAT_VOID) info["SampleFormat"]="void";
+		}
 
 		if (TIFFGetField(tif, TIFFTAG_ICCPROFILE, &len, &buffer)) {
 			*icc_m = new char[len];
@@ -155,7 +161,27 @@ char * _loadTIFF(const char *filename, unsigned *width, unsigned *height, unsign
 			}			
 			
 		}
-		
+		else if (b == 32) {
+			float * dst = (float *) img;
+			for (unsigned y = 0; y < h; y++){
+				TIFFReadScanline(tif, buf, y, 0);
+				float * src = (float *) buf;
+				for(unsigned x=0; x < w; x++) {
+					if (c == 1) {
+						dst[0] = (float) src[0];
+						dst+=1;
+						src+=1;
+					}
+					else if(c == 3 ){
+						dst[0] = (float) src[0];
+						dst[1] = (float) src[1];
+						dst[2] = (float) src[2];
+						dst+=3;
+						src+=3;
+					}
+				}
+			}			
+		}
 		else return NULL;
 		
 		*width = w;
