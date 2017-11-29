@@ -320,8 +320,8 @@ char * gImage::getImageData(BPP bits, cmsHPROFILE profile, cmsUInt32Number inten
 	cmsHTRANSFORM hTransform;
 	char * imagedata;
 	if (bits == BPP_16)
-		imagedata = new char[w*h*c*2];
-	if (bits == BPP_FP)
+		imagedata = new char[w*h*c*sizeof(unsigned short)];
+	else if (bits == BPP_FP)
 		imagedata = new char[w*h*c*sizeof(float)];
 	else if (bits == BPP_8)
 		imagedata = new char[w*h*c];
@@ -425,6 +425,20 @@ std::string gImage::getBitsStr()
 GIMAGE_ERROR gImage::getLastError()
 {
 	return lasterror;
+}
+
+std::string gImage::getLastErrorMessage()
+{
+	if (lasterror == GIMAGE_OK) return "GIMAGE_OK";
+	if (lasterror == GIMAGE_UNSUPPORTED_PIXELFORMAT) return "GIMAGE_UNSUPPORTED_PIXELFORMAT";
+	if (lasterror == GIMAGE_UNSUPPORTED_FILEFORMAT) return "GIMAGE_UNSUPPORTED_FILEFORMAT";
+	
+	if (lasterror == GIMAGE_APPLYCOLORSPACE_BADPROFILE) return "GIMAGE_APPLYCOLORSPACE_BADPROFILE";
+	if (lasterror == GIMAGE_APPLYCOLORSPACE_BADINTENT) return "GIMAGE_APPLYCOLORSPACE_BADINTENT";
+	if (lasterror == GIMAGE_APPLYCOLORSPACE_BADTRANSFORM) return "GIMAGE_APPLYCOLORSPACE_BADTRANSFORM";
+	
+	if (lasterror == GIMAGE_ASSIGNCOLORSPACE_BADTRANSFORM) return "GIMAGE_ASSIGNCOLORSPACE_BADTRANSFORM";
+	return "(none)";
 }
 
 
@@ -2399,43 +2413,33 @@ gImage gImage::loadTIFF(const char * filename, std::string params)
 
 //Savers:
 
-GIMAGE_ERROR gImage::saveImageFile(const char * filename, BPP bits, std::string params, cmsHPROFILE profile, cmsUInt32Number intent)
-{
-	char ext[5];
-	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
-	if (strcmp(ext,"tif") == 0) {
-		if (profile)
-			return saveTIFF(filename, bits, profile, intent);
-		else
-			return saveTIFF(filename, bits);
-	}
-	if (strcmp(ext,"jpg") == 0) {
-		if (profile)
-			return saveJPEG(filename, bits, params, profile, intent);
-		else
-			return saveJPEG(filename, bits, params);
-	}
-}
 
-bool gImage::saveImageFile(const char * filename, std::string params, cmsHPROFILE profile, cmsUInt32Number intent)
+GIMAGE_ERROR gImage::saveImageFile(const char * filename, std::string params, cmsHPROFILE profile, cmsUInt32Number intent)
 {
-	char ext[5];
-	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
-	if (strcmp(ext,"tif") == 0) {
-		if (profile)
-			saveTIFF(filename, BPP_16, profile, intent);
-		else
-			saveTIFF(filename, BPP_16);
-		return true;
+	BPP bitfmt = BPP_8;
+	std::map<std::string, std::string> p = parseparams(params);
+	if (p.find("channelformat") != p.end()) {
+		if (p["channelformat"] == "8bit")  bitfmt = BPP_8;
+		if (p["channelformat"] == "16bit") bitfmt = BPP_16;
+		if (p["channelformat"] == "float") bitfmt = BPP_FP;
 	}
-	if (strcmp(ext,"jpg") == 0) {
+
+	GIMAGE_FILETYPE ftype = gImage::getFileNameType(filename);
+
+	if (ftype == FILETYPE_TIFF) {
 		if (profile)
-			saveJPEG(filename, BPP_8, params, profile, intent);
+			return saveTIFF(filename, bitfmt, profile, intent);
 		else
-			saveJPEG(filename, BPP_8, params);
-		return true;
+			return saveTIFF(filename, bitfmt);
 	}
-	return false;
+	if (ftype == FILETYPE_JPEG) {
+		if (profile)
+			return saveJPEG(filename, bitfmt, params, profile, intent);
+		else
+			return saveJPEG(filename, bitfmt, params);
+	}
+	lasterror = GIMAGE_UNSUPPORTED_FILEFORMAT; 
+	return lasterror;
 }
 
 
@@ -2468,7 +2472,7 @@ GIMAGE_ERROR gImage::saveJPEG(const char * filename, BPP bits, std::string param
 
 GIMAGE_ERROR gImage::saveTIFF(const char * filename, BPP bits, cmsHPROFILE profile, cmsUInt32Number intent)
 {
-	unsigned b = 16;
+	unsigned b = 0;
 	if (bits == BPP_16) b = 16;
 	else if (bits == BPP_8)  b = 8;
 	else if (bits == BPP_FP) b = 32;

@@ -60,6 +60,7 @@ enum RESIZE_FILTER {
 enum GIMAGE_ERROR {
 	GIMAGE_OK,
 	GIMAGE_UNSUPPORTED_PIXELFORMAT,
+	GIMAGE_UNSUPPORTED_FILEFORMAT,
 	
 	GIMAGE_APPLYCOLORSPACE_BADPROFILE,
 	GIMAGE_APPLYCOLORSPACE_BADINTENT,
@@ -100,6 +101,7 @@ class gImage
 		static std::string getProfilePath();
 		static void setProfilePath(std::string ppath);
 		GIMAGE_ERROR getLastError();
+		std::string getLastErrorMessage();
 		std::string Stats();
 		std::vector<long> Histogram();
 		std::vector<histogramdata> Histogram(unsigned scale);
@@ -154,8 +156,7 @@ class gImage
 		static std::map<std::string,std::string> loadImageFileInfo(const char * filename);
 
 		//Image savers. 
-		bool saveImageFile(const char * filename, std::string params="", cmsHPROFILE profile=NULL, cmsUInt32Number intent=INTENT_PERCEPTUAL);
-		GIMAGE_ERROR saveImageFile(const char * filename, BPP bits, std::string params="", cmsHPROFILE profile=NULL, cmsUInt32Number intent=INTENT_PERCEPTUAL);
+		GIMAGE_ERROR saveImageFile(const char * filename, std::string params="", cmsHPROFILE profile=NULL, cmsUInt32Number intent=INTENT_PERCEPTUAL);
 		GIMAGE_ERROR saveJPEG(const char * filename, BPP bits, std::string params="", cmsHPROFILE profile=NULL, cmsUInt32Number intent=INTENT_PERCEPTUAL);
 		GIMAGE_ERROR saveTIFF(const char * filename, BPP bits, cmsHPROFILE profile=NULL, cmsUInt32Number intent=INTENT_PERCEPTUAL);
 
