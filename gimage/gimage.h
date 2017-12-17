@@ -14,6 +14,10 @@
 #define PIXTYPE float
 #endif
 
+extern "C" {
+	std::string gImageVersion();
+}
+
 using half_float::half;
 
 struct pix {
