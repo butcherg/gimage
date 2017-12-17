@@ -8,6 +8,7 @@
 #include <algorithm> 
 #include <sstream>
 #include <omp.h>
+#include <exception>
 
 #include "rawimage.h"
 #include "jpegimage.h"
@@ -2509,9 +2510,16 @@ GIMAGE_ERROR gImage::saveJPEG(const char * filename, BPP bits, std::string param
 		cmsUInt32Number iccprofilesize;
 		makeICCProfile(profile, iccprofile, iccprofilesize);
 
-		//Pick one, getTransformedImageData() seems to produce less noise, but is slower:
-		_writeJPEG(filename, getTransformedImageData(BPP_8, profile, intent),  w, h, c, b, imginfo, params, iccprofile, iccprofilesize); 
-		//_writeJPEG(filename, getImageData(BPP_8, profile),  w, h, c, imginfo, params); 
+		try {
+			//Pick one, getTransformedImageData() seems to produce less noise, but is slower:
+			_writeJPEG(filename, getTransformedImageData(BPP_8, profile, intent),  w, h, c, b, imginfo, params, iccprofile, iccprofilesize); 
+			//_writeJPEG(filename, getImageData(BPP_8, profile),  w, h, c, imginfo, params); 
+		}
+		catch (std::exception &e) {
+			lasterror = GIMAGE_EXCEPTION;
+			delete iccprofile;
+			return lasterror;
+		}
 
 		delete iccprofile;
 	}
@@ -2538,9 +2546,16 @@ GIMAGE_ERROR gImage::saveTIFF(const char * filename, BPP bits, cmsHPROFILE profi
 		cmsUInt32Number iccprofilesize;
 		makeICCProfile(profile, iccprofile, iccprofilesize);
 
-		//Pick one, getTransformedImageData() seems to produce less noise, but is slower:
-		_writeTIFF(filename, getTransformedImageData(bits, profile, intent),  w, h, c, b, imginfo, iccprofile, iccprofilesize);
-		//_writeTIFF(filename, getImageData(bits, profile),  w, h, c, b, imginfo, iccprofile, iccprofilesize);
+		try {
+			//Pick one, getTransformedImageData() seems to produce less noise, but is slower:
+			_writeTIFF(filename, getTransformedImageData(bits, profile, intent),  w, h, c, b, imginfo, iccprofile, iccprofilesize);
+			//_writeTIFF(filename, getImageData(bits, profile),  w, h, c, b, imginfo, iccprofile, iccprofilesize);
+		}
+		catch (std::exception &e) {
+			lasterror = GIMAGE_EXCEPTION;
+			delete iccprofile;
+			return lasterror;
+		}
 
 		delete iccprofile;
 	}
