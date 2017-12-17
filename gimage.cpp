@@ -481,6 +481,7 @@ GIMAGE_ERROR gImage::getLastError()
 std::string gImage::getLastErrorMessage()
 {
 	if (lasterror == GIMAGE_OK) return "GIMAGE_OK";
+	if (lasterror == GIMAGE_EXCEPTION) return "GIMAGE_EXCEPTION";
 	if (lasterror == GIMAGE_UNSUPPORTED_PIXELFORMAT) return "GIMAGE_UNSUPPORTED_PIXELFORMAT";
 	if (lasterror == GIMAGE_UNSUPPORTED_FILEFORMAT) return "GIMAGE_UNSUPPORTED_FILEFORMAT";
 	
