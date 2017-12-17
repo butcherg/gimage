@@ -399,16 +399,18 @@ char * _loadJPEG(const char *filename,
 
 
 
-void _writeJPEG(const char *filename, 
+bool _writeJPEG(const char *filename, 
 			char *imagedata, 
 			unsigned width, 
 			unsigned height, 
-			unsigned numcolors, 
+			unsigned numcolors,
+			unsigned numbits,
 			std::map<std::string,std::string> info,
 			std::string params,
 			char *iccprofile, 
 			unsigned iccprofilelength)
 {
+	if (numbits != 8) return false;
 
 	std::map<std::string,std::string> p = parseparams(params);
 
@@ -432,7 +434,8 @@ void _writeJPEG(const char *filename,
 
 	if ((outfile = fopen(filename, "wb")) == NULL) {
 	    fprintf(stderr, "can't open %s\n", filename);
-	    exit(1);
+	    //exit(1);
+		return false;
 	}
 	jpeg_stdio_dest(&cinfo, outfile);
 
@@ -467,6 +470,8 @@ void _writeJPEG(const char *filename,
 	jpeg_destroy_compress(&cinfo);
 
 	fclose(outfile);
+	
+	return true;
 
 }
 

@@ -637,10 +637,11 @@ for (int f=0; f<files.size(); f++)
 	//printf("Saving file %s %s... ",outfile[0].c_str(), outfile[1].c_str());
 	printf("Saving file %s %s... ",outfilename, outfile[1].c_str());
 	dib.setInfo("Software","gimg 0.1");
-	if (dib.saveImageFile(outfilename, outfile[1].c_str())) 
+
+	if (dib.saveImageFile(outfilename, outfile[1].c_str()) == GIMAGE_OK) 
 		printf("done. (%fsec)\n\n",_duration());
 	else
-		printf("Error: bad output file specification: %s\n\n",outfile[0].c_str());
+		printf("Error: %s: %s\n\n",dib.getLastErrorMessage().c_str(), outfile[0].c_str());
 
 }
 

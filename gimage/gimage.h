@@ -59,7 +59,14 @@ enum RESIZE_FILTER {
 
 enum GIMAGE_ERROR {
 	GIMAGE_OK,
-	GIMAGE_UNSUPPORTED_PIXELFORMAT
+	GIMAGE_UNSUPPORTED_PIXELFORMAT,
+	GIMAGE_UNSUPPORTED_FILEFORMAT,
+	
+	GIMAGE_APPLYCOLORSPACE_BADPROFILE,
+	GIMAGE_APPLYCOLORSPACE_BADINTENT,
+	GIMAGE_APPLYCOLORSPACE_BADTRANSFORM,
+	
+	GIMAGE_ASSIGNCOLORSPACE_BADTRANSFORM
 };
 
 
@@ -78,6 +85,7 @@ class gImage
 		pix getPixel(unsigned x,  unsigned y);
 		std::vector<float> getPixelArray(unsigned x,  unsigned y);
 		char *getImageData(BPP bits, cmsHPROFILE profile=NULL, cmsUInt32Number intent=INTENT_PERCEPTUAL);
+		float * getImageDataFloat(bool unbounded, cmsHPROFILE profile=NULL, cmsUInt32Number intent=INTENT_PERCEPTUAL);
 		char *getTransformedImageData(BPP bits, cmsHPROFILE profile, cmsUInt32Number intent=INTENT_PERCEPTUAL);
 		std::vector<pix>& getImageData();
 		pix* getImageDataRaw();
@@ -93,6 +101,7 @@ class gImage
 		static std::string getProfilePath();
 		static void setProfilePath(std::string ppath);
 		GIMAGE_ERROR getLastError();
+		std::string getLastErrorMessage();
 		std::string Stats();
 		std::vector<long> Histogram();
 		std::vector<histogramdata> Histogram(unsigned scale);
@@ -135,7 +144,7 @@ class gImage
 		void ApplyWhiteBalance(double redmult, double greenmult, double bluemult, int threadcount);
 		void ApplyNLMeans(double sigma, int local, int patch, int threadcount=0);
 		void ApplyRedeye(std::vector<coord> points, double threshold, unsigned limit, bool desaturate=false, double desaturatepercent=1.0, int threadcount=0);
-		int ApplyColorspace(std::string iccfile, cmsUInt32Number intent, bool blackpointcomp=false, int threadcount=0);
+		GIMAGE_ERROR ApplyColorspace(std::string iccfile, cmsUInt32Number intent, bool blackpointcomp=false, int threadcount=0);
 		bool AssignColorspace(std::string iccfile);
 		
 
@@ -147,9 +156,9 @@ class gImage
 		static std::map<std::string,std::string> loadImageFileInfo(const char * filename);
 
 		//Image savers. 
-		bool saveImageFile(const char * filename, std::string params="", cmsHPROFILE profile=NULL, cmsUInt32Number intent=INTENT_PERCEPTUAL);
-		void saveJPEG(const char * filename, std::string params="", cmsHPROFILE profile=NULL, cmsUInt32Number intent=INTENT_PERCEPTUAL);
-		void saveTIFF(const char * filename, BPP bits, cmsHPROFILE profile=NULL, cmsUInt32Number intent=INTENT_PERCEPTUAL);
+		GIMAGE_ERROR saveImageFile(const char * filename, std::string params="", cmsHPROFILE profile=NULL, cmsUInt32Number intent=INTENT_PERCEPTUAL);
+		GIMAGE_ERROR saveJPEG(const char * filename, BPP bits, std::string params="", cmsHPROFILE profile=NULL, cmsUInt32Number intent=INTENT_PERCEPTUAL);
+		GIMAGE_ERROR saveTIFF(const char * filename, BPP bits, cmsHPROFILE profile=NULL, cmsUInt32Number intent=INTENT_PERCEPTUAL);
 
 		//ICC (LittleCMS) profiles.
 		static cmsHPROFILE makeLCMSProfile(const std::string name, float gamma);

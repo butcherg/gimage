@@ -100,7 +100,7 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 		}
 	}					
 
-	if (bits == BPP_8) {
+	else if (bits == BPP_8) {
 		char * src = (char *) imagedata;
 		if (colors == 1) {  //turn into a three-color grayscale
 			for (unsigned y=0; y<h; y++) {
@@ -130,6 +130,45 @@ gImage::gImage(char *imagedata, unsigned width, unsigned height, unsigned colors
 			h = 0;
 			return;
 		}
+	}
+
+	else if (bits == BPP_FP) {
+		float * src = (float *) imagedata;
+		if (colors == 1) {  //turn into a three-color grayscale
+			for (unsigned y=0; y<h; y++) {
+				for (unsigned x=0; x<w; x++) {
+					unsigned pos = x + y*w;
+					image[pos].r = src[0];
+					image[pos].g = src[0];
+					image[pos].b = src[0];
+					src += 1;
+				}
+			}
+			c = 3;
+		}
+		else if (colors == 3) {
+			for (unsigned y=0; y<height; y++) {
+				for (unsigned x=0; x<width; x++) {
+					unsigned pos = x + y*w;
+					image[pos].r = src[0];
+					image[pos].g = src[1];
+					image[pos].b = src[2];
+					src += 3;
+				}
+			}
+		}
+		else {
+			w = 0;
+			h = 0;
+			return;
+		}
+
+	}
+
+	else {
+		w = 0;
+		h = 0;
+		return;
 	}
 
 	imginfo = imageinfo;
@@ -226,6 +265,7 @@ std::vector<float> gImage::getPixelArray(unsigned x,  unsigned y)
 //structs for making raw images
 struct cpix { char r, g, b; };
 struct uspix { unsigned short r, g, b; };
+struct fpix { float r, g, b; };
 
 //Lets LittleCMS do both the profile transform and data type conversion:
 char * gImage::getTransformedImageData(BPP bits, cmsHPROFILE profile, cmsUInt32Number intent)
@@ -265,12 +305,62 @@ char * gImage::getTransformedImageData(BPP bits, cmsHPROFILE profile, cmsUInt32N
 				cmsDoTransform(hTransform, &img[pos], &imgdata[pos], w);
 			}
 		}
+		else if (bits == BPP_FP) {
+			imagedata = new char[w*h*c*sizeof(float)];
+			outformat = TYPE_RGB_FLT;
+			fpix * imgdata = (fpix *) imagedata;
+			hTransform = cmsCreateTransform(hImgProfile, informat, profile, outformat, intent, 0);
+			#pragma omp parallel for
+			for (unsigned y=0; y<h; y++) {
+				unsigned pos = y*w;
+				cmsDoTransform(hTransform, &img[pos], &imgdata[pos], w);
+			}
+		}
 		else
 			return NULL;
 	}
 
 	return imagedata;
 }
+
+float * gImage::getImageDataFloat(bool unbounded, cmsHPROFILE profile, cmsUInt32Number intent)
+{
+	cmsHPROFILE hImgProfile;
+	cmsUInt32Number format;
+	cmsHTRANSFORM hTransform;
+	//float * imagedata;
+	unsigned imagesize = w*h;
+	fpix * imagedata = new fpix[imagesize];
+	pix * img = image.data();
+
+	if (unbounded)
+		#pragma omp parallel for
+		for (unsigned i=0; i<imagesize; i++) {
+			imagedata[i].r = (float) img[i].r;
+			imagedata[i].g = (float) img[i].g;
+			imagedata[i].b = (float) img[i].b;
+		}
+	else
+		#pragma omp parallel for
+		for (unsigned i=0; i<imagesize; i++) {
+			imagedata[i].r = fmin(fmax(img[i].r,0.0),1.0); 
+			imagedata[i].g = fmin(fmax(img[i].g,0.0),1.0); 
+			imagedata[i].b = fmin(fmax(img[i].b,0.0),1.0); 
+		}
+
+	if (profile) {
+		hImgProfile = cmsOpenProfileFromMem(getProfile(), getProfileLength());
+		if (hImgProfile != NULL & profile != NULL) {
+			hTransform = cmsCreateTransform(hImgProfile, TYPE_RGB_FLT, profile, TYPE_RGB_FLT, intent, 0);
+			cmsCloseProfile(hImgProfile);
+			cmsDoTransform(hTransform, imagedata, imagedata, imagesize);
+		}
+	}
+
+	return (float *) imagedata;
+}
+
+
 
 //Converts the data to the specified BPP integer format, then performs the profile transform:
 char * gImage::getImageData(BPP bits, cmsHPROFILE profile, cmsUInt32Number intent)
@@ -280,7 +370,9 @@ char * gImage::getImageData(BPP bits, cmsHPROFILE profile, cmsUInt32Number inten
 	cmsHTRANSFORM hTransform;
 	char * imagedata;
 	if (bits == BPP_16)
-		imagedata = new char[w*h*c*2];
+		imagedata = new char[w*h*c*sizeof(unsigned short)];
+	else if (bits == BPP_FP)
+		imagedata = new char[w*h*c*sizeof(float)];
 	else if (bits == BPP_8)
 		imagedata = new char[w*h*c];
 	else
@@ -312,6 +404,20 @@ char * gImage::getImageData(BPP bits, cmsHPROFILE profile, cmsUInt32Number inten
 			}
 		}
 		format = TYPE_RGB_8;
+	}
+	
+	if (bits == BPP_FP) {
+		fpix * dst = (fpix *) imagedata;
+		#pragma omp parallel for
+		for (unsigned y=0; y<h; y++) {
+			for (unsigned x=0; x<w; x++) {
+				unsigned pos = x + y*w;
+				dst[pos].r = fmin(fmax(image[pos].r,0.0),1.0); 
+				dst[pos].g = fmin(fmax(image[pos].g,0.0),1.0); 
+				dst[pos].b = fmin(fmax(image[pos].b,0.0),1.0); 
+			}
+		}
+		format = TYPE_RGB_FLT;
 	}
 
 	if (profile) {
@@ -369,6 +475,20 @@ std::string gImage::getBitsStr()
 GIMAGE_ERROR gImage::getLastError()
 {
 	return lasterror;
+}
+
+std::string gImage::getLastErrorMessage()
+{
+	if (lasterror == GIMAGE_OK) return "GIMAGE_OK";
+	if (lasterror == GIMAGE_UNSUPPORTED_PIXELFORMAT) return "GIMAGE_UNSUPPORTED_PIXELFORMAT";
+	if (lasterror == GIMAGE_UNSUPPORTED_FILEFORMAT) return "GIMAGE_UNSUPPORTED_FILEFORMAT";
+	
+	if (lasterror == GIMAGE_APPLYCOLORSPACE_BADPROFILE) return "GIMAGE_APPLYCOLORSPACE_BADPROFILE";
+	if (lasterror == GIMAGE_APPLYCOLORSPACE_BADINTENT) return "GIMAGE_APPLYCOLORSPACE_BADINTENT";
+	if (lasterror == GIMAGE_APPLYCOLORSPACE_BADTRANSFORM) return "GIMAGE_APPLYCOLORSPACE_BADTRANSFORM";
+	
+	if (lasterror == GIMAGE_ASSIGNCOLORSPACE_BADTRANSFORM) return "GIMAGE_ASSIGNCOLORSPACE_BADTRANSFORM";
+	return "(none)";
 }
 
 
@@ -2083,13 +2203,13 @@ void gImage::ApplyRedeye(std::vector<coord> points, double threshold, unsigned l
 	}
 }
 
-int gImage::ApplyColorspace(std::string iccfile, cmsUInt32Number intent, bool blackpointcomp, int threadcount)
+GIMAGE_ERROR gImage::ApplyColorspace(std::string iccfile, cmsUInt32Number intent, bool blackpointcomp, int threadcount)
 {
 	cmsUInt32Number format;
 	cmsHTRANSFORM hTransform;
 	cmsUInt32Number dwFlags = 0;
 
-	if (profile == NULL) return 1;
+	if (profile == NULL) {lasterror = GIMAGE_APPLYCOLORSPACE_BADPROFILE; return lasterror;}
 	
 	if (blackpointcomp) dwFlags = cmsFLAGS_BLACKPOINTCOMPENSATION;
 
@@ -2100,13 +2220,13 @@ int gImage::ApplyColorspace(std::string iccfile, cmsUInt32Number intent, bool bl
 	cmsHPROFILE gImgProf = cmsOpenProfileFromMem(profile, profile_length);
 	cmsHPROFILE hImgProf = cmsOpenProfileFromFile(iccfile.c_str(), "r");
 
-	if (!cmsIsIntentSupported(gImgProf, intent, LCMS_USED_AS_INPUT))  return 2;
-	if (!cmsIsIntentSupported(hImgProf, intent, LCMS_USED_AS_OUTPUT)) return 3;
+	if (!cmsIsIntentSupported(gImgProf, intent, LCMS_USED_AS_INPUT))  {lasterror = GIMAGE_APPLYCOLORSPACE_BADINTENT; return lasterror;}
+	if (!cmsIsIntentSupported(hImgProf, intent, LCMS_USED_AS_OUTPUT)) {lasterror = GIMAGE_APPLYCOLORSPACE_BADINTENT; return lasterror;}
 
 	if (gImgProf) {
 		if (hImgProf) {
 			hTransform = cmsCreateTransform(gImgProf, format, hImgProf, format, intent, dwFlags);
-			if (hTransform == NULL) return 4;
+			if (hTransform == NULL) {lasterror = GIMAGE_APPLYCOLORSPACE_BADTRANSFORM; return lasterror;}
 			
 			pix* img = image.data();
 			#pragma omp parallel for num_threads(threadcount)
@@ -2121,7 +2241,7 @@ int gImage::ApplyColorspace(std::string iccfile, cmsUInt32Number intent, bool bl
 			setProfile(prof, proflen);
 		}
 	}
-	return 0;
+	{lasterror = GIMAGE_OK; return lasterror;}
 }
 
 bool gImage::AssignColorspace(std::string iccfile)
@@ -2131,9 +2251,13 @@ bool gImage::AssignColorspace(std::string iccfile)
 		char * prof; cmsUInt32Number proflen;	
 		gImage::makeICCProfile(hImgProf, prof, proflen);
 		setProfile(prof, proflen);
-		return true;
+		lasterror = GIMAGE_OK; 
+		return lasterror;
 	}
-	else return false;
+	else {
+		lasterror = GIMAGE_ASSIGNCOLORSPACE_BADTRANSFORM; 
+		return lasterror;
+	}
 }
 
 
@@ -2329,6 +2453,11 @@ gImage gImage::loadTIFF(const char * filename, std::string params)
 		case 16:
 			bits = BPP_16;
 			break;
+		case 32:
+			bits = BPP_FP;
+			break;
+		default: 
+			return gImage();
 	}
 	gImage I(image, width, height, colors, bits, imgdata, iccprofile, icclength);
 	delete [] image;
@@ -2339,53 +2468,70 @@ gImage gImage::loadTIFF(const char * filename, std::string params)
 
 //Savers:
 
-bool gImage::saveImageFile(const char * filename, std::string params, cmsHPROFILE profile, cmsUInt32Number intent)
+
+GIMAGE_ERROR gImage::saveImageFile(const char * filename, std::string params, cmsHPROFILE profile, cmsUInt32Number intent)
 {
-	char ext[5];
-	strncpy(ext,filename+strlen(filename)-3,3); ext[3] = '\0';
-	if (strcmp(ext,"tif") == 0) {
-		if (profile)
-			saveTIFF(filename, BPP_16, profile, intent);
-		else
-			saveTIFF(filename, BPP_16);
-		return true;
+	BPP bitfmt = BPP_8;
+	std::map<std::string, std::string> p = parseparams(params);
+	if (p.find("channelformat") != p.end()) {
+		if (p["channelformat"] == "8bit")  bitfmt = BPP_8;
+		if (p["channelformat"] == "16bit") bitfmt = BPP_16;
+		if (p["channelformat"] == "float") bitfmt = BPP_FP;
 	}
-	if (strcmp(ext,"jpg") == 0) {
+
+	GIMAGE_FILETYPE ftype = gImage::getFileNameType(filename);
+
+	if (ftype == FILETYPE_TIFF) {
 		if (profile)
-			saveJPEG(filename, params, profile, intent);
+			return saveTIFF(filename, bitfmt, profile, intent);
 		else
-			saveJPEG(filename, params);
-		return true;
+			return saveTIFF(filename, bitfmt);
 	}
-	return false;
+	if (ftype == FILETYPE_JPEG) {
+		if (profile)
+			return saveJPEG(filename, bitfmt, params, profile, intent);
+		else
+			return saveJPEG(filename, bitfmt, params);
+	}
+	lasterror = GIMAGE_UNSUPPORTED_FILEFORMAT; 
+	return lasterror;
 }
 
 
-void gImage::saveJPEG(const char * filename, std::string params, cmsHPROFILE profile, cmsUInt32Number intent)
+GIMAGE_ERROR gImage::saveJPEG(const char * filename, BPP bits, std::string params, cmsHPROFILE profile, cmsUInt32Number intent)
 {
+	unsigned b = 8;
+	if (bits == BPP_8)  b = 8;
+	else {lasterror = GIMAGE_UNSUPPORTED_PIXELFORMAT; return lasterror;}
+	
 	if (profile) {
 		char * iccprofile;
 		cmsUInt32Number iccprofilesize;
 		makeICCProfile(profile, iccprofile, iccprofilesize);
 
 		//Pick one, getTransformedImageData() seems to produce less noise, but is slower:
-		_writeJPEG(filename, getTransformedImageData(BPP_8, profile, intent),  w, h, c, imginfo, params, iccprofile, iccprofilesize); 
+		_writeJPEG(filename, getTransformedImageData(BPP_8, profile, intent),  w, h, c, b, imginfo, params, iccprofile, iccprofilesize); 
 		//_writeJPEG(filename, getImageData(BPP_8, profile),  w, h, c, imginfo, params); 
 
 		delete iccprofile;
 	}
-	else
+	else {
 		if (this->profile)
-			_writeJPEG(filename, getImageData(BPP_8),  w, h, c, imginfo, params, this->profile, profile_length);
+			_writeJPEG(filename, getImageData(BPP_8),  w, h, c, b, imginfo, params, this->profile, profile_length);
 		else
-			_writeJPEG(filename, getImageData(BPP_8),  w, h, c, imginfo, params);
+			_writeJPEG(filename, getImageData(BPP_8),  w, h, c, b, imginfo, params);
+	}
+	lasterror = GIMAGE_OK; 
+	return lasterror;
 }
 
-void gImage::saveTIFF(const char * filename, BPP bits, cmsHPROFILE profile, cmsUInt32Number intent)
+GIMAGE_ERROR gImage::saveTIFF(const char * filename, BPP bits, cmsHPROFILE profile, cmsUInt32Number intent)
 {
-	unsigned b = 16;
+	unsigned b = 0;
 	if (bits == BPP_16) b = 16;
-	if (bits == BPP_8)  b = 8;
+	else if (bits == BPP_8)  b = 8;
+	else if (bits == BPP_FP) b = 32;
+	else {lasterror = GIMAGE_UNSUPPORTED_PIXELFORMAT; return lasterror;}
 
 	if (profile) {
 		char * iccprofile;
@@ -2398,11 +2544,14 @@ void gImage::saveTIFF(const char * filename, BPP bits, cmsHPROFILE profile, cmsU
 
 		delete iccprofile;
 	}
-	else
+	else {
 		if (this->profile)
 			_writeTIFF(filename, getImageData(bits),  w, h, c, b, imginfo, this->profile, profile_length);	
 		else
-			_writeTIFF(filename, getImageData(bits),  w, h, c, b, imginfo);		
+			_writeTIFF(filename, getImageData(bits),  w, h, c, b, imginfo);	
+	}
+	lasterror = GIMAGE_OK; 
+	return lasterror;
 }
 
 
