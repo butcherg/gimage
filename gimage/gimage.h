@@ -15,7 +15,7 @@
 #endif
 
 extern "C" {
-	std::string gImageVersion();
+	const char * gImageVersion();
 }
 
 using half_float::half;

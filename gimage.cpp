@@ -28,7 +28,7 @@
 #define SCALE_CURVE 256.0
 
 
-std::string gImageVersion()
+const char * gImageVersion()
 {
 	return VERSION;
 }
