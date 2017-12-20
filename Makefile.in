@@ -79,20 +79,20 @@ clean:
 
 .PHONY: install
 install:
-	test -d $(DESTDIR)/usr/local/bin || install -d $(DESTDIR)/usr/local/bin/
-	test -d $(DESTDIR)/usr/local/lib || install -d $(DESTDIR)/usr/local/lib/
-	test -d $(DESTDIR)/usr/local/include/gimage || install -d $(DESTDIR)/usr/local/include/gimage
-	install -m 755 gimg$(EXT) $(DESTDIR)/usr/local/bin/gimg$(EXT)
-	install -m 755 gimg$(EXT) $(DESTDIR)/usr/local/bin/exif$(EXT)
-	install -m 644 libgimage.a $(DESTDIR)/usr/local/lib/libgimage.a
-	install -m 644 $(srcdir)/gimage/gimage.h $(DESTDIR)/usr/local/include/gimage/
-	install -m 644 $(srcdir)/gimage/curve.h $(DESTDIR)/usr/local/include/gimage/
-	install -m 644 $(srcdir)/gimage/half.hpp $(DESTDIR)/usr/local/include/gimage/
-	install -m 644 $(srcdir)/gimage/strutil.h $(DESTDIR)/usr/local/include/gimage/
+	test -d $(DESTDIR)@prefix@@bindir@ || install -d $(DESTDIR)@prefix@@bindir@
+	test -d $(DESTDIR)@prefix@@libdir@ || install -d $(DESTDIR)@prefix@@libdir@
+	test -d $(DESTDIR)@prefix@@includedir@/gimage || install -d $(DESTDIR)@prefix@@includedir@/gimage
+	install -m 755 gimg$(EXT) $(DESTDIR)@prefix@@bindir@/gimg$(EXT)
+	install -m 755 gimg$(EXT) $(DESTDIR)@prefix@@bindir@/exif$(EXT)
+	install -m 644 libgimage.a $(DESTDIR)@prefix@@libdir@/libgimage.a
+	install -m 644 @srcdir@/gimage/gimage.h $(DESTDIR)@prefix@@includedir@/gimage/
+	install -m 644 @srcdir@/gimage/curve.h $(DESTDIR)@prefix@@includedir@/gimage/
+	install -m 644 @srcdir@/gimage/half.hpp $(DESTDIR)@prefix@@includedir@/gimage/
+	install -m 644 @srcdir@/gimage/strutil.h $(DESTDIR)@prefix@@includedir@/gimage/
 
 .PHONY: uninstall
 uninstall:
-	rm -rf $(DESTDIR)/usr/local/include/gimage
-	rm -f  $(DESTDIR)/usr/local/bin/gimg$(EXT)
-	rm -f  $(DESTDIR)/usr/local/bin/exif$(EXT)
-	rm -f  $(DESTDIR)/usr/local/lib/libgimage.a
+	rm -rf $(DESTDIR)@prefix@@includedir@/gimage
+	rm -f  $(DESTDIR)@prefix@@bindir@/gimg$(EXT)
+	rm -f  $(DESTDIR)@prefix@@bindir@/exif$(EXT)
+	rm -f  $(DESTDIR)@prefix@@libdir@/libgimage.a
