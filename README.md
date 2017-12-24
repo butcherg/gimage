@@ -1,4 +1,9 @@
 # gimage
+Notice:  gimage code tree has been pulled into rawproc https://github.com/butcherg/rawproc
+and will now be maintained there. I'll try to pull major revisions back to
+this tree, but no promises...
+<hr>
+
 Simple image loader/reader/manipulator for raw, jpeg, tiff, and png
 
 This library was written to replace FreeImage in my raw image processing program, rawproc.  I was generally happy with FreeImage,
